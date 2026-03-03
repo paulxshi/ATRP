@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=Nevis&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/dashstyle.css">
+    <link rel="stylesheet" href="css/table.css">
 </head>
 <body>
 
@@ -127,491 +128,225 @@
     <label class="bcm-notes-label">Notes</label>
     <textarea class="bcm-notes-input" id="notesInput" placeholder="Add any additional notes or observations..."></textarea>
   </div>
+</div>
+</head>
+<body>
+
+<div class="bdm-wrapper">
+
+  <!-- Header -->
+  <div class="bdm-header">
+    <div class="bdm-header-left">
+      <span class="bdm-eyebrow">Behaviour Tracker</span>
+      <h1 class="bdm-title">Discontinuous <span class="bdm-title-accent">Measurement</span></h1>
+    </div>
+    <div class="bdm-header-right">
+      <button class="bdm-btn-export">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Meta Row -->
+  <div class="bdm-meta-row">
+    <div class="bdm-meta-field">
+      <span class="bdm-meta-label">Behavior</span>
+      <input class="bdm-meta-input" type="text" placeholder="Enter behavior…" style="min-width:180px;" />
+    </div>
+    <div class="bdm-meta-field">
+      <span class="bdm-meta-label">Interval</span>
+      <input class="bdm-meta-input" type="text" placeholder="e.g. 10 min" style="min-width:100px;" />
+    </div>
+    <div class="bdm-meta-field">
+      <span class="bdm-meta-label">Function</span>
+      <input class="bdm-meta-input" type="text" placeholder="e.g. Escape" style="min-width:140px;" />
+    </div>
+    <div class="bdm-meta-field">
+      <span class="bdm-meta-label">Type</span>
+      <input class="bdm-meta-input" type="text" placeholder="e.g. Whole / Partial" style="min-width:160px;" />
+    </div>
+  </div>
+
+  <!-- Sessions -->
+  <div class="bdm-sessions-grid" id="bdmSessionsGrid">
+    <!-- Injected by JS -->
+  </div>
+
+  <!-- Footer -->
+  <div class="bdm-footer">
+    <div class="bdm-footer-actions">
+      <button class="bdm-btn-add" id="bdmAddSession">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Add Session
+      </button>
+    </div>
+    <span class="bdm-session-count" id="bdmSessionCount">1 session</span>
+  </div>
 
 </div>
 
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --gold:       #B8893A;
-    --gold-light: #9A6F28;
-    --gold-dim:   #C9A84C;
-    --ink:        #ffffff;
-    --surface:    #F5F4F0;
-    --card:       #ffffff;
-    --card2:      #FAFAF8;
-    --border:     rgba(184,137,58,0.22);
-    --border2:    rgba(0,0,0,0.07);
-    --text:       #1A1A1A;
-    --muted:      #8A8A8A;
-    --radius:     14px;
-  }
-
-  /* ── Wrapper ──────────────────────────────────── */
-  .bcm-wrapper {
-    font-family: var(--ff-body);
-    color: var(--text);
-    padding: 32px 36px 28px;
-    min-height: calc(100vh - 56px);
-    background: var(--surface);
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    animation: fadeUp .5s ease both;
-  }
-  @keyframes fadeUp {
-    from { opacity:0; transform:translateY(16px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-
-  /* ── Page Header ──────────────────────────────── */
-  .bcm-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  .bcm-header-left {
-    flex: 1;
-  }
-  .bcm-header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .bcm-eyebrow {
-    display: block;
-    font-family: var(--ff-display);
-    font-size: 10px;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-    color: #000000;
-    margin-bottom: 6px;
-  }
-  .bcm-title {
-    font-family: 'Nevis', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    color: #1A1A1A;
-    line-height: 1;
-  }
-  .bcm-title-accent { color: var(--gold); }
-
-  .bcm-meta-input:focus { border-color: var(--gold); }
-  .bcm-meta-input[type="date"]::-webkit-calendar-picker-indicator { filter: none; opacity: 0.5; }
-
-  .bcm-btn-add {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 16px;
-    background: #000000;
-    color: var(--ink);
-    font-family: var(--ff-display);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .06em;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: opacity .2s, transform .15s;
-  }
-  .bcm-btn-add:hover { opacity: .88; transform: translateY(-1px); }
-
-  .bcm-btn-delete {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 15px;
-    background: transparent;
-    color: #d32f2f;
-    font-family: var(--ff-display);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .08em;
-    border: 1px solid #d32f2f;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background .2s, border-color .2s;
-  }
-  .bcm-btn-delete:hover { background: rgba(211,47,47,0.08); border-color: #d32f2f; }
-
-  /* ── Table Container ──────────────────────────── */
-  .bcm-table-container {
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    box-shadow: 0 8px 24px rgba(0,0,0,.08);
-  }
-  .bcm-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    font-family: 'Inter', sans-serif;
-  }
-
-  /* ── TH ───────────────────────────────────────── */
-  .bcm-table thead tr {
-    background: linear-gradient(90deg, #C9A84C 0%, #E8CA7A 50%, #C9A84C 100%);
-  }
-  .bcm-table th {
-    padding: 14px 16px 12px;
-    font-family: 'Nevis', sans-serif;
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: #3D2B00;
-    border-bottom: 1px solid var(--border);
-    border-right: 1px solid rgba(0,0,0,0.12);
-    vertical-align: bottom;
-    position: relative;
-  }
-  .bcm-table th:last-child { border-right: none; }
-
-  /* Column widths */
-  .col-antecedent { width: 14%; }
-  .col-behavior   { width: 18%; }
-  .col-session    { width: 10%; text-align: center; }
-  .col-function   { width: 16%; }
-
-  .session-label  { display: block; font-size: 9px; color: #5C4A1E; margin-bottom: 2px; }
-  .session-sub    { display: block; font-size: 9px; color: #5C4A1E; margin-top: 2px; }
-  .session-num {
-    display: inline-block;
-    width: 36px;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid #5C4A1E;
-    color: #3D2B00;
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    text-align: center;
-    outline: none;
-    padding: 1px 2px;
-  }
-
-  .bcm-table tbody tr {
-    border-bottom: 1px solid var(--border2);
-    transition: background .2s;
-  }
-  .bcm-table tbody tr:nth-child(odd)  { background: #ffffff; }
-  .bcm-table tbody tr:nth-child(even) { background: #FAFAF7; }
-  .bcm-table tbody tr:hover           { background: rgba(0,0,0,0.03); }
-  .bcm-table tbody tr:last-child      { border-bottom: none; }
-
-  .bcm-table td {
-    padding: 0;
-    border-right: 1px solid var(--border2);
-    vertical-align: top;
-  }
-  .bcm-table td:last-child { border-right: none; }
-
-  /* Editable cell */
-  .cell-input {
-    width: 100%;
-    height: 100%;
-    min-height: 90px;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    padding: 14px 16px;
-    resize: none;
-    line-height: 1.5;
-  }
-  .cell-input::placeholder { color: rgba(0,0,0,0.25); }
-  .cell-input:focus { background: rgba(0,0,0,0.04); }
-
-  /* Frequency counter */
-  .freq-cell {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    min-height: 90px;
-    gap: 8px;
-    padding: 12px 8px;
-  }
-  .freq-display {
-    font-family: 'Inter', sans-serif;
-    font-size: 26px;
-    font-weight: 800;
-    color: #000000;
-    line-height: 1;
-    width: 40px;
-    text-align: center;
-    background: transparent;
-    border: none;
-    outline: none;
-    padding: 0;
-  }
-  .freq-display::-webkit-outer-spin-button,
-  .freq-display::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  .freq-display:focus {
-    background: rgba(0,0,0,0.04);
-    border-radius: 4px;
-  }
-  .freq-btn {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: #000000;
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background .15s, border-color .15s;
-  }
-  .freq-btn:hover { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.2); }
-  .freq-btn.minus { font-size: 20px; padding-bottom: 2px; }
-
-  .freq-controls {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Function checkboxes */
-  .function-cell {
-    padding: 14px 16px;
-    min-height: 90px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 7px;
-  }
-  .fn-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .fn-check input[type="checkbox"] { display: none; }
-  .fn-box {
-    width: 14px; height: 14px;
-    border: 1.5px solid rgba(0,0,0,0.25);
-    border-radius: 3px;
-    background: transparent;
-    flex-shrink: 0;
-    transition: background .15s, border-color .15s;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .fn-check input:checked + .fn-box {
-    background: #000000;
-    border-color: var(--gold);
-  }
-  .fn-check input:checked + .fn-box::after {
-    content: '';
-    width: 6px; height: 4px;
-    border-left: 1.5px solid #fff;
-    border-bottom: 1.5px solid #fff;
-    transform: rotate(-45deg) translateY(-1px);
-    display: block;
-  }
-  .fn-label {
-    font-size: 12px;
-    color: #888;
-    transition: color .15s;
-  }
-
-  /* ── Footer ───────────────────────────────────── */
-  .bcm-footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-  }
-  .bcm-footer-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  .bcm-row-count {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: .05em;
-  }
-  .bcm-btn-export {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 15px;
-    background: transparent;
-    color: #000000;
-    font-family: var(--ff-display);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .08em;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background .2s, border-color .2s;
-  }
-  .bcm-btn-export:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.15); }
-
-  /* ── Notes Section ────────────────────────────── */
-  .bcm-notes-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 24px;
-  }
-  .bcm-notes-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .bcm-notes-input {
-    width: 100%;
-    min-height: 80px;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'Work Sans', sans-serif;
-    font-size: 13px;
-    padding: 12px 14px;
-    resize: vertical;
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-  }
-  .bcm-notes-input::placeholder { color: rgba(0,0,0,0.25); }
-  .bcm-notes-input:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(184,137,58,0.1);
-  }
-</style>
-
 <script>
-(function() {
-  const FUNCTIONS = ['Sensory', 'Escape', 'Attention', 'Tangible'];
-  const SESSIONS  = 4;
+  const NUM_INTERVALS = 10;
+  const grid = document.getElementById('bdmSessionsGrid');
+  let sessionCount = 1;
 
-  function createRow() {
-    const tr = document.createElement('tr');
+  // State: sessionIdx -> array of 10 states ('', '+', '-')
+  const sessionData = {};
 
-    // Antecedent
-    const tdA = document.createElement('td');
-    const taA = document.createElement('textarea');
-    taA.className = 'cell-input';
-    taA.placeholder = 'Describe antecedent…';
-    tdA.appendChild(taA);
-    tr.appendChild(tdA);
+  function createSessionBlock(idx) {
+    sessionData[idx] = Array(NUM_INTERVALS).fill('');
 
-    // Problem Behavior
-    const tdB = document.createElement('td');
-    const taB = document.createElement('textarea');
-    taB.className = 'cell-input';
-    taB.placeholder = 'Describe behavior…';
-    tdB.appendChild(taB);
-    tr.appendChild(tdB);
+    const block = document.createElement('div');
+    block.className = 'bdm-session-block';
+    block.dataset.sessionIdx = idx;
 
-    // Session frequencies
-    for (let s = 0; s < SESSIONS; s++) {
-      const tdS = document.createElement('td');
-      const div = document.createElement('div');
-      div.className = 'freq-cell';
+    // Heading
+    const heading = document.createElement('div');
+    heading.className = 'bdm-session-heading';
+    heading.innerHTML = `
+      <span class="bdm-session-label">Session #</span>
+      <input class="bdm-session-num-input" type="text" placeholder="__" maxlength="3" />
+    `;
+    block.appendChild(heading);
 
-      const display = document.createElement('input');
-      display.className = 'freq-display';
-      display.type = 'number';
-      display.value = '0';
-      display.min = '0';
+    // Table container
+    const container = document.createElement('div');
+    container.className = 'bdm-table-container';
 
-      let count = 0;
-      const minus = document.createElement('button');
-      minus.className = 'freq-btn minus';
-      minus.textContent = '−';
-      minus.addEventListener('click', () => {
-        if (count > 0) { count--; display.value = count; }
-      });
+    const table = document.createElement('table');
+    table.className = 'bdm-table';
 
-      const plus = document.createElement('button');
-      plus.className = 'freq-btn';
-      plus.textContent = '+';
-      plus.addEventListener('click', () => {
-        count++;
-        display.value = count;
-      });
+    // THEAD
+    let thIntervals = '';
+    for (let i = 1; i <= NUM_INTERVALS; i++) {
+      thIntervals += `<th class="col-interval">${i}</th>`;
+    }
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th class="col-date">Date</th>
+          <th class="col-plusminus">(+/−)</th>
+          <th colspan="${NUM_INTERVALS}" style="text-align:center; border-right:1px solid rgba(0,0,0,0.12);">Interval #</th>
+          <th class="col-total">Total Times Behavior Observed</th>
+        </tr>
+        <tr>
+          <th class="col-date"></th>
+          <th class="col-plusminus"></th>
+          ${thIntervals}
+          <th class="col-total"></th>
+        </tr>
+      </thead>
+    `;
 
-      display.addEventListener('change', () => {
-        count = parseInt(display.value) || 0;
-        if (count < 0) { count = 0; display.value = 0; }
-      });
+    // TBODY — 2 data rows (Date row + toggle row)
+    const tbody = document.createElement('tbody');
 
-      div.appendChild(minus);
-      div.appendChild(display);
-      div.appendChild(plus);
-      tdS.appendChild(div);
-      tr.appendChild(tdS);
+    // Row 1: date input
+    const dateRow = document.createElement('tr');
+    let dateCells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
+    dateCells += `<td class="plusminus-cell">&nbsp;</td>`;
+    for (let i = 0; i < NUM_INTERVALS; i++) {
+      dateCells += `<td></td>`;
+    }
+    dateCells += `<td class="total-cell"></td>`;
+    dateRow.innerHTML = dateCells;
+    tbody.appendChild(dateRow);
+
+    // Row 2: interval toggles + total
+    const toggleRow = document.createElement('tr');
+    let toggleCells = `<td></td>`;
+    toggleCells += `<td class="plusminus-cell" style="font-size:11px; color:var(--muted); padding:0 6px;">(+/−)</td>`;
+
+    for (let i = 0; i < NUM_INTERVALS; i++) {
+      toggleCells += `
+        <td class="interval-cell" data-session="${idx}" data-interval="${i}">
+          <div class="interval-toggle empty"></div>
+        </td>`;
     }
 
-    // Function checkboxes
-    const tdF = document.createElement('td');
-    const div = document.createElement('div');
-    div.className = 'function-cell';
-    FUNCTIONS.forEach(fn => {
-      const label = document.createElement('label');
-      label.className = 'fn-check';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      const box = document.createElement('span');
-      box.className = 'fn-box';
-      const text = document.createElement('span');
-      text.className = 'fn-label';
-      text.textContent = fn;
-      label.appendChild(cb);
-      label.appendChild(box);
-      label.appendChild(text);
-      div.appendChild(label);
-    });
-    tdF.appendChild(div);
-    tr.appendChild(tdF);
+    // Total cell
+    toggleCells += `
+      <td class="total-cell">
+        <div class="total-formula">
+          [(<span class="total-count" data-session-total="${idx}">0</span>
+          &nbsp;<span class="total-divider">/ ${NUM_INTERVALS})</span>&nbsp;×&nbsp;100]&nbsp;=&nbsp;
+          <span class="total-pct" data-session-pct="${idx}">0%</span>]
+        </div>
+      </td>`;
 
-    return tr;
+    toggleRow.innerHTML = toggleCells;
+    tbody.appendChild(toggleRow);
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+    block.appendChild(container);
+
+    // Divider
+    const hr = document.createElement('hr');
+    hr.className = 'section-divider';
+    block.appendChild(hr);
+
+    // Bind interval toggle clicks
+    container.querySelectorAll('.interval-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const si = parseInt(cell.dataset.session);
+        const ii = parseInt(cell.dataset.interval);
+        const states = ['', '+', '-'];
+        const cur = sessionData[si][ii];
+        const next = states[(states.indexOf(cur) + 1) % states.length];
+        sessionData[si][ii] = next;
+        updateToggleCell(cell.querySelector('.interval-toggle'), next);
+        updateTotal(si);
+      });
+    });
+
+    return block;
   }
 
-  const tbody = document.getElementById('bcmTableBody');
-  const rowCount = document.getElementById('rowCount');
-  let rows = 4;
+  function updateToggleCell(el, state) {
+    el.className = 'interval-toggle';
+    el.textContent = '';
+    if (state === '+') { el.classList.add('positive'); el.textContent = '+'; }
+    else if (state === '-') { el.classList.add('negative'); el.textContent = '−'; }
+    else { el.classList.add('empty'); }
+  }
 
-  for (let i = 0; i < rows; i++) tbody.appendChild(createRow());
+  function updateTotal(si) {
+    const data = sessionData[si];
+    const positives = data.filter(s => s === '+').length;
+    const pct = Math.round((positives / NUM_INTERVALS) * 100);
+    const countEl = document.querySelector(`[data-session-total="${si}"]`);
+    const pctEl   = document.querySelector(`[data-session-pct="${si}"]`);
+    if (countEl) countEl.textContent = positives;
+    if (pctEl)   pctEl.textContent   = pct + '%';
+  }
 
-  document.querySelector('.bcm-btn-add').addEventListener('click', () => {
-    tbody.appendChild(createRow());
-    rows++;
-    rowCount.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
-  });
-
-  document.querySelector('.bcm-btn-delete').addEventListener('click', () => {
-    if (rows > 1) {
-      tbody.removeChild(tbody.lastChild);
-      rows--;
-      rowCount.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
+  function renderSessions() {
+    grid.innerHTML = '';
+    for (let i = 0; i < sessionCount; i++) {
+      grid.appendChild(createSessionBlock(i));
     }
+    updateSessionCount();
+  }
+
+  function updateSessionCount() {
+    document.getElementById('bdmSessionCount').textContent =
+      `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
+  }
+
+  document.getElementById('bdmAddSession').addEventListener('click', () => {
+    const idx = sessionCount;
+    sessionCount++;
+    grid.appendChild(createSessionBlock(idx));
+    updateSessionCount();
   });
-})();
+
+  renderSessions();
 </script>
   </main>
 
-  <script src="js/index.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/table.js"></script>
 </body>
 </html>
