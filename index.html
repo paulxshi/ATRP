@@ -1,50 +1,617 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<link rel="icon" href="../imgs/PSI.png">
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>ATRP</title>
-	<link rel="stylesheet" href="css/dashstyle.css">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ATRP Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=Nevis&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/dashstyle.css">
 </head>
-
 <body>
-	<!-- Navbar (Topbar) -->
-	<nav class="navbar navbar-dark bg-white border-bottom sticky-top">
-		<div class="container-fluid">
-		<button class="btn btn-link text-black" id="toggleBtn" aria-label="Toggle sidebar">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-			<span class="navbar-brand mb-0 h1 text-primary">ATRP</span>
-			<span class="ms-auto text-dark">Welcome, User</span>
-		</div>
-	</nav>
 
-	<!-- Sidebar -->
-	<aside class="sidebar" id="sidebar">
-		<div class="sidebar-logo">
-			<img src="imgs/PSI.png" alt="PSI Logo">
-		</div>
-		<nav class="nav flex-column ps-2">
-			<a class="nav-link active" href="#"><i class="fas fa-chart-line"></i><span>Behavior</span></a>
-			<a class="nav-link" href="#"><i class="fas fa-folder-open"></i><span>Projects</span></a>
-			<a class="nav-link" href="#"><i class="fas fa-file-alt"></i><span>Reports</span></a>
-			<a class="nav-link" href="#"><i class="fas fa-cog"></i><span>Settings</span></a>
-		</nav>
-	</aside>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left" id="topbarLeft">
+        <div class="brand-logo">
+        <img src="imgs/psi.png" alt="PSI Logo">
+        </div>
+      <span class="brand-text">ATRP</span>
+    </div>
 
-	<!-- Main Content -->
-	<main class="p-4">
+    <div class="topbar-right">
+      <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
 
-	</main>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
 
-	<!-- Bootstrap 5 JS -->
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-	<!-- Custom Script -->
-	<script src="js/index.js"></script>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+      <span class="nav-label">Behavior</span>
+      <span class="nav-badge">Live</span>
+      <span class="tooltip-text">Behavior</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><i class="fas fa-folder-open"></i></span>
+      <span class="nav-label">Projects</span>
+      <span class="tooltip-text">Projects</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+      <span class="nav-label">Reports</span>
+      <span class="tooltip-text">Reports</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
+      <span class="nav-label">Analytics</span>
+      <span class="tooltip-text">Analytics</span>
+    </a>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="mainContent">
+
+<div class="bcm-wrapper">
+
+  <div class="bcm-header">
+    <div class="bcm-header-left">
+      <span class="bcm-eyebrow">Behaviour Tracker</span>
+      <h1 class="bcm-title">Continuous <span class="bcm-title-accent">Measurement</span></h1>
+    </div>
+    <div class="bcm-header-right">
+      <button class="bcm-btn-export">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <div class="bcm-table-container">
+    <table class="bcm-table">
+      <thead>
+        <tr>
+          <th class="col-antecedent">Antecedent</th>
+          <th class="col-behavior">Problem Behavior</th>
+          <th class="col-session">
+            <span class="session-label">Session</span>
+            <input class="session-num" type="text" placeholder="__" maxlength="3" />
+            <span class="session-sub">Freq.</span>
+          </th>
+          <th class="col-session">
+            <span class="session-label">Session</span>
+            <input class="session-num" type="text" placeholder="__" maxlength="3" />
+            <span class="session-sub">Freq.</span>
+          </th>
+          <th class="col-session">
+            <span class="session-label">Session</span>
+            <input class="session-num" type="text" placeholder="__" maxlength="3" />
+            <span class="session-sub">Freq.</span>
+          </th>
+          <th class="col-session">
+            <span class="session-label">Session</span>
+            <input class="session-num" type="text" placeholder="__" maxlength="3" />
+            <span class="session-sub">Freq.</span>
+          </th>
+          <th class="col-function">Function</th>
+        </tr>
+      </thead>
+      <tbody id="bcmTableBody">
+        <!-- Rows injected by JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bcm-footer">
+    <div class="bcm-footer-actions">
+      <button class="bcm-btn-add">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Add Row
+      </button>
+      <button class="bcm-btn-delete">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Delete Row
+      </button>
+    </div>
+    <span class="bcm-row-count" id="rowCount">4 behaviors tracked</span>
+  </div>
+
+  <div class="bcm-notes-section">
+    <label class="bcm-notes-label">Notes</label>
+    <textarea class="bcm-notes-input" id="notesInput" placeholder="Add any additional notes or observations..."></textarea>
+  </div>
+
+</div>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold:       #B8893A;
+    --gold-light: #9A6F28;
+    --gold-dim:   #C9A84C;
+    --ink:        #ffffff;
+    --surface:    #F5F4F0;
+    --card:       #ffffff;
+    --card2:      #FAFAF8;
+    --border:     rgba(184,137,58,0.22);
+    --border2:    rgba(0,0,0,0.07);
+    --text:       #1A1A1A;
+    --muted:      #8A8A8A;
+    --radius:     14px;
+  }
+
+  /* ── Wrapper ──────────────────────────────────── */
+  .bcm-wrapper {
+    font-family: var(--ff-body);
+    color: var(--text);
+    padding: 32px 36px 28px;
+    min-height: calc(100vh - 56px);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeUp .5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── Page Header ──────────────────────────────── */
+  .bcm-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .bcm-header-left {
+    flex: 1;
+  }
+  .bcm-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .bcm-eyebrow {
+    display: block;
+    font-family: var(--ff-display);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #000000;
+    margin-bottom: 6px;
+  }
+  .bcm-title {
+    font-family: 'Nevis', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #1A1A1A;
+    line-height: 1;
+  }
+  .bcm-title-accent { color: var(--gold); }
+
+  .bcm-meta-input:focus { border-color: var(--gold); }
+  .bcm-meta-input[type="date"]::-webkit-calendar-picker-indicator { filter: none; opacity: 0.5; }
+
+  .bcm-btn-add {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    background: #000000;
+    color: var(--ink);
+    font-family: var(--ff-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+  }
+  .bcm-btn-add:hover { opacity: .88; transform: translateY(-1px); }
+
+  .bcm-btn-delete {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 15px;
+    background: transparent;
+    color: #d32f2f;
+    font-family: var(--ff-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    border: 1px solid #d32f2f;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+  }
+  .bcm-btn-delete:hover { background: rgba(211,47,47,0.08); border-color: #d32f2f; }
+
+  /* ── Table Container ──────────────────────────── */
+  .bcm-table-container {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  }
+  .bcm-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ── TH ───────────────────────────────────────── */
+  .bcm-table thead tr {
+    background: linear-gradient(90deg, #C9A84C 0%, #E8CA7A 50%, #C9A84C 100%);
+  }
+  .bcm-table th {
+    padding: 14px 16px 12px;
+    font-family: 'Nevis', sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #3D2B00;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid rgba(0,0,0,0.12);
+    vertical-align: bottom;
+    position: relative;
+  }
+  .bcm-table th:last-child { border-right: none; }
+
+  /* Column widths */
+  .col-antecedent { width: 14%; }
+  .col-behavior   { width: 18%; }
+  .col-session    { width: 10%; text-align: center; }
+  .col-function   { width: 16%; }
+
+  .session-label  { display: block; font-size: 9px; color: #5C4A1E; margin-bottom: 2px; }
+  .session-sub    { display: block; font-size: 9px; color: #5C4A1E; margin-top: 2px; }
+  .session-num {
+    display: inline-block;
+    width: 36px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #5C4A1E;
+    color: #3D2B00;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    padding: 1px 2px;
+  }
+
+  .bcm-table tbody tr {
+    border-bottom: 1px solid var(--border2);
+    transition: background .2s;
+  }
+  .bcm-table tbody tr:nth-child(odd)  { background: #ffffff; }
+  .bcm-table tbody tr:nth-child(even) { background: #FAFAF7; }
+  .bcm-table tbody tr:hover           { background: rgba(0,0,0,0.03); }
+  .bcm-table tbody tr:last-child      { border-bottom: none; }
+
+  .bcm-table td {
+    padding: 0;
+    border-right: 1px solid var(--border2);
+    vertical-align: top;
+  }
+  .bcm-table td:last-child { border-right: none; }
+
+  /* Editable cell */
+  .cell-input {
+    width: 100%;
+    height: 100%;
+    min-height: 90px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    padding: 14px 16px;
+    resize: none;
+    line-height: 1.5;
+  }
+  .cell-input::placeholder { color: rgba(0,0,0,0.25); }
+  .cell-input:focus { background: rgba(0,0,0,0.04); }
+
+  /* Frequency counter */
+  .freq-cell {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    min-height: 90px;
+    gap: 8px;
+    padding: 12px 8px;
+  }
+  .freq-display {
+    font-family: 'Inter', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #000000;
+    line-height: 1;
+    width: 40px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+  }
+  .freq-display::-webkit-outer-spin-button,
+  .freq-display::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .freq-display:focus {
+    background: rgba(0,0,0,0.04);
+    border-radius: 4px;
+  }
+  .freq-btn {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: #000000;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, border-color .15s;
+  }
+  .freq-btn:hover { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.2); }
+  .freq-btn.minus { font-size: 20px; padding-bottom: 2px; }
+
+  .freq-controls {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Function checkboxes */
+  .function-cell {
+    padding: 14px 16px;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 7px;
+  }
+  .fn-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .fn-check input[type="checkbox"] { display: none; }
+  .fn-box {
+    width: 14px; height: 14px;
+    border: 1.5px solid rgba(0,0,0,0.25);
+    border-radius: 3px;
+    background: transparent;
+    flex-shrink: 0;
+    transition: background .15s, border-color .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fn-check input:checked + .fn-box {
+    background: #000000;
+    border-color: var(--gold);
+  }
+  .fn-check input:checked + .fn-box::after {
+    content: '';
+    width: 6px; height: 4px;
+    border-left: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+    display: block;
+  }
+  .fn-label {
+    font-size: 12px;
+    color: #888;
+    transition: color .15s;
+  }
+
+  /* ── Footer ───────────────────────────────────── */
+  .bcm-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .bcm-footer-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .bcm-row-count {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: .05em;
+  }
+  .bcm-btn-export {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 15px;
+    background: transparent;
+    color: #000000;
+    font-family: var(--ff-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+  }
+  .bcm-btn-export:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.15); }
+
+  /* ── Notes Section ────────────────────────────── */
+  .bcm-notes-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .bcm-notes-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bcm-notes-input {
+    width: 100%;
+    min-height: 80px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Work Sans', sans-serif;
+    font-size: 13px;
+    padding: 12px 14px;
+    resize: vertical;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .bcm-notes-input::placeholder { color: rgba(0,0,0,0.25); }
+  .bcm-notes-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,137,58,0.1);
+  }
+</style>
+
+<script>
+(function() {
+  const FUNCTIONS = ['Sensory', 'Escape', 'Attention', 'Tangible'];
+  const SESSIONS  = 4;
+
+  function createRow() {
+    const tr = document.createElement('tr');
+
+    // Antecedent
+    const tdA = document.createElement('td');
+    const taA = document.createElement('textarea');
+    taA.className = 'cell-input';
+    taA.placeholder = 'Describe antecedent…';
+    tdA.appendChild(taA);
+    tr.appendChild(tdA);
+
+    // Problem Behavior
+    const tdB = document.createElement('td');
+    const taB = document.createElement('textarea');
+    taB.className = 'cell-input';
+    taB.placeholder = 'Describe behavior…';
+    tdB.appendChild(taB);
+    tr.appendChild(tdB);
+
+    // Session frequencies
+    for (let s = 0; s < SESSIONS; s++) {
+      const tdS = document.createElement('td');
+      const div = document.createElement('div');
+      div.className = 'freq-cell';
+
+      const display = document.createElement('input');
+      display.className = 'freq-display';
+      display.type = 'number';
+      display.value = '0';
+      display.min = '0';
+
+      let count = 0;
+      const minus = document.createElement('button');
+      minus.className = 'freq-btn minus';
+      minus.textContent = '−';
+      minus.addEventListener('click', () => {
+        if (count > 0) { count--; display.value = count; }
+      });
+
+      const plus = document.createElement('button');
+      plus.className = 'freq-btn';
+      plus.textContent = '+';
+      plus.addEventListener('click', () => {
+        count++;
+        display.value = count;
+      });
+
+      display.addEventListener('change', () => {
+        count = parseInt(display.value) || 0;
+        if (count < 0) { count = 0; display.value = 0; }
+      });
+
+      div.appendChild(minus);
+      div.appendChild(display);
+      div.appendChild(plus);
+      tdS.appendChild(div);
+      tr.appendChild(tdS);
+    }
+
+    // Function checkboxes
+    const tdF = document.createElement('td');
+    const div = document.createElement('div');
+    div.className = 'function-cell';
+    FUNCTIONS.forEach(fn => {
+      const label = document.createElement('label');
+      label.className = 'fn-check';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      const box = document.createElement('span');
+      box.className = 'fn-box';
+      const text = document.createElement('span');
+      text.className = 'fn-label';
+      text.textContent = fn;
+      label.appendChild(cb);
+      label.appendChild(box);
+      label.appendChild(text);
+      div.appendChild(label);
+    });
+    tdF.appendChild(div);
+    tr.appendChild(tdF);
+
+    return tr;
+  }
+
+  const tbody = document.getElementById('bcmTableBody');
+  const rowCount = document.getElementById('rowCount');
+  let rows = 4;
+
+  for (let i = 0; i < rows; i++) tbody.appendChild(createRow());
+
+  document.querySelector('.bcm-btn-add').addEventListener('click', () => {
+    tbody.appendChild(createRow());
+    rows++;
+    rowCount.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
+  });
+
+  document.querySelector('.bcm-btn-delete').addEventListener('click', () => {
+    if (rows > 1) {
+      tbody.removeChild(tbody.lastChild);
+      rows--;
+      rowCount.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
+    }
+  });
+})();
+</script>
+  </main>
+
+  <script src="js/index.js"></script>
 </body>
 </html>
-
