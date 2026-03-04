@@ -74,9 +74,14 @@ function loadBdmData() {
             }
         }
         
+        // Get notes
+        $notesStmt = $pdo->query("SELECT notes FROM bdm_notes ORDER BY id DESC LIMIT 1");
+        $notes = $notesStmt->fetch();
+        
         echo json_encode([
             'success' => true,
-            'sessions' => array_values($sessions)
+            'sessions' => array_values($sessions),
+            'notes' => $notes['notes'] ?? ''
         ]);
         
     } catch (PDOException $e) {
@@ -130,6 +135,13 @@ function saveBdmData() {
                     $intervalStmt->execute([$sessionId, $intervalNum, $observation]);
                 }
             }
+        }
+        
+        // Save notes
+        if (isset($input['notes'])) {
+            $pdo->exec("DELETE FROM bdm_notes");
+            $notesStmt = $pdo->prepare("INSERT INTO bdm_notes (notes) VALUES (?)");
+            $notesStmt->execute([$input['notes']]);
         }
         
         $pdo->commit();

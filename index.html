@@ -225,6 +225,11 @@
             <span class="bdm-session-count" id="bdmSessionCount">1 session</span>
           </div>
 
+          <div class="bdm-notes-section">
+            <label class="bdm-notes-label">Notes</label>
+            <textarea class="bdm-notes-input" id="bdmNotesInput" placeholder="Add any additional notes or observations for discontinuous measurement..."></textarea>
+          </div>
+
         </div>
       </div><!-- /panel-bdm -->
 
@@ -308,10 +313,14 @@
           sessions.push(session);
         });
         
+        // Get BDM notes
+        const bdmNotesInput = document.getElementById('bdmNotesInput');
+        const notes = bdmNotesInput?.value || '';
+        
         const response = await fetch('php/api_bdm.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessions: sessions })
+          body: JSON.stringify({ sessions: sessions, notes: notes })
         });
         
         const result = await response.json();
@@ -383,6 +392,12 @@
           
           updateSessionCount();
           showBdmNotification('BDM Data loaded from database', 'success');
+        }
+        
+        // Load BDM notes
+        if (result.notes) {
+          const bdmNotesInput = document.getElementById('bdmNotesInput');
+          if (bdmNotesInput) bdmNotesInput.value = result.notes;
         }
       } catch (error) {
         console.error('BDM Load error:', error);

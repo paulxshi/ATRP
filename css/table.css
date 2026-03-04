@@ -863,6 +863,40 @@
       letter-spacing: .05em;
     }
 
+    /* BDM Notes Section */
+    .bdm-notes-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .bdm-notes-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .bdm-notes-input {
+      width: 100%;
+      min-height: 150px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--ff-body);
+      font-size: 13px;
+      padding: 12px 14px;
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .bdm-notes-input::placeholder { color: rgba(0,0,0,0.25); }
+    .bdm-notes-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184,137,58,0.1);
+    }
+
     /* Divider between sections */
     .section-divider {
       border: none;
