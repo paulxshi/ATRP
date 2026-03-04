@@ -496,26 +496,17 @@
 
       const tbody = document.createElement('tbody');
 
-      // Date row
-      const dateRow = document.createElement('tr');
-      let dateCells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
-      dateCells += `<td class="plusminus-cell">&nbsp;</td>`;
-      for (let i = 0; i < NUM_INTERVALS; i++) dateCells += `<td></td>`;
-      dateCells += `<td class="total-cell"></td>`;
-      dateRow.innerHTML = dateCells;
-      tbody.appendChild(dateRow);
-
-      // Toggle row
-      const toggleRow = document.createElement('tr');
-      let toggleCells = `<td></td>`;
-      toggleCells += `<td class="plusminus-cell" style="font-size:11px; color:#999; padding:0 6px;">(+/−)</td>`;
+      // Single combined row
+      const mainRow = document.createElement('tr');
+      let cells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
+      cells += `<td class="plusminus-cell" style="font-size:11px; color:#999; padding:0 6px;">(+/−)</td>`;
       for (let i = 0; i < NUM_INTERVALS; i++) {
-        toggleCells += `
+        cells += `
           <td class="interval-cell" data-session="${idx}" data-interval="${i}">
             <div class="interval-toggle empty"></div>
           </td>`;
       }
-      toggleCells += `
+      cells += `
         <td class="total-cell">
           <div class="total-formula">
             [(<span class="total-count" data-session-total="${idx}">0</span>
@@ -523,19 +514,9 @@
             <span class="total-pct" data-session-pct="${idx}">0%</span>]
           </div>
         </td>`;
-      toggleRow.innerHTML = toggleCells;
-      tbody.appendChild(toggleRow);
-
-      table.appendChild(tbody);
-      container.appendChild(table);
-      block.appendChild(container);
-
-      const hr = document.createElement('hr');
-      hr.className = 'section-divider';
-      block.appendChild(hr);
-
-      // Bind interval toggle clicks — scoped to this block's container
-      container.querySelectorAll('.interval-cell').forEach(cell => {
+      mainRow.innerHTML = cells;
+      tbody.appendChild(mainRow);
+        mainRow.querySelectorAll('.interval-cell').forEach(cell => {
         cell.addEventListener('click', () => {
           const si = parseInt(cell.dataset.session);
           const ii = parseInt(cell.dataset.interval);
@@ -543,7 +524,6 @@
           const next = states[(states.indexOf(sessionData[si][ii]) + 1) % states.length];
           sessionData[si][ii] = next;
           updateToggleCell(cell.querySelector('.interval-toggle'), next);
-          // Scoped total update — find elements within this block
           const countEl = block.querySelector(`[data-session-total="${si}"]`);
           const pctEl   = block.querySelector(`[data-session-pct="${si}"]`);
           const positives = sessionData[si].filter(s => s === '+').length;
@@ -553,6 +533,15 @@
         });
       });
 
+      table.appendChild(tbody);
+      table.appendChild(tbody);
+      container.appendChild(table);
+      block.appendChild(container);
+
+      const hr = document.createElement('hr');
+      hr.className = 'section-divider';
+      block.appendChild(hr);
+      
       return block;
     }
 

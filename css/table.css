@@ -787,6 +787,15 @@
     .bdm-table thead tr {
       background: linear-gradient(90deg, #C9A84C 0%, #E8CA7A 50%, #C9A84C 100%);
     }
+
+    .bdm-table thead tr:nth-child(2) th,
+    .bdm-table thead tr:nth-child(2) td,
+    .bdm-table thead tr:last-child th,
+    .bdm-table thead tr:last-child td {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+
     .bdm-table th {
       padding: 12px 14px 10px;
       font-family: var(--ff-display);
@@ -800,7 +809,8 @@
       vertical-align: middle;
       text-align: center;
     }
-    .bdm-table th:first-child { text-align: left; }
+    .bdm-table th:first-child { text-align: left; vertical-align: middle; }
+    .bdm-table th.col-plusminus { vertical-align: middle; }
     .bdm-table th:last-child  { border-right: none; text-align: left; }
 
     /* Column widths: Date | +/- | 10 intervals | Total */
@@ -814,6 +824,12 @@
       border-bottom: 1px solid var(--border2);
       transition: background .2s;
     }
+
+    .bdm-table tbody tr td {
+      height: 48px;
+      padding: 15px 10px;
+    }
+    
     .bdm-table tbody tr:nth-child(odd)  { background: #ffffff; }
     .bdm-table tbody tr:nth-child(even) { background: #FAFAF7; }
     .bdm-table tbody tr:hover           { background: rgba(0,0,0,0.03); }
@@ -857,6 +873,7 @@
 
     /* Interval toggle cell */
     .interval-cell {
+      padding: 0 !important;
       cursor: pointer;
       user-select: none;
       position: relative;
