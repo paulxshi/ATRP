@@ -11,10 +11,10 @@
   .bcm-wrapper {
     font-family: var(--ff-body);
     color: var(--text);
-    padding: 32px 36px 28px;
     min-height: calc(100vh - 56px);
     display: flex;
     flex-direction: column;
+    gap: 24px;
     animation: fadeUp .5s ease both;
   }
   @keyframes fadeUp {

@@ -1,6 +1,6 @@
 (function() {
   const FUNCTIONS = ['Sensory', 'Escape', 'Attention', 'Tangible'];
-  const SESSIONS  = 4;
+  const SESSIONS  = 3;
 
   function createRow() {
     const tr = document.createElement('tr');
@@ -88,7 +88,7 @@
 
   const tbody = document.getElementById('bcmTableBody');
   const rowCount = document.getElementById('rowCount');
-  let rows = 4;
+  let rows = 1;
 
   for (let i = 0; i < rows; i++) tbody.appendChild(createRow());
 
