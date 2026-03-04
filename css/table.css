@@ -308,30 +308,11 @@
     color: var(--muted);
     letter-spacing: .05em;
   }
-  .bcm-btn-export {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 15px;
-    background: transparent;
-    color: #000000;
-    font-family: var(--ff-display);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .08em;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background .2s, border-color .2s;
-  }
-  .bcm-btn-export:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.15); }
-
   /* ── Notes Section ────────────────────────────── */
   .bcm-notes-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 24px;
   }
   .bcm-notes-label {
     font-size: 11px;
@@ -380,12 +361,7 @@
       flex-wrap: wrap;
       gap: 16px;
     }
-    .bdm-header-left { flex: 1; }
-    .bdm-header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+
     .bdm-eyebrow {
       display: block;
       font-family: var(--ff-display);
