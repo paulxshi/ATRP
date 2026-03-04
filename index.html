@@ -125,11 +125,23 @@
 
           <div class="bcm-footer">
             <div class="bcm-footer-actions">
+              <button class="bcm-btn-save" id="bcmSave">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Save
+              </button>
               <button class="bcm-btn-add-session" id="bcmAddSession">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 Add Session
+              </button>
+              <button class="bcm-btn-delete-session" id="bcmDeleteSession">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Delete Session
               </button>
               <button class="bcm-btn-add" id="bcmAddRow">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -191,11 +203,23 @@
 
           <div class="bdm-footer">
             <div class="bdm-footer-actions">
+              <button class="bdm-btn-save" id="bdmSave">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Save
+              </button>
               <button class="bdm-btn-add" id="bdmAddSession">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                 </svg>
                 Add Session
+              </button>
+              <button class="bdm-btn-delete" id="bdmDeleteSession">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Delete Session
               </button>
             </div>
             <span class="bdm-session-count" id="bdmSessionCount">1 session</span>
@@ -242,6 +266,158 @@
     const grid = document.getElementById('bdmSessionsGrid');
     let sessionCount = 1;
     const sessionData = {};
+
+    // BDM Save/Load Functions
+    async function saveBdmToDatabase() {
+      const saveBtn = document.getElementById('bdmSave');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+      }
+
+      try {
+        const sessions = [];
+        const sessionBlocks = grid.querySelectorAll('.bdm-session-block');
+        
+        sessionBlocks.forEach((block, blockIndex) => {
+          const metaInputs = block.querySelectorAll('.bdm-meta-input');
+          const dateInput = block.querySelector('.date-input');
+          const sessionNumInput = block.querySelector('.bdm-session-num-input');
+          
+          const session = {
+            behavior_name: metaInputs[0]?.value || '',
+            interval_duration: metaInputs[1]?.value || '',
+            function_type: metaInputs[2]?.value || '',
+            measurement_type: metaInputs[3]?.value || '',
+            session_number: parseInt(sessionNumInput?.value) || (blockIndex + 1),
+            session_date: dateInput?.value || new Date().toISOString().split('T')[0],
+            intervals: {}
+          };
+          
+          // Get interval data
+          const intervalCells = block.querySelectorAll('.interval-cell');
+          intervalCells.forEach((cell, idx) => {
+            const toggle = cell.querySelector('.interval-toggle');
+            if (toggle) {
+              if (toggle.classList.contains('positive')) session.intervals[idx + 1] = '+';
+              else if (toggle.classList.contains('negative')) session.intervals[idx + 1] = '-';
+              else session.intervals[idx + 1] = '';
+            }
+          });
+          
+          sessions.push(session);
+        });
+        
+        const response = await fetch('php/api_bdm.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessions: sessions })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          showBdmNotification('BDM Data saved successfully!', 'success');
+        } else {
+          showBdmNotification('Error: ' + result.error, 'error');
+        }
+      } catch (error) {
+        console.error('BDM Save error:', error);
+        showBdmNotification('Failed to connect to database', 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Save`;
+        }
+      }
+    }
+
+    async function loadBdmFromDatabase() {
+      try {
+        const response = await fetch('php/api_bdm.php');
+        const result = await response.json();
+        
+        if (result.success && result.sessions && result.sessions.length > 0) {
+          grid.innerHTML = '';
+          sessionCount = 0;
+          
+          result.sessions.forEach(session => {
+            sessionCount++;
+            const block = createSessionBlock(sessionCount - 1);
+            
+            // Fill in the data
+            const metaInputs = block.querySelectorAll('.bdm-meta-input');
+            if (metaInputs[0]) metaInputs[0].value = session.behavior_name || '';
+            if (metaInputs[1]) metaInputs[1].value = session.interval_duration || '';
+            if (metaInputs[2]) metaInputs[2].value = session.function_type || '';
+            if (metaInputs[3]) metaInputs[3].value = session.measurement_type || '';
+            
+            const sessionNumInput = block.querySelector('.bdm-session-num-input');
+            if (sessionNumInput) sessionNumInput.value = session.session_number || '';
+            
+            const dateInput = block.querySelector('.date-input');
+            if (dateInput) dateInput.value = session.session_date || '';
+            
+            // Restore interval data
+            if (session.intervals) {
+              Object.keys(session.intervals).forEach(intervalNum => {
+                const cell = block.querySelector(`[data-interval="${parseInt(intervalNum) - 1}"]`);
+                if (cell) {
+                  const toggle = cell.querySelector('.interval-toggle');
+                  const value = session.intervals[intervalNum];
+                  sessionData[sessionCount - 1][parseInt(intervalNum) - 1] = value;
+                  updateToggleCell(toggle, value);
+                }
+              });
+              
+              // Update totals
+              const positives = Object.values(session.intervals).filter(v => v === '+').length;
+              const countEl = block.querySelector(`[data-session-total="${sessionCount - 1}"]`);
+              const pctEl = block.querySelector(`[data-session-pct="${sessionCount - 1}"]`);
+              const pct = Math.round((positives / NUM_INTERVALS) * 100);
+              if (countEl) countEl.textContent = positives;
+              if (pctEl) pctEl.textContent = pct + '%';
+            }
+            
+            grid.appendChild(block);
+          });
+          
+          updateSessionCount();
+          showBdmNotification('BDM Data loaded from database', 'success');
+        }
+      } catch (error) {
+        console.error('BDM Load error:', error);
+      }
+    }
+
+    function showBdmNotification(message, type) {
+      const existing = document.querySelector('.bdm-notification-toast');
+      if (existing) existing.remove();
+      
+      const toast = document.createElement('div');
+      toast.className = 'bdm-notification-toast';
+      toast.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-family: var(--ff-body);
+        font-size: 13px;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
 
     function createSessionBlock(idx) {
       sessionData[idx] = Array(NUM_INTERVALS).fill('');
@@ -372,7 +548,24 @@
       updateSessionCount();
     });
 
+    document.getElementById('bdmDeleteSession').addEventListener('click', () => {
+      if (sessionCount > 1) {
+        const blocks = grid.querySelectorAll('.bdm-session-block');
+        if (blocks.length > 0) {
+          blocks[blocks.length - 1].remove();
+          sessionCount--;
+          updateSessionCount();
+        }
+      }
+    });
+
+    // Add save button event listener
+    document.getElementById('bdmSave').addEventListener('click', saveBdmToDatabase);
+
     renderSessions();
+    
+    // Load data from database
+    loadBdmFromDatabase();
   </script>
 
   <script src="js/index.js"></script>

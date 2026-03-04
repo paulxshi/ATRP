@@ -144,6 +144,25 @@
   .bcm-meta-input:focus { border-color: var(--gold); }
   .bcm-meta-input[type="date"]::-webkit-calendar-picker-indicator { filter: none; opacity: 0.5; }
 
+  .bcm-btn-save {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    background: #C9A84C;
+    color: #000000;
+    font-family: var(--ff-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+  }
+  .bcm-btn-save:hover { opacity: .88; transform: translateY(-1px); }
+  .bcm-btn-save.saving { opacity: 0.7; pointer-events: none; }
+
   .bcm-btn-add {
     display: flex;
     align-items: center;
@@ -179,6 +198,28 @@
     transition: opacity .2s, transform .15s;
   }
   .bcm-btn-add-session:hover { opacity: .88; transform: translateY(-1px); }
+
+  .bcm-btn-delete-session {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    background: transparent;
+    color: #d32f2f;
+    font-family: var(--ff-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    border: 1px solid #d32f2f;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s, background .2s;
+  }
+  .bcm-btn-delete-session:hover {
+    background: rgba(211,47,47,0.08);
+    opacity: .88;
+    transform: translateY(-1px);
+  }
 
   .bcm-btn-delete {
     display: flex;
@@ -760,6 +801,25 @@
       transition: opacity .2s, transform .15s;
     }
     .bdm-btn-add:hover { opacity: .88; transform: translateY(-1px); }
+
+    .bdm-btn-save {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      background: #C9A84C;
+      color: #000000;
+      font-family: var(--ff-display);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+    }
+    .bdm-btn-save:hover { opacity: .88; transform: translateY(-1px); }
+    .bdm-btn-save:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .bdm-btn-delete {
       display: flex;
