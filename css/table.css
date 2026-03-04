@@ -246,8 +246,8 @@
   .col-session    { width: 10%; text-align: center; }
   .col-function   { width: 16%; }
 
-  .session-label  { display: block; font-size: 9px; color: #5C4A1E; margin-bottom: 2px; }
-  .session-sub    { display: block; font-size: 9px; color: #5C4A1E; margin-top: 2px; }
+  .session-label  { display: inline-block; font-size: 9px; color: #5C4A1E; vertical-align: middle; margin-right: 4px; }
+  .session-sub    { display: inline-block; font-size: 9px; color: #5C4A1E; vertical-align: middle; margin-left: 4px; }
   .session-num {
     display: inline-block;
     width: 36px;
@@ -261,6 +261,7 @@
     text-align: center;
     outline: none;
     padding: 1px 2px;
+    vertical-align: middle;
   }
 
   .bcm-table tbody tr {
