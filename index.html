@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/dashstyle.css">
   <link rel="stylesheet" href="css/table.css">
-
 </head>
 <body>
 
@@ -36,7 +35,7 @@
       <span class="tooltip-text">Behavior</span>
     </a>
     <a class="nav-item" href="skillscoring.html">
-      <span class="nav-icon"><i class="fas fa-folder-open"></i></span>
+      <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
       <span class="nav-label">Skill Scoring</span>
       <span class="tooltip-text">Skill Scoring</span>
     </a>
@@ -55,9 +54,6 @@
   <!-- MAIN CONTENT -->
   <main class="main" id="mainContent">
 
-    <!-- ═══════════════════════════════════════════════
-         INFORMATION SECTION
-    ═══════════════════════════════════════════════ -->
     <div class="info-container">
       <div class="info-header">
         <h2 class="info-title">Information</h2>
@@ -90,12 +86,8 @@
       </div>
     </div>
 
-    <!-- ══════════════════════
-         MEASUREMENT CONTAINER
-    ═══════════════════════════ -->
     <div class="measurement-container">
 
-      <!-- Tab Bar -->
       <div class="measurement-tabs" role="tablist">
         <button class="measurement-tab active" role="tab" aria-selected="true"
                 aria-controls="panel-bcm" id="tab-bcm" data-panel="bcm">
@@ -117,17 +109,15 @@
         </button>
       </div>
 
-      <!-- ── Panel: BCM ─────────────────────────────── -->
+      <!-- ── Panel: BCM ── -->
       <div class="measurement-panel active" id="panel-bcm" role="tabpanel" aria-labelledby="tab-bcm">
         <div class="bcm-wrapper">
-
           <div class="bcm-header">
             <div class="bcm-header-left">
               <span class="bcm-eyebrow">Behaviour Tracker</span>
               <h1 class="bcm-title">Continuous <span class="bcm-title-accent">Measurement</span></h1>
             </div>
           </div>
-
           <div class="bcm-table-container">
             <table class="bcm-table">
               <thead>
@@ -152,130 +142,95 @@
                   <th class="col-function">Function</th>
                 </tr>
               </thead>
-              <tbody id="bcmTableBody">
-                <!-- Rows injected by table.js -->
-              </tbody>
+              <tbody id="bcmTableBody"></tbody>
             </table>
           </div>
-
           <div class="bcm-footer">
             <div class="bcm-footer-actions">
               <button class="bcm-btn-add-session" id="bcmAddSession">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 Add Session
               </button>
               <button class="bcm-btn-delete-session" id="bcmDeleteSession">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Delete Session
               </button>
               <button class="bcm-btn-add" id="bcmAddRow">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 Add Row
               </button>
               <button class="bcm-btn-delete" id="bcmDeleteRow">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Delete Row
               </button>
             </div>
-            <div class="bcm-counts"><span class="bcm-row-count" id="rowCount">1 behavior tracked</span><span class="bcm-session-count" id="sessionCount"> | 3 sessions</span></div>
+            <div class="bcm-counts">
+              <span class="bcm-row-count" id="rowCount">1 behavior tracked</span>
+              <span class="bcm-session-count" id="sessionCount"> | 3 sessions</span>
+            </div>
           </div>
-
           <div class="bcm-notes-section">
             <label class="bcm-notes-label">Notes</label>
             <textarea class="bcm-notes-input" id="notesInput" placeholder="Add any additional notes or observations..."></textarea>
           </div>
-
           <div class="bcm-footer bcm-footer-bottom">
             <div class="bcm-footer-actions">
               <button class="bcm-btn-save" id="bcmSave">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Save
               </button>
             </div>
           </div>
-
         </div>
       </div>
 
-      <!-- ── Panel: BDM ─────────────────────────────── -->
+      <!-- ── Panel: BDM ── -->
       <div class="measurement-panel" id="panel-bdm" role="tabpanel" aria-labelledby="tab-bdm">
         <div class="bdm-wrapper">
-
           <div class="bdm-header">
             <div class="bdm-header-left">
               <span class="bdm-eyebrow">Behaviour Tracker</span>
               <h1 class="bdm-title">Discontinuous <span class="bdm-title-accent">Measurement</span></h1>
             </div>
           </div>
-
-          <div class="bdm-sessions-grid" id="bdmSessionsGrid">
-            <!-- Injected by JS below -->
-          </div>
-
+          <div class="bdm-sessions-grid" id="bdmSessionsGrid"></div>
           <div class="bdm-footer">
             <div class="bdm-footer-actions">
               <button class="bdm-btn-add" id="bdmAddSession">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 Add Session
               </button>
               <button class="bdm-btn-delete" id="bdmDeleteSession">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Delete Session
               </button>
             </div>
             <span class="bdm-session-count" id="bdmSessionCount">1 session</span>
           </div>
-
           <div class="bdm-notes-section">
             <label class="bdm-notes-label">Notes</label>
             <textarea class="bdm-notes-input" id="bdmNotesInput" placeholder="Add any additional notes or observations for discontinuous measurement..."></textarea>
           </div>
-
           <div class="bdm-footer bdm-footer-bottom">
             <div class="bdm-footer-actions">
               <button class="bdm-btn-save" id="bdmSave">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Save
               </button>
             </div>
           </div>
-
         </div>
-      </div><!-- /panel-bdm -->
+      </div>
 
     </div><!-- /measurement-container -->
-
   </main>
 
-  <!-- ── BDM Script ───────────────────────────────── -->
+  <!-- ── BDM Script ──
+       IMPORTANT: Only contains UI rendering logic (createSessionBlock, toggles, add/delete).
+       saveBdmToDatabase / loadBdmFromDatabase are defined in table.js and use
+       window.ATRP_CLIENT_ID which is set by the client selector in table.js.
+  ── -->
   <script>
-    /* ── Sidebar toggle ── */
-    const toggleBtn = document.getElementById('toggleBtn');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', () => {
-        document.body.classList.toggle('sidebar-collapsed');
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.classList.toggle('collapsed');
-        const main = document.getElementById('mainContent');
-        if (main) main.classList.toggle('expanded');
-      });
-    }
 
     /* ── Tab switching ── */
     document.querySelectorAll('.measurement-tab').forEach(tab => {
@@ -285,173 +240,41 @@
           t.setAttribute('aria-selected', 'false');
         });
         document.querySelectorAll('.measurement-panel').forEach(p => p.classList.remove('active'));
-
         tab.classList.add('active');
         tab.setAttribute('aria-selected', 'true');
         document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
       });
     });
 
-    /* ── BDM Logic ── */
+    /* ── BDM UI State ── */
     const NUM_INTERVALS = 10;
     const grid = document.getElementById('bdmSessionsGrid');
     let sessionCount = 1;
     const sessionData = {};
 
-    // BDM Save/Load Functions
-    async function saveBdmToDatabase() {
-      const saveBtn = document.getElementById('bdmSave');
-      if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-      }
-
-      try {
-        const sessions = [];
-        const sessionBlocks = grid.querySelectorAll('.bdm-session-block');
-        
-        sessionBlocks.forEach((block, blockIndex) => {
-          const dateInput = block.querySelector('.date-input');
-          const sessionNumInput = block.querySelector('.bdm-session-num-input');
-          
-          const session = {
-            behavior_name: '',
-            interval_duration: '',
-            function_type: '',
-            measurement_type: '',
-            session_number: parseInt(sessionNumInput?.value) || (blockIndex + 1),
-            session_date: dateInput?.value || new Date().toISOString().split('T')[0],
-            intervals: {}
-          };
-          
-          // Get interval data
-          const intervalCells = block.querySelectorAll('.interval-cell');
-          intervalCells.forEach((cell, idx) => {
-            const toggle = cell.querySelector('.interval-toggle');
-            if (toggle) {
-              if (toggle.classList.contains('positive')) session.intervals[idx + 1] = '+';
-              else if (toggle.classList.contains('negative')) session.intervals[idx + 1] = '-';
-              else session.intervals[idx + 1] = '';
-            }
-          });
-          
-          sessions.push(session);
-        });
-        
-        // Get BDM notes
-        const bdmNotesInput = document.getElementById('bdmNotesInput');
-        const notes = bdmNotesInput?.value || '';
-        
-        const response = await fetch('php/api_bdm.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessions: sessions, notes: notes })
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-          showBdmNotification('BDM Data saved successfully!', 'success');
-        } else {
-          showBdmNotification('Error: ' + result.error, 'error');
-        }
-      } catch (error) {
-        console.error('BDM Save error:', error);
-        showBdmNotification('Failed to connect to database', 'error');
-      } finally {
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Save`;
-        }
-      }
-    }
-
-    async function loadBdmFromDatabase() {
-      try {
-        const response = await fetch('php/api_bdm.php');
-        const result = await response.json();
-        
-        if (result.success && result.sessions && result.sessions.length > 0) {
-          grid.innerHTML = '';
-          sessionCount = 0;
-          
-          result.sessions.forEach(session => {
-            sessionCount++;
-            const block = createSessionBlock(sessionCount - 1);
-            
-            const sessionNumInput = block.querySelector('.bdm-session-num-input');
-            if (sessionNumInput) sessionNumInput.value = session.session_number || '';
-            
-            const dateInput = block.querySelector('.date-input');
-            if (dateInput) dateInput.value = session.session_date || '';
-            
-            // Restore interval data
-            if (session.intervals) {
-              Object.keys(session.intervals).forEach(intervalNum => {
-                const cell = block.querySelector(`[data-interval="${parseInt(intervalNum) - 1}"]`);
-                if (cell) {
-                  const toggle = cell.querySelector('.interval-toggle');
-                  const value = session.intervals[intervalNum];
-                  sessionData[sessionCount - 1][parseInt(intervalNum) - 1] = value;
-                  updateToggleCell(toggle, value);
-                }
-              });
-              
-              // Update totals
-              const positives = Object.values(session.intervals).filter(v => v === '+').length;
-              const countEl = block.querySelector(`[data-session-total="${sessionCount - 1}"]`);
-              const pctEl = block.querySelector(`[data-session-pct="${sessionCount - 1}"]`);
-              const pct = Math.round((positives / NUM_INTERVALS) * 100);
-              if (countEl) countEl.textContent = positives;
-              if (pctEl) pctEl.textContent = pct + '%';
-            }
-            
-            grid.appendChild(block);
-          });
-          
-          updateSessionCount();
-          showBdmNotification('BDM Data loaded from database', 'success');
-        }
-        
-        // Load BDM notes
-        if (result.notes) {
-          const bdmNotesInput = document.getElementById('bdmNotesInput');
-          if (bdmNotesInput) bdmNotesInput.value = result.notes;
-        }
-      } catch (error) {
-        console.error('BDM Load error:', error);
-      }
-    }
-
+    /* ── Notification helper (used by table.js BDM functions too) ── */
     function showBdmNotification(message, type) {
       const existing = document.querySelector('.bdm-notification-toast');
       if (existing) existing.remove();
-      
       const toast = document.createElement('div');
       toast.className = 'bdm-notification-toast';
       toast.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-family: var(--ff-body);
-        font-size: 13px;
-        font-weight: 500;
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
+        position: fixed; top: 80px; right: 20px;
+        padding: 12px 20px; border-radius: 8px;
+        font-family: var(--ff-body); font-size: 13px; font-weight: 500;
+        z-index: 1000; animation: slideIn 0.3s ease;
         background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       `;
       toast.textContent = message;
       document.body.appendChild(toast);
-      
       setTimeout(() => {
         toast.style.animation = 'slideOut 0.3s ease';
         setTimeout(() => toast.remove(), 300);
       }, 3000);
     }
 
+    /* ── Session block builder ── */
     function createSessionBlock(idx) {
       sessionData[idx] = Array(NUM_INTERVALS).fill('');
 
@@ -495,9 +318,8 @@
       `;
 
       const tbody = document.createElement('tbody');
-
-      // Single combined row
       const mainRow = document.createElement('tr');
+
       let cells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
       cells += `<td class="plusminus-cell" style="font-size:11px; color:#999; padding:0 6px;">(+/−)</td>`;
       for (let i = 0; i < NUM_INTERVALS; i++) {
@@ -516,7 +338,8 @@
         </td>`;
       mainRow.innerHTML = cells;
       tbody.appendChild(mainRow);
-        mainRow.querySelectorAll('.interval-cell').forEach(cell => {
+
+      mainRow.querySelectorAll('.interval-cell').forEach(cell => {
         cell.addEventListener('click', () => {
           const si = parseInt(cell.dataset.session);
           const ii = parseInt(cell.dataset.interval);
@@ -524,16 +347,15 @@
           const next = states[(states.indexOf(sessionData[si][ii]) + 1) % states.length];
           sessionData[si][ii] = next;
           updateToggleCell(cell.querySelector('.interval-toggle'), next);
-          const countEl = block.querySelector(`[data-session-total="${si}"]`);
-          const pctEl   = block.querySelector(`[data-session-pct="${si}"]`);
           const positives = sessionData[si].filter(s => s === '+').length;
           const pct = Math.round((positives / NUM_INTERVALS) * 100);
+          const countEl = block.querySelector(`[data-session-total="${si}"]`);
+          const pctEl   = block.querySelector(`[data-session-pct="${si}"]`);
           if (countEl) countEl.textContent = positives;
           if (pctEl)   pctEl.textContent   = pct + '%';
         });
       });
 
-      table.appendChild(tbody);
       table.appendChild(tbody);
       container.appendChild(table);
       block.appendChild(container);
@@ -541,22 +363,16 @@
       const hr = document.createElement('hr');
       hr.className = 'section-divider';
       block.appendChild(hr);
-      
+
       return block;
     }
 
     function updateToggleCell(el, state) {
       el.className = 'interval-toggle';
       el.textContent = '';
-      if (state === '+') { el.classList.add('positive'); el.textContent = '+'; }
+      if (state === '+')      { el.classList.add('positive'); el.textContent = '+'; }
       else if (state === '-') { el.classList.add('negative'); el.textContent = '−'; }
-      else { el.classList.add('empty'); }
-    }
-
-    function renderSessions() {
-      grid.innerHTML = '';
-      for (let i = 0; i < sessionCount; i++) grid.appendChild(createSessionBlock(i));
-      updateSessionCount();
+      else                    { el.classList.add('empty'); }
     }
 
     function updateSessionCount() {
@@ -581,13 +397,17 @@
       }
     });
 
-    // Add save button event listener
-    document.getElementById('bdmSave').addEventListener('click', saveBdmToDatabase);
+    // Wire Save button — delegates to table.js function after it loads
+    document.getElementById('bdmSave').addEventListener('click', () => {
+      if (typeof saveBdmToDatabase === 'function') {
+        saveBdmToDatabase();
+      }
+    });
 
-    renderSessions();
-    
-    // Load data from database
-    loadBdmFromDatabase();
+    // Render initial empty session
+    grid.appendChild(createSessionBlock(0));
+    updateSessionCount();
+
   </script>
 
   <script src="js/index.js"></script>

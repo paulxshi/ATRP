@@ -1,11 +1,12 @@
 <?php
 /**
- * ATRP Behavior Data API
- * Handles BCM (Continuous) and BDM (Discontinuous) measurement data
- * Uses universal config from config.php
+ * ATRP — BDM (Discontinuous Measurement) API
+ * Endpoints:
+ *   GET  api_bdm.php?client_id=X          → load all BDM sessions for a client
+ *   POST api_bdm.php                       → save BDM sessions for a client
+ *   GET  api_bdm.php?report=1&client_id=X → pull combined BCM+BDM data for write-up
  */
 
-// Include universal database config
 require_once __DIR__ . '/config.php';
 
 header('Content-Type: application/json');
@@ -13,123 +14,195 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle request
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    getBehaviorData();
+    if (!empty($_GET['report']) && !empty($_GET['client_id'])) {
+        getFullReport(intval($_GET['client_id']));
+    } else {
+        getBdmSessions(isset($_GET['client_id']) ? intval($_GET['client_id']) : null);
+    }
 } elseif ($method === 'POST') {
-    saveBehaviorData();
+    saveBdmSessions();
 } else {
     echo json_encode(['success' => false, 'error' => 'Invalid request method']);
 }
 
-/**
- * Get behavior data for a client
- */
-function getBehaviorData() {
-    $client_id = isset($_GET['client_id']) ? intval($_GET['client_id']) : null;
-    
+// ─────────────────────────────────────────────────────────────
+//  GET — Load BDM sessions for a client
+// ─────────────────────────────────────────────────────────────
+function getBdmSessions(?int $client_id): void {
+    if (!$client_id) {
+        echo json_encode(['success' => true, 'sessions' => [], 'notes' => '']);
+        return;
+    }
+
     try {
-        if (!$client_id) {
-            // Return empty structure if no client
-            echo json_encode([
-                'success' => true,
-                'behaviors' => [],
-                'notes' => ''
-            ]);
-            return;
+        $sessions = dbQuery(
+            "SELECT * FROM bdm_sessions WHERE client_id = ? ORDER BY session_number",
+            [$client_id]
+        );
+
+        foreach ($sessions as &$session) {
+            $intervals = dbQuery(
+                "SELECT interval_number, result
+                 FROM bdm_intervals
+                 WHERE bdm_session_id = ?
+                 ORDER BY interval_number",
+                [$session['id']]
+            );
+            $session['intervals'] = [];
+            foreach ($intervals as $interval) {
+                $session['intervals'][$interval['interval_number']] = $interval['result'];
+            }
         }
-        
-        // Get behaviors
-        $behaviors = dbQuery(
-            "SELECT * FROM behaviors WHERE client_id = ? ORDER BY id",
+        unset($session);
+
+        // bdm_notes table: one row per client (client_id is UNIQUE)
+        $notesRow = dbQuery(
+            "SELECT notes FROM bdm_notes WHERE client_id = ? LIMIT 1",
             [$client_id]
         );
-        
-        // Get notes
-        $notesData = dbQuery(
-            "SELECT notes FROM client_notes WHERE client_id = ? ORDER BY id DESC LIMIT 1",
-            [$client_id]
-        );
-        
-        $notes = !empty($notesData) ? $notesData[0]['notes'] : '';
-        
+        $notes = $notesRow[0]['notes'] ?? '';
+
         echo json_encode([
-            'success' => true,
-            'behaviors' => $behaviors,
-            'notes' => $notes
+            'success'  => true,
+            'sessions' => $sessions,
+            'notes'    => $notes
         ]);
-        
+
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
 }
 
-/**
- * Save behavior data (BCM and BDM)
- */
-function saveBehaviorData() {
+// ─────────────────────────────────────────────────────────────
+//  POST — Save BDM sessions for a client
+// ─────────────────────────────────────────────────────────────
+function saveBdmSessions(): void {
     $input = json_decode(file_get_contents('php://input'), true);
-    
+
     if (!$input) {
         echo json_encode(['success' => false, 'error' => 'No data provided']);
         return;
     }
-    
+
     $client_id = isset($input['client_id']) ? intval($input['client_id']) : null;
-    $behaviors = isset($input['behaviors']) ? $input['behaviors'] : [];
-    $notes = isset($input['notes']) ? trim($input['notes']) : '';
-    $sessions = isset($input['sessions']) ? $input['sessions'] : [];
-    
+    $sessions  = $input['sessions']  ?? [];
+    $notes     = trim($input['notes'] ?? '');
+
     if (!$client_id) {
-        echo json_encode(['success' => false, 'error' => 'Client ID is required']);
+        echo json_encode(['success' => false, 'error' => 'client_id is required']);
         return;
     }
-    
+
     try {
-        // Start transaction
         $pdo = getDBConnection();
         $pdo->beginTransaction();
-        
-        // Delete existing behaviors for this client
-        dbExecute("DELETE FROM behaviors WHERE client_id = ?", [$client_id]);
-        
-        // Insert new behaviors
-        if (!empty($behaviors)) {
-            foreach ($behaviors as $behavior) {
-                $antecedent = isset($behavior['antecedent']) ? trim($behavior['antecedent']) : '';
-                $behavior_name = isset($behavior['behavior']) ? trim($behavior['behavior']) : '';
-                $sessions_json = isset($behavior['sessions']) ? json_encode($behavior['sessions']) : '{}';
-                $functions_json = isset($behavior['functions']) ? json_encode($behavior['functions']) : '{}';
-                
+
+        // Wipe existing sessions — CASCADE deletes bdm_intervals automatically
+        dbExecute("DELETE FROM bdm_sessions WHERE client_id = ?", [$client_id]);
+
+        foreach ($sessions as $session) {
+            $session_number = intval($session['session_number'] ?? 0);
+            $session_date   = !empty($session['session_date']) ? $session['session_date'] : null;
+            $interval_count = intval($session['interval_count'] ?? 10);
+
+            dbExecute(
+                "INSERT INTO bdm_sessions (client_id, session_number, session_date, interval_count)
+                 VALUES (?, ?, ?, ?)",
+                [$client_id, $session_number, $session_date, $interval_count]
+            );
+
+            $bdm_session_id = $pdo->lastInsertId();
+
+            // bdm_intervals schema: id, bdm_session_id, interval_number, result
+            // NO client_id column in this table
+            $intervals = $session['intervals'] ?? [];
+            foreach ($intervals as $num => $result) {
+                $num    = intval($num);
+                $result = in_array($result, ['+', '-']) ? $result : '';
+
                 dbExecute(
-                    "INSERT INTO behaviors (client_id, antecedent, behavior, sessions, functions) VALUES (?, ?, ?, ?, ?)",
-                    [$client_id, $antecedent, $behavior_name, $sessions_json, $functions_json]
+                    "INSERT INTO bdm_intervals (bdm_session_id, interval_number, result)
+                     VALUES (?, ?, ?)",
+                    [$bdm_session_id, $num, $result]
                 );
             }
         }
-        
-        // Save or update notes
+
+        // bdm_notes: UPSERT — client_id is UNIQUE so this is safe
         if ($notes !== '') {
-            // Delete old notes
-            dbExecute("DELETE FROM client_notes WHERE client_id = ?", [$client_id]);
-            // Insert new notes
-            dbExecute("INSERT INTO client_notes (client_id, notes) VALUES (?, ?)", [$client_id, $notes]);
+            dbExecute(
+                "INSERT INTO bdm_notes (client_id, notes)
+                 VALUES (?, ?)
+                 ON DUPLICATE KEY UPDATE notes = VALUES(notes)",
+                [$client_id, $notes]
+            );
+        } else {
+            dbExecute("DELETE FROM bdm_notes WHERE client_id = ?", [$client_id]);
         }
-        
-        // Commit transaction
+
         $pdo->commit();
-        
+
         echo json_encode([
-            'success' => true,
-            'message' => 'Data saved successfully'
+            'success'        => true,
+            'message'        => 'BDM data saved successfully',
+            'sessions_saved' => count($sessions)
         ]);
-        
+
     } catch (Exception $e) {
-        if (isset($pdo) && $pdo->inTransaction()) {
-            $pdo->rollBack();
+        if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+        echo json_encode(['success' => false, 'error' => 'Save failed: ' . $e->getMessage()]);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  GET report=1 — Combined BCM + BDM data for write-up page
+// ─────────────────────────────────────────────────────────────
+function getFullReport(int $client_id): void {
+    try {
+        $clients = dbQuery("SELECT * FROM clients WHERE id = ?", [$client_id]);
+        if (empty($clients)) {
+            echo json_encode(['success' => false, 'error' => 'Client not found']);
+            return;
         }
-        echo json_encode(['success' => false, 'error' => 'Failed to save data: ' . $e->getMessage()]);
+
+        // BCM behaviors — uses correct table names: bcm_frequencies, bcm_sessions
+        $bcm_behaviors = dbQuery(
+            "SELECT b.id, b.antecedent, b.behavior,
+                    GROUP_CONCAT(
+                        CONCAT(s.session_number, ':', f.frequency)
+                        ORDER BY s.session_number
+                    ) AS freq_by_session
+             FROM bcm_behaviors  b
+             LEFT JOIN bcm_frequencies f ON f.behavior_id = b.id
+             LEFT JOIN bcm_sessions    s ON s.id           = f.session_id
+             WHERE b.client_id = ?
+             GROUP BY b.id",
+            [$client_id]
+        );
+
+        // BDM summary via view
+        $bdm_summary = dbQuery(
+            "SELECT * FROM v_bdm_summary WHERE client_id = ?",
+            [$client_id]
+        );
+
+        // Notes from their respective tables
+        $bcm_notes_row = dbQuery("SELECT notes FROM bcm_notes WHERE client_id = ? LIMIT 1", [$client_id]);
+        $bdm_notes_row = dbQuery("SELECT notes FROM bdm_notes WHERE client_id = ? LIMIT 1", [$client_id]);
+
+        echo json_encode([
+            'success'       => true,
+            'client'        => $clients[0],
+            'bcm_behaviors' => $bcm_behaviors,
+            'bdm_summary'   => $bdm_summary,
+            'bcm_notes'     => $bcm_notes_row[0]['notes'] ?? '',
+            'bdm_notes'     => $bdm_notes_row[0]['notes'] ?? ''
+        ]);
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
 }
