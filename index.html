@@ -56,8 +56,43 @@
   <main class="main" id="mainContent">
 
     <!-- ═══════════════════════════════════════════════
-         MEASUREMENT CONTAINER  (BCM + BDM tabbed)
-    ════════════════════════════════════════════════ -->
+         INFORMATION SECTION
+    ═══════════════════════════════════════════════ -->
+    <div class="info-container">
+      <div class="info-header">
+        <h2 class="info-title">Information</h2>
+      </div>
+      <div class="info-grid">
+        <div class="field">
+          <label class="label">Name</label>
+          <input type="text" class="input" id="clientName" placeholder="Enter client name..." />
+        </div>
+        <div class="field">
+          <label class="label">Age</label>
+          <input type="text" class="input" id="clientAge" placeholder="e.g. 8 years" />
+        </div>
+        <div class="field">
+          <label class="label">Diagnosis</label>
+          <input type="text" class="input" id="clientDiagnosis" placeholder="e.g. Autism Spectrum Disorder" />
+        </div>
+        <div class="field">
+          <label class="label">Recorder/s</label>
+          <input type="text" class="input" id="clientRecorder" placeholder="Enter recorder name(s)..." />
+        </div>
+        <div class="field field-full">
+          <label class="label">Baseline Report Period</label>
+          <div class="date-range-inputs">
+            <input type="date" class="input date-input" id="reportStartDate" />
+            <span class="date-separator">to</span>
+            <input type="date" class="input date-input" id="reportEndDate" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════
+         MEASUREMENT CONTAINER
+    ═══════════════════════════ -->
     <div class="measurement-container">
 
       <!-- Tab Bar -->
@@ -125,12 +160,6 @@
 
           <div class="bcm-footer">
             <div class="bcm-footer-actions">
-              <button class="bcm-btn-save" id="bcmSave">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Save
-              </button>
               <button class="bcm-btn-add-session" id="bcmAddSession">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -164,8 +193,19 @@
             <textarea class="bcm-notes-input" id="notesInput" placeholder="Add any additional notes or observations..."></textarea>
           </div>
 
+          <div class="bcm-footer bcm-footer-bottom">
+            <div class="bcm-footer-actions">
+              <button class="bcm-btn-save" id="bcmSave">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Save
+              </button>
+            </div>
+          </div>
+
         </div>
-      </div><!-- /panel-bcm -->
+      </div>
 
       <!-- ── Panel: BDM ─────────────────────────────── -->
       <div class="measurement-panel" id="panel-bdm" role="tabpanel" aria-labelledby="tab-bdm">
@@ -178,37 +218,12 @@
             </div>
           </div>
 
-          <div class="bdm-meta-row">
-            <div class="bdm-meta-field">
-              <span class="bdm-meta-label">Behavior</span>
-              <input class="bdm-meta-input" type="text" placeholder="Enter behavior…" style="min-width:180px;" />
-            </div>
-            <div class="bdm-meta-field">
-              <span class="bdm-meta-label">Interval</span>
-              <input class="bdm-meta-input" type="text" placeholder="e.g. 10 min" style="min-width:100px;" />
-            </div>
-            <div class="bdm-meta-field">
-              <span class="bdm-meta-label">Function</span>
-              <input class="bdm-meta-input" type="text" placeholder="e.g. Escape" style="min-width:140px;" />
-            </div>
-            <div class="bdm-meta-field">
-              <span class="bdm-meta-label">Type</span>
-              <input class="bdm-meta-input" type="text" placeholder="e.g. Whole / Partial" style="min-width:160px;" />
-            </div>
-          </div>
-
           <div class="bdm-sessions-grid" id="bdmSessionsGrid">
             <!-- Injected by JS below -->
           </div>
 
           <div class="bdm-footer">
             <div class="bdm-footer-actions">
-              <button class="bdm-btn-save" id="bdmSave">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Save
-              </button>
               <button class="bdm-btn-add" id="bdmAddSession">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -228,6 +243,17 @@
           <div class="bdm-notes-section">
             <label class="bdm-notes-label">Notes</label>
             <textarea class="bdm-notes-input" id="bdmNotesInput" placeholder="Add any additional notes or observations for discontinuous measurement..."></textarea>
+          </div>
+
+          <div class="bdm-footer bdm-footer-bottom">
+            <div class="bdm-footer-actions">
+              <button class="bdm-btn-save" id="bdmSave">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Save
+              </button>
+            </div>
           </div>
 
         </div>
@@ -285,15 +311,14 @@
         const sessionBlocks = grid.querySelectorAll('.bdm-session-block');
         
         sessionBlocks.forEach((block, blockIndex) => {
-          const metaInputs = block.querySelectorAll('.bdm-meta-input');
           const dateInput = block.querySelector('.date-input');
           const sessionNumInput = block.querySelector('.bdm-session-num-input');
           
           const session = {
-            behavior_name: metaInputs[0]?.value || '',
-            interval_duration: metaInputs[1]?.value || '',
-            function_type: metaInputs[2]?.value || '',
-            measurement_type: metaInputs[3]?.value || '',
+            behavior_name: '',
+            interval_duration: '',
+            function_type: '',
+            measurement_type: '',
             session_number: parseInt(sessionNumInput?.value) || (blockIndex + 1),
             session_date: dateInput?.value || new Date().toISOString().split('T')[0],
             intervals: {}
@@ -352,13 +377,6 @@
           result.sessions.forEach(session => {
             sessionCount++;
             const block = createSessionBlock(sessionCount - 1);
-            
-            // Fill in the data
-            const metaInputs = block.querySelectorAll('.bdm-meta-input');
-            if (metaInputs[0]) metaInputs[0].value = session.behavior_name || '';
-            if (metaInputs[1]) metaInputs[1].value = session.interval_duration || '';
-            if (metaInputs[2]) metaInputs[2].value = session.function_type || '';
-            if (metaInputs[3]) metaInputs[3].value = session.measurement_type || '';
             
             const sessionNumInput = block.querySelector('.bdm-session-num-input');
             if (sessionNumInput) sessionNumInput.value = session.session_number || '';

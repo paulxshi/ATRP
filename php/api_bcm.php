@@ -1,7 +1,7 @@
 <?php
 /**
  * API for BCM (Continuous Measurement) Data
- * Handles saving and loading BCM behavior data
+ * Handles saving and loading BCM behavior data with client connection
  */
 
 header('Content-Type: application/json');
@@ -30,46 +30,74 @@ function loadBcmData() {
     global $pdo;
     
     try {
-        // Get all behaviors with their sessions
-        $stmt = $pdo->query("
-            SELECT 
-                b.id,
-                b.antecedent,
-                b.behavior,
-                b.notes,
-                b.created_at,
-                b.updated_at,
-                s.session_number,
-                s.frequency,
-                f.function_type,
-                f.is_checked
-            FROM bcm_behaviors b
-            LEFT JOIN bcm_sessions s ON b.id = s.behavior_id
-            LEFT JOIN bcm_functions f ON b.id = f.behavior_id
-            ORDER BY b.id, s.session_number
-        ");
+        // Get client_id from query parameter if provided
+        $clientId = isset($_GET['client_id']) ? $_GET['client_id'] : null;
+        
+        if ($clientId) {
+            // Get behaviors for specific client
+            $stmt = $pdo->prepare("
+                SELECT 
+                    id,
+                    client_id,
+                    antecedent,
+                    behavior,
+                    notes,
+                    session_number,
+                    frequency,
+                    function_type,
+                    is_checked,
+                    session_date,
+                    created_at,
+                    updated_at
+                FROM bcm_table 
+                WHERE client_id = ?
+                ORDER BY id, session_number
+            ");
+            $stmt->execute([$clientId]);
+        } else {
+            // Get all behaviors
+            $stmt = $pdo->query("
+                SELECT 
+                    id,
+                    client_id,
+                    antecedent,
+                    behavior,
+                    notes,
+                    session_number,
+                    frequency,
+                    function_type,
+                    is_checked,
+                    session_date,
+                    created_at,
+                    updated_at
+                FROM bcm_table 
+                ORDER BY client_id, id, session_number
+            ");
+        }
         
         $rows = $stmt->fetchAll();
         
-        // Group by behavior
+        // Group by behavior (combining sessions and functions)
         $behaviors = [];
         foreach ($rows as $row) {
             $id = $row['id'];
             if (!isset($behaviors[$id])) {
                 $behaviors[$id] = [
                     'id' => $id,
+                    'client_id' => $row['client_id'],
                     'antecedent' => $row['antecedent'],
                     'behavior' => $row['behavior'],
                     'notes' => $row['notes'],
-                    'created_at' => $row['created_at'],
-                    'updated_at' => $row['updated_at'],
                     'sessions' => [],
-                    'functions' => []
+                    'functions' => [],
+                    'session_date' => $row['session_date'],
+                    'created_at' => $row['created_at'],
+                    'updated_at' => $row['updated_at']
                 ];
             }
             
-            // Add session if exists
-            if ($row['session_number'] !== null) {
+            // Add session frequency if exists
+            if ($row['session_number'] !== null && $row['session_number'] > 0) {
                 $behaviors[$id]['sessions'][$row['session_number']] = $row['frequency'];
             }
             
@@ -79,14 +107,20 @@ function loadBcmData() {
             }
         }
         
-        // Get notes
-        $notesStmt = $pdo->query("SELECT notes FROM bcm_notes ORDER BY id DESC LIMIT 1");
-        $notes = $notesStmt->fetch();
+        // Get notes for client
+        $notes = '';
+        if ($clientId) {
+            $notesStmt = $pdo->prepare("SELECT notes FROM bcm_notes WHERE client_id = ? ORDER BY id DESC LIMIT 1");
+            $notesStmt->execute([$clientId]);
+            $notesRow = $notesStmt->fetch();
+            $notes = $notesRow['notes'] ?? '';
+        }
         
         echo json_encode([
             'success' => true,
             'behaviors' => array_values($behaviors),
-            'notes' => $notes['notes'] ?? ''
+            'notes' => $notes,
+            'client_id' => $clientId
         ]);
         
     } catch (PDOException $e) {
@@ -107,54 +141,106 @@ function saveBcmData() {
             return;
         }
         
+        if (!isset($input['client_id'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Client ID is required']);
+            return;
+        }
+        
+        $clientId = $input['client_id'];
+        
         $pdo->beginTransaction();
         
-        // Clear existing data (or you could implement update logic)
-        $pdo->exec("DELETE FROM bcm_sessions");
-        $pdo->exec("DELETE FROM bcm_functions");
-        $pdo->exec("DELETE FROM bcm_behaviors");
+        // Clear existing data for this client
+        $pdo->prepare("DELETE FROM bcm_table WHERE client_id = ?")->execute([$clientId]);
         
         foreach ($input['behaviors'] as $behavior) {
-            // Insert behavior
-            $stmt = $pdo->prepare("
-                INSERT INTO bcm_behaviors (antecedent, behavior, notes) 
-                VALUES (?, ?, ?)
-            ");
-            $stmt->execute([
-                $behavior['antecedent'] ?? '',
-                $behavior['behavior'] ?? '',
-                $behavior['notes'] ?? ''
-            ]);
-            $behaviorId = $pdo->lastInsertId();
+            // Get session data
+            $sessions = $behavior['sessions'] ?? [];
+            $functions = $behavior['functions'] ?? [];
+            $sessionDate = $behavior['session_date'] ?? date('Y-m-d');
             
-            // Insert sessions
-            if (isset($behavior['sessions']) && is_array($behavior['sessions'])) {
-                $sessionStmt = $pdo->prepare("
-                    INSERT INTO bcm_sessions (behavior_id, session_number, frequency) 
-                    VALUES (?, ?, ?)
-                ");
-                foreach ($behavior['sessions'] as $sessionNum => $frequency) {
-                    $sessionStmt->execute([$behaviorId, $sessionNum, $frequency]);
+            // If there are sessions, insert each session as a separate row
+            if (!empty($sessions)) {
+                foreach ($sessions as $sessionNum => $frequency) {
+                    // Insert behavior with session
+                    $stmt = $pdo->prepare("
+                        INSERT INTO bcm_table (client_id, antecedent, behavior, notes, session_number, frequency, session_date) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmt->execute([
+                        $clientId,
+                        $behavior['antecedent'] ?? '',
+                        $behavior['behavior'] ?? '',
+                        $behavior['notes'] ?? '',
+                        $sessionNum,
+                        $frequency,
+                        $sessionDate
+                    ]);
+                    
+                    $behaviorId = $pdo->lastInsertId();
+                    
+                    // Insert functions for this behavior
+                    if (!empty($functions)) {
+                        $funcStmt = $pdo->prepare("
+                            INSERT INTO bcm_table (client_id, antecedent, behavior, notes, function_type, is_checked, session_date) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        foreach ($functions as $funcType => $isChecked) {
+                            $funcStmt->execute([
+                                $clientId,
+                                $behavior['antecedent'] ?? '',
+                                $behavior['behavior'] ?? '',
+                                $behavior['notes'] ?? '',
+                                $funcType,
+                                $isChecked ? 1 : 0,
+                                $sessionDate
+                            ]);
+                        }
+                    }
                 }
-            }
-            
-            // Insert functions
-            if (isset($behavior['functions']) && is_array($behavior['functions'])) {
-                $funcStmt = $pdo->prepare("
-                    INSERT INTO bcm_functions (behavior_id, function_type, is_checked) 
-                    VALUES (?, ?, ?)
+            } else {
+                // Insert behavior without session
+                $stmt = $pdo->prepare("
+                    INSERT INTO bcm_table (client_id, antecedent, behavior, notes, session_number, frequency, session_date) 
+                    VALUES (?, ?, ?, ?, 0, 0, ?)
                 ");
-                foreach ($behavior['functions'] as $funcType => $isChecked) {
-                    $funcStmt->execute([$behaviorId, $funcType, $isChecked ? 1 : 0]);
+                $stmt->execute([
+                    $clientId,
+                    $behavior['antecedent'] ?? '',
+                    $behavior['behavior'] ?? '',
+                    $behavior['notes'] ?? '',
+                    $sessionDate
+                ]);
+                
+                $behaviorId = $pdo->lastInsertId();
+                
+                // Insert functions for this behavior
+                if (!empty($functions)) {
+                    $funcStmt = $pdo->prepare("
+                        INSERT INTO bcm_table (client_id, antecedent, behavior, notes, function_type, is_checked, session_date) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    foreach ($functions as $funcType => $isChecked) {
+                        $funcStmt->execute([
+                            $clientId,
+                            $behavior['antecedent'] ?? '',
+                            $behavior['behavior'] ?? '',
+                            $behavior['notes'] ?? '',
+                            $funcType,
+                            $isChecked ? 1 : 0,
+                            $sessionDate
+                        ]);
+                    }
                 }
             }
         }
         
-        // Save notes
+        // Save notes for client
         if (isset($input['notes'])) {
-            $pdo->exec("DELETE FROM bcm_notes");
-            $notesStmt = $pdo->prepare("INSERT INTO bcm_notes (notes) VALUES (?)");
-            $notesStmt->execute([$input['notes']]);
+            $pdo->prepare("DELETE FROM bcm_notes WHERE client_id = ?")->execute([$clientId]);
+            $notesStmt = $pdo->prepare("INSERT INTO bcm_notes (client_id, notes) VALUES (?, ?)");
+            $notesStmt->execute([$clientId, $input['notes']]);
         }
         
         $pdo->commit();
@@ -174,15 +260,20 @@ function deleteBcmData() {
     try {
         $input = json_decode(file_get_contents('php://input'), true);
         
-        if (isset($input['id'])) {
+        $clientId = $input['client_id'] ?? null;
+        
+        if (isset($input['id']) && $clientId) {
             // Delete specific behavior
-            $stmt = $pdo->prepare("DELETE FROM bcm_behaviors WHERE id = ?");
-            $stmt->execute([$input['id']]);
+            $stmt = $pdo->prepare("DELETE FROM bcm_table WHERE id = ? AND client_id = ?");
+            $stmt->execute([$input['id'], $clientId]);
+        } elseif ($clientId) {
+            // Delete all for this client
+            $pdo->prepare("DELETE FROM bcm_table WHERE client_id = ?")->execute([$clientId]);
+            $pdo->prepare("DELETE FROM bcm_notes WHERE client_id = ?")->execute([$clientId]);
         } else {
             // Delete all
-            $pdo->exec("DELETE FROM bcm_sessions");
-            $pdo->exec("DELETE FROM bcm_functions");
-            $pdo->exec("DELETE FROM bcm_behaviors");
+            $pdo->exec("DELETE FROM bcm_table");
+            $pdo->exec("DELETE FROM bcm_notes");
         }
         
         echo json_encode(['success' => true]);

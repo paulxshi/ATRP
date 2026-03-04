@@ -9,6 +9,157 @@
       transition: margin-left .3s ease, width .3s ease;
     }
 
+    /* ── Information Section ───────────────────── */
+    .info-container {
+      background: #ffffff;
+      border: 1px solid var(--border, #e5e0d5);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.09);
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto 24px;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .info-header {
+      background: linear-gradient(90deg, #1A1A1A 0%, #2E2E2E 100%);
+      padding: 14px 24px;
+      border-bottom: 3px solid #C9A84C;
+    }
+
+    .info-title {
+      font-family: var(--ff-heading);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #C9A84C;
+      margin: 0;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-full {
+      grid-column: 1 / -1;
+    }
+
+    .label {
+      font-family: var(--ff-body);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .input {
+      font-family: var(--ff-body);
+      font-size: 14px;
+      padding: 10px 14px;
+      border: 1px solid var(--border, #e5e0d5);
+      border-radius: 8px;
+      background: #fafafa;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #C9A84C;
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+      background: #fff;
+    }
+
+    .input::placeholder {
+      color: #aaa;
+    }
+
+    .date-range-inputs {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .date-separator {
+      font-family: var(--ff-body);
+      font-size: 14px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .date-range-inputs .date-input {
+      flex: 1;
+      max-width: 200px;
+    }
+
+    /* ── Bottom Footer with Save Button ───────────────── */
+    .bcm-footer-bottom,
+    .bdm-footer-bottom {
+      padding: 20px 24px;
+      border-top: 1px solid var(--border, #e5e0d5);
+      background: #fafafa;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .bcm-footer-bottom .bcm-footer-actions,
+    .bdm-footer-bottom .bdm-footer-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .bcm-footer-bottom .bcm-btn-save,
+    .bdm-footer-bottom .bdm-btn-save {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-family: var(--ff-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: #000000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+
+    .bcm-footer-bottom .bcm-btn-save:hover,
+    .bdm-footer-bottom .bdm-btn-save:hover {
+      background: #000000;
+    }
+
+    .bcm-footer-bottom .bcm-btn-save:active,
+    .bdm-footer-bottom .bdm-btn-save:active {
+      transform: scale(0.98);
+    }
+
+    .bcm-footer-bottom .bcm-btn-save.saving,
+    .bdm-footer-bottom .bdm-btn-save.saving {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .bcm-footer-bottom .bcm-btn-save svg,
+    .bdm-footer-bottom .bdm-btn-save svg {
+      width: 14px;
+      height: 14px;
+    }
+
     /* ── Measurement Container ─────────────────────── */
     .measurement-container {
       display: flex;
@@ -47,7 +198,7 @@
       gap: 8px;
       padding: 14px 22px 13px;
       font-family: var(--ff-body);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
       letter-spacing: .14em;
       text-transform: uppercase;
@@ -480,7 +631,7 @@
   }
   .bcm-notes-input {
     width: 100%;
-    min-height: 200px;
+    min-height: 150px;
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 8px;
