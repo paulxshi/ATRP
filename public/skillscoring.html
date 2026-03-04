@@ -11,7 +11,375 @@
   <link rel="stylesheet" href="../css/table.css">
 </head>
 <body>
+ <style>
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8CA7A;
+      --surface: #F5F4F0;
+      --text: #1A1A1A;
+      --muted: #888;
+      --border: #E0DDD5;
+      --border2: #EBEBEB;
+      --radius: 10px;
+      --ff-body: 'Work Sans', sans-serif;
+      --ff-display: 'Syne', sans-serif;
+      --ff-heading: 'Syne', sans-serif;
 
+      /* Subskill tier colors */
+      --eye-contact:        #C9A84C;
+      --eye-contact-bg:     rgba(201,168,76,.10);
+      --eye-contact-border: rgba(201,168,76,.35);
+
+      --basic:              #3aa06f;
+      --basic-bg:           rgba(58,160,111,.10);
+      --basic-border:       rgba(58,160,111,.35);
+
+      --identification:     #e87c4e;
+      --identification-bg:  rgba(232,124,78,.10);
+      --identification-border: rgba(232,124,78,.35);
+
+      --advanced:           #7c6ff7;
+      --advanced-bg:        rgba(124,111,247,.10);
+      --advanced-border:    rgba(124,111,247,.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--ff-body);
+      background: var(--surface);
+      color: var(--text);
+      padding: 32px 36px;
+      min-height: 100vh;
+    }
+
+    /* ── Page Header ── */
+    .ss-wrapper {
+      font-family: var(--ff-body);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: fadeUp .5s ease both;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .ss-header { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+    .ss-eyebrow {
+      display:block; font-family:var(--ff-display); font-size:10px;
+      letter-spacing:.18em; text-transform:uppercase; color:#000; margin-bottom:6px;
+    }
+    .ss-title { font-family:var(--ff-display); font-size:28px; font-weight:800; color:#1A1A1A; line-height:1; margin:0; }
+    .ss-title-accent { color:var(--gold); }
+
+    /* ── Container ── */
+    .measurement-container {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.09);
+    }
+
+    /* ── Table ── */
+    .ss-table-container {
+      border-radius: 0;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+    }
+    .ss-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-family: var(--ff-body);
+    }
+
+    /* TH */
+    .ss-table thead tr {
+      background: linear-gradient(90deg, #1A1A1A 0%, #2E2E2E 100%);
+      border-bottom: 3px solid var(--gold);
+    }
+    .ss-table th {
+      padding: 14px 16px 12px;
+      font-family: var(--ff-heading);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border-right: 1px solid rgba(255,255,255,.08);
+      vertical-align: bottom;
+    }
+    .ss-table th:last-child { border-right: none; }
+
+    /* Column widths */
+    .col-subskill { width: 30%; }
+    .col-skill    { width: 22%; }
+    .col-criteria { width: 22%; }
+    .col-score    { width: 26%; }
+
+    /* TD */
+    .ss-table tbody tr {
+      border-bottom: 1px solid var(--border2);
+      transition: background .2s;
+    }
+    .ss-table tbody tr:nth-child(odd)  { background: #fff; }
+    .ss-table tbody tr:nth-child(even) { background: #FAFAF7; }
+    .ss-table tbody tr:hover           { background: rgba(201,168,76,.04); }
+    .ss-table tbody tr:last-child      { border-bottom: none; }
+    .ss-table td {
+      padding: 0;
+      border-right: 1px solid var(--border2);
+      vertical-align: middle;
+    }
+    .ss-table td:last-child { border-right: none; }
+
+    /* ── Subskill Radio Group ── */
+    .subskill-cell {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .radio-option input[type="radio"] { display: none; }
+
+    .radio-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .18s, background .18s;
+      position: relative;
+    }
+    .radio-dot::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: transparent;
+      transition: background .18s, transform .18s;
+      transform: scale(0);
+    }
+    .radio-option input:checked + .radio-dot::after {
+      transform: scale(1);
+    }
+
+    /* Tier badge */
+    .radio-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: .03em;
+      white-space: nowrap;
+      border: 1px solid transparent;
+      transition: opacity .18s, transform .15s;
+    }
+    .radio-option:not(:has(input:checked)) .radio-badge {
+      opacity: .55;
+    }
+    .radio-option:has(input:checked) .radio-badge {
+      opacity: 1;
+      transform: translateX(2px);
+    }
+
+    /* Eye Contact — gold */
+    .radio-option.tier-eye .radio-dot        { border-color: rgba(201,168,76,.45); }
+    .radio-option.tier-eye input:checked + .radio-dot { border-color: var(--eye-contact); background: var(--eye-contact); }
+    .radio-option.tier-eye input:checked + .radio-dot::after { background: #fff; }
+    .radio-option.tier-eye .radio-badge {
+      background: var(--eye-contact-bg);
+      color: #7a5c0a;
+      border-color: var(--eye-contact-border);
+    }
+
+    /* Basic Understanding — green */
+    .radio-option.tier-basic .radio-dot        { border-color: rgba(58,160,111,.45); }
+    .radio-option.tier-basic input:checked + .radio-dot { border-color: var(--basic); background: var(--basic); }
+    .radio-option.tier-basic input:checked + .radio-dot::after { background: #fff; }
+    .radio-option.tier-basic .radio-badge {
+      background: var(--basic-bg);
+      color: #1a6644;
+      border-color: var(--basic-border);
+    }
+
+    /* Identification — orange */
+    .radio-option.tier-identification .radio-dot        { border-color: rgba(232,124,78,.45); }
+    .radio-option.tier-identification input:checked + .radio-dot { border-color: var(--identification); background: var(--identification); }
+    .radio-option.tier-identification input:checked + .radio-dot::after { background: #fff; }
+    .radio-option.tier-identification .radio-badge {
+      background: var(--identification-bg);
+      color: #8a3910;
+      border-color: var(--identification-border);
+    }
+
+    /* Advanced Understanding — purple */
+    .radio-option.tier-advanced .radio-dot        { border-color: rgba(124,111,247,.45); }
+    .radio-option.tier-advanced input:checked + .radio-dot { border-color: var(--advanced); background: var(--advanced); }
+    .radio-option.tier-advanced input:checked + .radio-dot::after { background: #fff; }
+    .radio-option.tier-advanced .radio-badge {
+      background: var(--advanced-bg);
+      color: #3d2f9e;
+      border-color: var(--advanced-border);
+    }
+
+    /* Skill label cell with color tag */
+    .skill-cell {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 100%;
+      min-height: 56px;
+    }
+    .skill-color-bar {
+      width: 4px;
+      align-self: stretch;
+      flex-shrink: 0;
+    }
+    .skill-name {
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    /* Criteria */
+    .criteria-cell {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .criteria-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(201,168,76,.12);
+      color: #6b4f10;
+      border: 1px solid rgba(201,168,76,.3);
+      white-space: nowrap;
+    }
+    .criteria-pill svg { width:10px;height:10px;opacity:.6; }
+
+    /* Score cell */
+    .score-cell {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .score-pct {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--gold);
+      min-width: 44px;
+      letter-spacing: -.01em;
+    }
+    .score-input-inline {
+      width: 64px;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fafafa;
+      font-family: var(--ff-body);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .score-input-inline:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,.15);
+      background: #fff;
+    }
+    .score-input-inline::-webkit-outer-spin-button,
+    .score-input-inline::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+    /* ── Legend ── */
+    .ss-legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding: 14px 18px;
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .ss-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .ss-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Panel padding ── */
+    .measurement-panel { display:none; padding:24px 28px 20px; }
+    .measurement-panel.active { display:block; }
+
+    /* ── Notes ── */
+    .bcm-notes-section { display:flex; flex-direction:column; gap:8px; margin-top:20px; }
+    .bcm-notes-label { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+    .bcm-notes-input {
+      width:100%; min-height:130px; background:#fff; border:1px solid var(--border);
+      border-radius:8px; color:var(--text); font-family:var(--ff-body); font-size:13px;
+      padding:12px 14px; resize:vertical; outline:none; transition:border-color .2s, box-shadow .2s;
+    }
+    .bcm-notes-input::placeholder { color:rgba(0,0,0,.25); }
+    .bcm-notes-input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,137,58,.1); }
+
+    /* ── Footer ── */
+    .bcm-footer-bottom {
+      padding:18px 24px;
+      border-top:1px solid var(--border);
+      background:#fafafa;
+      display:flex;
+      justify-content:flex-end;
+    }
+    .bcm-btn-save {
+      display:flex; align-items:center; gap:8px; padding:11px 22px;
+      font-family:var(--ff-body); font-size:13px; font-weight:600;
+      color:#fff; background:#000; border:none; border-radius:8px;
+      cursor:pointer; transition:background .2s, transform .1s;
+    }
+    .bcm-btn-save:hover { background:#222; }
+    .bcm-btn-save:active { transform:scale(.98); }
+    .bcm-btn-save svg { width:14px; height:14px; }
+  </style>
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-left" id="topbarLeft">
@@ -60,7 +428,6 @@
 
   <!-- MAIN CONTENT -->
   <main class="main" id="mainContent">
-<!-- DROP THIS INSIDE <main class="main" id="mainContent"> -->
 
 <div class="ss-wrapper">
 
@@ -70,34 +437,24 @@
       <span class="ss-eyebrow">Skills Assessment</span>
       <h1 class="ss-title">Skills <span class="ss-title-accent">Scoring</span> Sheet</h1>
     </div>
-    <div class="ss-header-right">
-      <button class="ss-btn-save" id="ssSaveBtn">
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Save Session
-      </button>
-    </div>
   </div>
 
   <!-- SCORING TABLE CARD -->
   <div class="measurement-container">
-
-    <!-- RECEPTIVE PANEL -->
     <div class="measurement-panel active" id="tab-receptive">
       <div class="ss-table-container">
         <table class="ss-table">
           <colgroup>
-            <col class="col-skill" />
             <col class="col-subskill" />
+            <col class="col-skill" />
             <col class="col-criteria" />
             <col class="col-score" />
           </colgroup>
           <thead>
             <tr>
+              <th class="col-subskill">Subskill Level</th>
               <th class="col-skill">Skill</th>
-              <th class="col-subskill">Subskill</th>
-              <th class="col-criteria">Criteria</th>
+              <th class="col-criteria">No. of Attempts</th>
               <th class="col-score">Score</th>
             </tr>
           </thead>
@@ -111,69 +468,68 @@
       <div class="ss-legend">
         <div class="ss-legend-item">
           <span class="ss-legend-dot" style="background:#C9A84C;"></span>
-          <span>(0–2) Eye Contact</span>
+          <span>Eye Contact</span>
         </div>
         <div class="ss-legend-item">
           <span class="ss-legend-dot" style="background:#3aa06f;"></span>
-          <span>(0–2) Basic Understanding</span>
+          <span>Basic Understanding</span>
         </div>
         <div class="ss-legend-item">
           <span class="ss-legend-dot" style="background:#e87c4e;"></span>
-          <span>(3–5) Identification</span>
+          <span>Identification</span>
         </div>
         <div class="ss-legend-item">
           <span class="ss-legend-dot" style="background:#7c6ff7;"></span>
-          <span>(6+) Advanced Understanding</span>
+          <span>Advanced Understanding</span>
         </div>
       </div>
 
       <!-- NOTES -->
-      <div class="bcm-notes-section" style="margin-top:20px;">
+      <div class="bcm-notes-section">
         <label class="bcm-notes-label">Session Notes</label>
         <textarea class="bcm-notes-input" placeholder="Enter session observations, comments, or follow-up actions..."></textarea>
       </div>
     </div>
 
-    <!-- EXPRESSIVE PANEL (placeholder) -->
-    <div class="measurement-panel" id="tab-expressive">
-      <div style="padding:40px 0;text-align:center;color:var(--muted);font-size:14px;font-family:var(--ff-body);">
-        Expressive Communication drills — coming soon.
-      </div>
-    </div>
-
-    <!-- FOOTER SAVE BAR -->
+    <!-- FOOTER -->
     <div class="bcm-footer-bottom">
-      <div class="bcm-footer-actions">
-        <button class="bcm-btn-save" id="ssFooterSave">
-          <svg viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Save &amp; Submit
-        </button>
-      </div>
+      <button class="bcm-btn-save" id="ssFooterSave">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Save &amp; Submit
+      </button>
     </div>
+  </div>
 
-  </div><!-- /measurement-container -->
 </div><!-- /ss-wrapper -->
-
 
 <script>
 (function () {
 
-  /* ── Data ── */
-  const DRILLS = [
-    { skill: 'Name Call',                    subskill: null,                    criteria: '5 Attempts',  max: 5,  color: '#C9A84C' },
-    { skill: 'Hello',                         subskill: null,                    criteria: '5 Attempts',  max: 5,  color: '#C9A84C' },
-    { skill: 'Tap',                           subskill: null,                    criteria: '5 Attempts',  max: 5,  color: '#C9A84C' },
-    { skill: 'Come Here',                     subskill: null,                    criteria: '5 Attempts',  max: 5,  color: '#3aa06f' },
-    { skill: 'Sit Down',                      subskill: null,                    criteria: '5 Attempts',  max: 5,  color: '#3aa06f' },
-    { skill: 'Stand Up',                      subskill: null,                    criteria: '5 Attempts',  max: 5,  color: '#3aa06f' },
-    { skill: 'Pointing to Facial Expressions',subskill: null,                    criteria: '4 Points',    max: 4,  color: '#e87c4e' },
-    { skill: 'Pointing to Body Parts',        subskill: null,                    criteria: '5 Points',    max: 5,  color: '#e87c4e' },
-    { skill: 'Directions',                    subskill: 'Right, Left, Up, Down', criteria: '4 Points',    max: 4,  color: '#e87c4e' },
-    { skill: 'Wh Questions',                  subskill: 'Who, What, Where, Why', criteria: '10 Points',   max: 10, color: '#7c6ff7' },
-    { skill: 'Using One Object',              subskill: null,                    criteria: '4 Points',    max: 4,  color: '#7c6ff7' },
+  const TIERS = [
+    { key: 'eye',            label: 'Eye Contact',           cls: 'tier-eye' },
+    { key: 'basic',          label: 'Basic Understanding',   cls: 'tier-basic' },
+    { key: 'identification', label: 'Identification',        cls: 'tier-identification' },
+    { key: 'advanced',       label: 'Advanced Understanding',cls: 'tier-advanced' },
   ];
 
-  const scores = new Array(DRILLS.length).fill('');
+  const DRILLS = [
+    { skill: 'Name Call',                     criteria: '5 Attempts',  max: 5,  color: '#C9A84C', defaultTier: 'eye' },
+    { skill: 'Hello',                          criteria: '5 Attempts',  max: 5,  color: '#C9A84C', defaultTier: 'eye' },
+    { skill: 'Tap',                            criteria: '5 Attempts',  max: 5,  color: '#C9A84C', defaultTier: 'eye' },
+    { skill: 'Come Here',                      criteria: '5 Attempts',  max: 5,  color: '#3aa06f', defaultTier: 'basic' },
+    { skill: 'Sit Down',                       criteria: '5 Attempts',  max: 5,  color: '#3aa06f', defaultTier: 'basic' },
+    { skill: 'Stand Up',                       criteria: '5 Attempts',  max: 5,  color: '#3aa06f', defaultTier: 'basic' },
+    { skill: 'Pointing to Facial Expressions', criteria: '4 Points',    max: 4,  color: '#e87c4e', defaultTier: 'identification' },
+    { skill: 'Pointing to Body Parts',         criteria: '5 Points',    max: 5,  color: '#e87c4e', defaultTier: 'identification' },
+    { skill: 'Directions',                     criteria: '4 Points',    max: 4,  color: '#e87c4e', defaultTier: 'identification' },
+    { skill: 'Wh Questions',                   criteria: '10 Points',   max: 10, color: '#7c6ff7', defaultTier: 'advanced' },
+    { skill: 'Using One Object',               criteria: '4 Points',    max: 4,  color: '#7c6ff7', defaultTier: 'advanced' },
+  ];
+
+  const scores     = new Array(DRILLS.length).fill('');
+  const tierSel    = DRILLS.map(d => d.defaultTier);
 
   function pct(val, max) {
     const n = parseFloat(val);
@@ -184,7 +540,42 @@
   function buildRow(drill, idx) {
     const tr = document.createElement('tr');
 
-    /* Skill cell */
+    /* ── Subskill cell: radio group ── */
+    const tdSub = document.createElement('td');
+    const cell  = document.createElement('div');
+    cell.className = 'subskill-cell';
+
+    TIERS.forEach(tier => {
+      const label = document.createElement('label');
+      label.className = `radio-option ${tier.cls}`;
+
+      const input = document.createElement('input');
+      input.type  = 'radio';
+      input.name  = `tier-${idx}`;
+      input.value = tier.key;
+      if (tierSel[idx] === tier.key) input.checked = true;
+
+      input.addEventListener('change', () => {
+        tierSel[idx] = tier.key;
+      });
+
+      const dot   = document.createElement('span');
+      dot.className = 'radio-dot';
+
+      const badge = document.createElement('span');
+      badge.className = 'radio-badge';
+      badge.textContent = tier.label;
+
+      label.appendChild(input);
+      label.appendChild(dot);
+      label.appendChild(badge);
+      cell.appendChild(label);
+    });
+
+    tdSub.appendChild(cell);
+    tr.appendChild(tdSub);
+
+    /* ── Skill cell ── */
     const tdSkill = document.createElement('td');
     tdSkill.innerHTML = `
       <div class="skill-cell">
@@ -193,44 +584,38 @@
       </div>`;
     tr.appendChild(tdSkill);
 
-    /* Subskill cell */
-    const tdSub = document.createElement('td');
-    tdSub.innerHTML = `<div class="text-cell">${drill.subskill ? drill.subskill : '<span style="color:#ccc;">—</span>'}</div>`;
-    tr.appendChild(tdSub);
-
-    /* Criteria cell */
+    /* ── Criteria cell ── */
     const tdCrit = document.createElement('td');
     tdCrit.innerHTML = `
       <div class="criteria-cell">
         <span class="criteria-pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4l2 2"/>
+          </svg>
           ${drill.criteria}
         </span>
         <span style="font-size:11px;color:#bbb;">/ ${drill.max}</span>
       </div>`;
     tr.appendChild(tdCrit);
 
-    /* Score cell */
+    /* ── Score cell ── */
     const tdScore = document.createElement('td');
     const p = pct(scores[idx], drill.max);
     tdScore.innerHTML = `
       <div class="score-cell">
-        <div class="score-input-wrap">
-          <input
-            class="score-input"
-            type="number"
-            min="0"
-            max="${drill.max}"
-            placeholder="—"
-            value="${scores[idx]}"
-            data-idx="${idx}"
-            data-max="${drill.max}"
-          />
-        </div>
         <span class="score-pct" id="pct-${idx}">${p !== null ? p + '%' : '—'}</span>
-        <div class="score-bar-wrap">
-          <div class="score-bar-fill" id="bar-${idx}" style="width:${p !== null ? p : 0}%;"></div>
-        </div>
+        <input
+          type="number"
+          class="score-input-inline"
+          id="input-${idx}"
+          data-idx="${idx}"
+          data-max="${drill.max}"
+          placeholder="0"
+          min="0"
+          max="${drill.max}"
+          value="${scores[idx]}"
+        />
       </div>`;
     tr.appendChild(tdScore);
 
@@ -242,48 +627,30 @@
     body.innerHTML = '';
     DRILLS.forEach((d, i) => body.appendChild(buildRow(d, i)));
 
-    /* Live score update */
-    body.querySelectorAll('.score-input').forEach(input => {
+    body.querySelectorAll('.score-input-inline').forEach(input => {
       input.addEventListener('input', function () {
         const idx = +this.dataset.idx;
         const max = +this.dataset.max;
+        let v = parseFloat(this.value);
+        if (!isNaN(v) && v > max) { this.value = max; v = max; }
         scores[idx] = this.value;
         const p = pct(this.value, max);
-        document.getElementById(`pct-${idx}`).textContent = p !== null ? p + '%' : '—';
-        document.getElementById(`bar-${idx}`).style.width = (p !== null ? p : 0) + '%';
+        document.getElementById('pct-' + idx).textContent = p !== null ? p + '%' : '—';
       });
     });
   }
-
-  /* ── Tabs ── */
-  document.querySelectorAll('.measurement-tab').forEach(btn => {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.measurement-tab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.measurement-panel').forEach(p => p.classList.remove('active'));
-      this.classList.add('active');
-      const panel = document.getElementById('tab-' + this.dataset.tab);
-      if (panel) panel.classList.add('active');
-    });
-  });
 
   /* ── Save ── */
-  function doSave() {
-    const btn = document.getElementById('ssFooterSave');
-    const btn2 = document.getElementById('ssSaveBtn');
-    [btn, btn2].forEach(b => { if(b){ b.classList.add('saving'); b.textContent = 'Saved ✓'; } });
+  document.getElementById('ssFooterSave').addEventListener('click', function () {
+    const btn = this;
+    btn.style.opacity = '.7';
+    btn.textContent = 'Saved ✓';
     setTimeout(() => {
-      [btn, btn2].forEach(b => {
-        if(b){ b.classList.remove('saving'); b.innerHTML = b.id === 'ssFooterSave'
-          ? '<svg viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Save &amp; Submit'
-          : '<svg viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Save Session';
-        }
-      });
+      btn.style.opacity = '';
+      btn.innerHTML = `<svg viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Save &amp; Submit`;
     }, 1800);
-  }
-  document.getElementById('ssFooterSave')?.addEventListener('click', doSave);
-  document.getElementById('ssSaveBtn')?.addEventListener('click', doSave);
+  });
 
-  /* ── Init ── */
   render();
 })();
 </script>

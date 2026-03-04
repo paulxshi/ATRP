@@ -1113,25 +1113,6 @@
 }
 .ss-title-accent { color: var(--gold); }
 
-.ss-btn-save {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 18px;
-  background: #C9A84C;
-  color: #000;
-  font-family: var(--ff-display);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: opacity .2s, transform .15s;
-}
-.ss-btn-save:hover { opacity:.88; transform:translateY(-1px); }
-.ss-btn-save svg { width:14px;height:14px; }
-
 /* ── Info Grid ── */
 .ss-info-grid {
   display: grid;
@@ -1173,8 +1154,8 @@
 .ss-table th:last-child { border-right: none; }
 
 /* Column widths */
-.col-skill    { width: 22%; }
 .col-subskill { width: 22%; }
+.col-skill    { width: 22%; }
 .col-criteria { width: 28%; }
 .col-score    { width: 28%; }
 
@@ -1331,7 +1312,7 @@
 @media (max-width: 900px) {
   .ss-info-grid { grid-template-columns: 1fr 1fr; }
   .col-criteria { display: none; }
-  .col-skill    { width: 35%; }
-  .col-subskill { width: 30%; }
+  .col-subskill { width: 35%; }
+  .col-skill    { width: 30%; }
   .col-score    { width: 35%; }
 }
