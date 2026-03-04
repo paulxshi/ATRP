@@ -95,27 +95,23 @@
     if (!dropdown) return;
     
     const filtered = clients.filter(c => {
-      const fullName = `${c.first_name} ${c.last_name}`.toLowerCase();
-      return fullName.includes(searchTerm.toLowerCase());
+      return (c.full_name || '').toLowerCase().includes(searchTerm.toLowerCase());
     });
     
     if (filtered.length === 0) {
-      dropdown.innerHTML = '<div style="padding: 8px; color: #999;">No clients found</div>';
+      dropdown.style.display = 'none';
+      return;
     } else {
       dropdown.innerHTML = filtered.map(c => `
-        <div class="client-option" data-id="${c.id}" data-first="${c.first_name}" data-last="${c.last_name}" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;">
-          ${c.first_name} ${c.last_name}
+        <div class="client-option" data-id="${c.id}" data-name="${c.full_name}" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;">
+          ${c.full_name}
         </div>
       `).join('');
       
       // Add click handlers
       dropdown.querySelectorAll('.client-option').forEach(option => {
         option.addEventListener('click', () => {
-          selectClient(
-            parseInt(option.dataset.id),
-            option.dataset.first,
-            option.dataset.last
-          );
+          selectClient(parseInt(option.dataset.id), option.dataset.name);
         });
       });
     }
@@ -123,17 +119,77 @@
     dropdown.style.display = 'block';
   }
   
-  function selectClient(id, firstName, lastName) {
+  function selectClient(id, fullName) {
     currentClientId = id;
     
     const nameInput = document.getElementById('clientName');
-    if (nameInput) nameInput.value = `${firstName} ${lastName}`;
+    if (nameInput) nameInput.value = fullName || '';
     
     const dropdown = document.getElementById('clientDropdown');
     if (dropdown) dropdown.style.display = 'none';
     
-    // Load BCM data for selected client
+    // Load client info and BCM data for selected client
+    loadClientInfo(id);
     loadFromDatabase();
+  }
+
+  // ============================================
+  // CLIENT INFO LOAD/SAVE
+  // ============================================
+  
+  async function loadClientInfo(clientId) {
+    try {
+      const response = await fetch('php/api_clients.php?client_id=' + clientId);
+      const result = await response.json();
+      
+      if (result.success && result.client) {
+        const client = result.client;
+        
+        // Populate info-container fields
+        const ageInput = document.getElementById('clientAge');
+        const diagnosisInput = document.getElementById('clientDiagnosis');
+        const recorderInput = document.getElementById('clientRecorder');
+        const startDateInput = document.getElementById('reportStartDate');
+        const endDateInput = document.getElementById('reportEndDate');
+        
+        if (ageInput) ageInput.value = client.age || '';
+        if (diagnosisInput) diagnosisInput.value = client.diagnosis || '';
+        if (recorderInput) recorderInput.value = client.recorder || '';
+        if (startDateInput) startDateInput.value = client.report_start_date || '';
+        if (endDateInput) endDateInput.value = client.report_end_date || '';
+      }
+    } catch (error) {
+      console.error('Error loading client info:', error);
+    }
+  }
+
+  async function saveClientInfo(clientId) {
+    try {
+      const ageInput = document.getElementById('clientAge');
+      const diagnosisInput = document.getElementById('clientDiagnosis');
+      const recorderInput = document.getElementById('clientRecorder');
+      const startDateInput = document.getElementById('reportStartDate');
+      const endDateInput = document.getElementById('reportEndDate');
+      
+      const response = await fetch('php/api_clients.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: clientId,
+          age: ageInput?.value || null,
+          diagnosis: diagnosisInput?.value || null,
+          recorder: recorderInput?.value || null,
+          report_start_date: startDateInput?.value || null,
+          report_end_date: endDateInput?.value || null
+        })
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error saving client info:', error);
+      return { success: false, error: error.message };
+    }
   }
   
   // ============================================
@@ -148,30 +204,11 @@
     }
 
     try {
-      // First, save or update client
       const nameInput = document.getElementById('clientName');
-      const nameValue = nameInput?.value || '';
-      const nameParts = nameValue.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-      
-      // Check if client exists with same name
-      let clientId = currentClientId;
-      
-      if (!clientId && firstName && lastName) {
-        // Create new client
-        const clientResult = await saveClient({
-          first_name: firstName,
-          last_name: lastName
-        });
-        
-        if (clientResult.success && clientResult.id) {
-          clientId = clientResult.id;
-          currentClientId = clientId;
-        }
-      }
-      
-      if (!clientId) {
+      const nameValue = nameInput?.value?.trim() || '';
+
+      // FIX: Require only that some name is entered (not necessarily first + last)
+      if (!nameValue) {
         showNotification('Please enter a client name', 'error');
         if (saveBtn) {
           saveBtn.classList.remove('saving');
@@ -179,6 +216,42 @@
         }
         return;
       }
+
+      let clientId = currentClientId;
+      
+      if (!clientId) {
+        // Get info-container fields
+        const ageInput = document.getElementById('clientAge');
+        const diagnosisInput = document.getElementById('clientDiagnosis');
+        const recorderInput = document.getElementById('clientRecorder');
+        const startDateInput = document.getElementById('reportStartDate');
+        const endDateInput = document.getElementById('reportEndDate');
+        
+        // Store full name as-is — no splitting
+        const clientResult = await saveClient({
+          full_name: nameValue,
+          age: ageInput?.value || null,
+          diagnosis: diagnosisInput?.value || null,
+          recorder: recorderInput?.value || null,
+          report_start_date: startDateInput?.value || null,
+          report_end_date: endDateInput?.value || null
+        });
+        
+        if (clientResult.success && clientResult.id) {
+          clientId = clientResult.id;
+          currentClientId = clientId;
+        } else {
+          showNotification('Error creating client: ' + (clientResult.error || 'Unknown error'), 'error');
+          if (saveBtn) {
+            saveBtn.classList.remove('saving');
+            saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Save';
+          }
+          return;
+        }
+      }
+      
+      // Save/update client info (age, diagnosis, recorder, dates)
+      await saveClientInfo(clientId);
       
       // Gather all data from the table
       const behaviors = [];
@@ -214,7 +287,13 @@
       // Get notes
       const notesInput = document.getElementById('notesInput');
       const notes = notesInput?.value || '';
-      
+
+      // Collect session numbers from header inputs
+      const sessionNumbers = [];
+      document.querySelectorAll('.bcm-table thead .session-num').forEach(input => {
+        sessionNumbers.push(parseInt(input.value) || 0);
+      });
+
       // Send to server with client_id
       const response = await fetch('php/api_bcm.php', {
         method: 'POST',
@@ -224,6 +303,7 @@
         body: JSON.stringify({
           client_id: clientId,
           behaviors: behaviors,
+          sessions: sessionNumbers,
           notes: notes
         })
       });
