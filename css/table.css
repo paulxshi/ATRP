@@ -6,7 +6,93 @@
       color: var(--text);
       padding: 32px 36px;
     }
- 
+     /* ── Main layout width control ─────────────────── */
+    .main {
+      transition: margin-left .3s ease, width .3s ease;
+    }
+
+    /* ── Measurement Container ─────────────────────── */
+    .measurement-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: #ffffff;
+      border: 1px solid var(--border, #e5e0d5);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.09);
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-bottom: 0;
+      flex-shrink: 0;
+      transition: max-width .3s ease;
+    }
+
+    /* When sidebar is collapsed, container expands fully */
+    body.sidebar-collapsed .measurement-container {
+      max-width: 100%;
+    }
+
+    /* ── Tab Bar ───────────────────────────────────── */
+    .measurement-tabs {
+      display: flex;
+      background: linear-gradient(90deg, #1A1A1A 0%, #2E2E2E 100%);
+      padding: 0 24px;
+      gap: 4px;
+      border-bottom: 3px solid #C9A84C;
+    }
+
+    .measurement-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px 13px;
+      font-family: var(--ff-body);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      border: none;
+      border-bottom: 3px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+      margin-bottom: -3px;
+      white-space: nowrap;
+    }
+    .measurement-tab:hover {
+      color: rgba(255,255,255,0.75);
+    }
+    .measurement-tab.active {
+      color: #C9A84C;
+      border-bottom-color: #C9A84C;
+    }
+    .measurement-tab svg {
+      opacity: 0.6;
+      transition: opacity .2s;
+    }
+    .measurement-tab.active svg,
+    .measurement-tab:hover svg {
+      opacity: 1;
+    }
+
+    /* ── Tab Panels ────────────────────────────────── */
+    .measurement-panel {
+      display: none;
+      padding: 24px 36px 20px;
+      overflow: hidden;
+      animation: panelIn .3s ease both;
+    }
+    .measurement-panel.active {
+      display: block;
+    }
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
  /* ── Wrapper ──────────────────────────────────── */
   .bcm-wrapper {
     font-family: var(--ff-body);
@@ -346,7 +432,7 @@
   }
   .bcm-notes-input {
     width: 100%;
-    min-height: 80px;
+    min-height: 200px;
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 8px;
