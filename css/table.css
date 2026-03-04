@@ -1,6 +1,4 @@
-  
-  
-  body {
+    body {
       font-family: var(--ff-body);
       background: var(--surface);
       color: var(--text);
@@ -204,7 +202,8 @@
     font-size: 12px;
     color: #999;
     letter-spacing: .05em;
-    margin-left: 12px;
+    margin-left: 8px;
+    display: inline;
   }
 
   /* ── Table Container ──────────────────────────── */
@@ -416,6 +415,13 @@
     font-size: 12px;
     color: var(--muted);
     letter-spacing: .05em;
+    display: inline;
+  }
+  .bcm-counts {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    white-space: nowrap;
   }
   /* ── Notes Section ────────────────────────────── */
   .bcm-notes-section {
