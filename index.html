@@ -28,6 +28,8 @@
       width: 100%;
       max-width: 1400px;
       margin: 0 auto;
+      padding-bottom: 0;
+      flex-shrink: 0;
       transition: max-width .3s ease;
     }
 
@@ -83,7 +85,8 @@
     /* ── Tab Panels ────────────────────────────────── */
     .measurement-panel {
       display: none;
-      padding: 32px 36px 28px;
+      padding: 24px 36px 20px;
+      overflow: hidden;
       animation: panelIn .3s ease both;
     }
     .measurement-panel.active {
@@ -310,11 +313,6 @@
                     <input class="session-num" type="text" placeholder="__" maxlength="3" />
                     <span class="session-sub">Freq.</span>
                   </th>
-                  <th class="col-session">
-                    <span class="session-label">Session</span>
-                    <input class="session-num" type="text" placeholder="__" maxlength="3" />
-                    <span class="session-sub">Freq.</span>
-                  </th>
                   <th class="col-function">Function</th>
                 </tr>
               </thead>
@@ -326,6 +324,12 @@
 
           <div class="bcm-footer">
             <div class="bcm-footer-actions">
+              <button class="bcm-btn-add-session" id="bcmAddSession">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Add Session
+              </button>
               <button class="bcm-btn-add" id="bcmAddRow">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                   <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -339,7 +343,8 @@
                 Delete Row
               </button>
             </div>
-            <span class="bcm-row-count" id="rowCount">4 behaviors tracked</span>
+            <span class="bcm-row-count" id="rowCount">1 behavior tracked</span>
+            <span class="bcm-session-count" id="sessionCount">3 sessions</span>
           </div>
 
           <div class="bcm-notes-section">

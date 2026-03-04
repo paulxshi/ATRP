@@ -401,9 +401,11 @@
     .main {
       margin-left: var(--sidebar-w);
       margin-top: var(--topbar-h);
-      padding: 32px;
+      padding: 20px 24px;
       min-height: calc(100vh - var(--topbar-h));
       transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+      display: flex;
+      flex-direction: column;
     }
     .main.slim {
       margin-left: 72px;
