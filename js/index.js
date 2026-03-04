@@ -3,11 +3,13 @@
     const mainEl    = document.getElementById('mainContent');
     const topLeft   = document.getElementById('topbarLeft');
 
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('slim');
-      mainEl.classList.toggle('slim');
-      topLeft.classList.toggle('slim');
-    });
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        if (sidebar) sidebar.classList.toggle('slim');
+        if (mainEl) mainEl.classList.toggle('slim');
+        if (topLeft) topLeft.classList.toggle('slim');
+      });
+    }
 
     // nav item active state
     document.querySelectorAll('.nav-item').forEach(item => {
