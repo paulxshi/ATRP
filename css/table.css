@@ -13,10 +13,8 @@
     color: var(--text);
     padding: 32px 36px 28px;
     min-height: calc(100vh - 56px);
-    background: var(--surface);
     display: flex;
     flex-direction: column;
-    gap: 24px;
     animation: fadeUp .5s ease both;
   }
   @keyframes fadeUp {

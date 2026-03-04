@@ -7,19 +7,414 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=Nevis&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/dashstyle.css">
-    <link rel="stylesheet" href="css/table.css">
+  <link rel="stylesheet" href="css/table.css">
+
+  <style>
+    /* ── Main layout width control ─────────────────── */
+    .main {
+      transition: margin-left .3s ease, width .3s ease;
+    }
+
+    /* ── Measurement Container ─────────────────────── */
+    .measurement-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: #ffffff;
+      border: 1px solid var(--border, #e5e0d5);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.09);
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      transition: max-width .3s ease;
+    }
+
+    /* When sidebar is collapsed, container expands fully */
+    body.sidebar-collapsed .measurement-container {
+      max-width: 100%;
+    }
+
+    /* ── Tab Bar ───────────────────────────────────── */
+    .measurement-tabs {
+      display: flex;
+      background: linear-gradient(90deg, #1A1A1A 0%, #2E2E2E 100%);
+      padding: 0 24px;
+      gap: 4px;
+      border-bottom: 3px solid #C9A84C;
+    }
+
+    .measurement-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px 13px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      border: none;
+      border-bottom: 3px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+      margin-bottom: -3px;
+      white-space: nowrap;
+    }
+    .measurement-tab:hover {
+      color: rgba(255,255,255,0.75);
+    }
+    .measurement-tab.active {
+      color: #C9A84C;
+      border-bottom-color: #C9A84C;
+    }
+    .measurement-tab svg {
+      opacity: 0.6;
+      transition: opacity .2s;
+    }
+    .measurement-tab.active svg,
+    .measurement-tab:hover svg {
+      opacity: 1;
+    }
+
+    /* ── Tab Panels ────────────────────────────────── */
+    .measurement-panel {
+      display: none;
+      padding: 32px 36px 28px;
+      animation: panelIn .3s ease both;
+    }
+    .measurement-panel.active {
+      display: block;
+    }
+    @keyframes panelIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── BCM styles (scoped) ───────────────────────── */
+    .bcm-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .bcm-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .bcm-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: #1A1A1A;
+      line-height: 1;
+    }
+    .bcm-title-accent { color: #C9A84C; }
+
+    .bcm-table-container {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e5e0d5;
+      box-shadow: 0 4px 16px rgba(0,0,0,.06);
+      background: rgba(0,0,0,0.015);
+    }
+    .bcm-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-family: 'Work Sans', sans-serif;
+    }
+    .bcm-table thead tr {
+      background: linear-gradient(90deg, #C9A84C 0%, #E8CA7A 50%, #C9A84C 100%);
+    }
+    .bcm-table th {
+      padding: 14px 16px 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #3D2B00;
+      border-bottom: 1px solid #e5e0d5;
+      border-right: 1px solid rgba(0,0,0,0.12);
+      vertical-align: bottom;
+    }
+    .bcm-table th:last-child { border-right: none; }
+    .col-antecedent { width: 14%; }
+    .col-behavior   { width: 18%; }
+    .col-session    { width: 10%; text-align: center; }
+    .col-function   { width: 16%; }
+    .session-label  { display: block; font-size: 9px; color: #5C4A1E; margin-bottom: 2px; }
+    .session-sub    { display: block; font-size: 9px; color: #5C4A1E; margin-top: 2px; }
+    .session-num {
+      display: inline-block;
+      width: 36px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #5C4A1E;
+      color: #3D2B00;
+      font-family: 'Work Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      padding: 1px 2px;
+    }
+    .bcm-table tbody tr {
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      transition: background .2s;
+    }
+    .bcm-table tbody tr:nth-child(odd)  { background: #ffffff; }
+    .bcm-table tbody tr:nth-child(even) { background: #FAFAF7; }
+    .bcm-table tbody tr:hover           { background: rgba(0,0,0,0.03); }
+    .bcm-table tbody tr:last-child      { border-bottom: none; }
+    .bcm-table td {
+      padding: 0;
+      border-right: 1px solid rgba(0,0,0,0.06);
+      vertical-align: top;
+    }
+    .bcm-table td:last-child { border-right: none; }
+    .cell-input {
+      width: 100%;
+      height: 100%;
+      min-height: 90px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #1A1A1A;
+      font-family: 'Work Sans', sans-serif;
+      font-size: 13px;
+      padding: 14px 16px;
+      resize: none;
+      line-height: 1.5;
+    }
+    .cell-input::placeholder { color: rgba(0,0,0,0.25); }
+    .cell-input:focus { background: rgba(0,0,0,0.04); }
+    .freq-cell {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      min-height: 90px;
+      gap: 8px;
+      padding: 12px 8px;
+    }
+    .freq-display {
+      font-family: 'Work Sans', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #000000;
+      line-height: 1;
+      width: 40px;
+      text-align: center;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 0;
+    }
+    .freq-display::-webkit-outer-spin-button,
+    .freq-display::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .freq-display:focus { background: rgba(0,0,0,0.04); border-radius: 4px; }
+    .freq-btn {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      border: 1px solid #e5e0d5;
+      background: transparent;
+      color: #000000;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    .freq-btn:hover { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.2); }
+    .freq-btn.minus { font-size: 20px; padding-bottom: 2px; }
+    .freq-controls { display: flex; gap: 4px; align-items: center; justify-content: center; }
+    .function-cell {
+      padding: 14px 16px;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 7px;
+    }
+    .fn-check { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .fn-check input[type="checkbox"] { display: none; }
+    .fn-box {
+      width: 14px; height: 14px;
+      border: 1.5px solid rgba(0,0,0,0.25);
+      border-radius: 3px;
+      background: transparent;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fn-check input:checked + .fn-box { background: #000000; border-color: #C9A84C; }
+    .fn-check input:checked + .fn-box::after {
+      content: '';
+      width: 6px; height: 4px;
+      border-left: 1.5px solid #fff;
+      border-bottom: 1.5px solid #fff;
+      transform: rotate(-45deg) translateY(-1px);
+      display: block;
+    }
+    .fn-label { font-size: 12px; color: #888; transition: color .15s; }
+    .bcm-footer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+    .bcm-footer-actions { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .bcm-row-count { font-size: 12px; color: #999; letter-spacing: .05em; }
+    .bcm-notes-section { display: flex; flex-direction: column; gap: 8px; }
+    .bcm-notes-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #999; }
+    .bcm-notes-input {
+      width: 100%;
+      min-height: 80px;
+      background: #ffffff;
+      border: 1px solid #e5e0d5;
+      border-radius: 8px;
+      color: #1A1A1A;
+      font-family: 'Work Sans', sans-serif;
+      font-size: 13px;
+      padding: 12px 14px;
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      box-sizing: border-box;
+    }
+    .bcm-notes-input::placeholder { color: rgba(0,0,0,0.25); }
+    .bcm-notes-input:focus { border-color: #C9A84C; box-shadow: 0 0 0 3px rgba(184,137,58,0.1); }
+
+    /* ── Shared button styles ──────────────────────── */
+    .bcm-btn-add, .bdm-btn-add {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 16px;
+      background: #000000;
+      color: #ffffff;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 700; letter-spacing: .06em;
+      border: none; border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+    }
+    .bcm-btn-add:hover, .bdm-btn-add:hover { opacity: .88; transform: translateY(-1px); }
+
+    .bcm-btn-delete, .bdm-btn-delete {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 15px;
+      background: transparent;
+      color: #d32f2f;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px; font-weight: 600; letter-spacing: .08em;
+      border: 1px solid #d32f2f; border-radius: 8px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .bcm-btn-delete:hover, .bdm-btn-delete:hover { background: rgba(211,47,47,0.08); }
+
+    /* ── BDM styles (scoped) ───────────────────────── */
+    .bdm-wrapper { display: flex; flex-direction: column; gap: 24px; }
+    .bdm-header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .bdm-eyebrow { display: block; font-family: 'Syne', sans-serif; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #000000; margin-bottom: 6px; }
+    .bdm-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: #1A1A1A; line-height: 1; }
+    .bdm-title-accent { color: #C9A84C; }
+    .bdm-meta-row {
+      display: flex; flex-wrap: wrap; gap: 24px;
+      padding: 16px 20px;
+      background: #ffffff;
+      border: 1px solid #e5e0d5;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .bdm-meta-field { display: flex; align-items: center; gap: 8px; }
+    .bdm-meta-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #999; white-space: nowrap; }
+    .bdm-meta-input {
+      background: transparent; border: none; border-bottom: 1.5px solid #e5e0d5;
+      color: #1A1A1A; font-family: 'Work Sans', sans-serif; font-size: 13px; font-weight: 500;
+      padding: 3px 6px; outline: none; min-width: 120px; transition: border-color .2s;
+    }
+    .bdm-meta-input:focus { border-color: #C9A84C; }
+    .bdm-sessions-grid { display: flex; flex-direction: column; gap: 20px; }
+    .bdm-session-block { display: flex; flex-direction: column; gap: 8px; }
+    .bdm-session-heading { display: flex; align-items: center; gap: 10px; }
+    .bdm-session-label { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #999; }
+    .bdm-session-num-input {
+      background: transparent; border: none; border-bottom: 1.5px solid rgba(0,0,0,.2);
+      color: #1A1A1A; font-family: 'Work Sans', sans-serif; font-size: 14px; font-weight: 700;
+      width: 38px; text-align: center; outline: none; padding: 1px 2px; transition: border-color .2s;
+    }
+    .bdm-session-num-input:focus { border-color: #C9A84C; }
+    .bdm-table-container { border-radius: 10px; overflow: hidden; border: 1px solid #e5e0d5; box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+    .bdm-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: 'Work Sans', sans-serif; }
+    .bdm-table thead tr { background: linear-gradient(90deg, #C9A84C 0%, #E8CA7A 50%, #C9A84C 100%); }
+    .bdm-table th {
+      padding: 12px 14px 10px;
+      font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase;
+      color: #3D2B00; border-bottom: 1px solid #e5e0d5; border-right: 1px solid rgba(0,0,0,0.12);
+      vertical-align: middle; text-align: center;
+    }
+    .bdm-table th:first-child { text-align: left; }
+    .bdm-table th:last-child  { border-right: none; text-align: left; }
+    .col-date      { width: 90px; }
+    .col-plusminus { width: 52px; }
+    .col-interval  { width: calc((100% - 90px - 52px - 200px) / 10); }
+    .col-total     { width: 200px; }
+    .bdm-table tbody tr { border-bottom: 1px solid rgba(0,0,0,0.06); transition: background .2s; }
+    .bdm-table tbody tr:nth-child(odd)  { background: #ffffff; }
+    .bdm-table tbody tr:nth-child(even) { background: #FAFAF7; }
+    .bdm-table tbody tr:hover           { background: rgba(0,0,0,0.03); }
+    .bdm-table tbody tr:last-child      { border-bottom: none; }
+    .bdm-table td { padding: 0; border-right: 1px solid rgba(0,0,0,0.06); vertical-align: middle; text-align: center; height: 44px; }
+    .bdm-table td:first-child { text-align: left; }
+    .bdm-table td:last-child  { border-right: none; text-align: left; }
+    .bdm-cell-input { width: 100%; height: 44px; background: transparent; border: none; outline: none; color: #1A1A1A; font-family: 'Work Sans', sans-serif; font-size: 12px; padding: 0 10px; text-align: center; }
+    .bdm-cell-input:focus { background: rgba(201,168,76,.08); }
+    .bdm-cell-input.date-input { text-align: left; font-size: 12px; }
+    .plusminus-cell { font-family: 'Work Sans', sans-serif; font-size: 12px; font-weight: 600; color: #999; text-align: center; padding: 0 6px; }
+    .interval-cell { cursor: pointer; user-select: none; position: relative; }
+    .interval-toggle { display: flex; align-items: center; justify-content: center; width: 100%; height: 44px; font-size: 15px; font-weight: 700; transition: background .15s, color .15s; }
+    .interval-toggle.positive { color: #1b7a3e; background: rgba(27,122,62,.08); }
+    .interval-toggle.negative { color: #d32f2f; background: rgba(211,47,47,.06); }
+    .interval-toggle.empty { color: transparent; }
+    .interval-toggle.empty:hover { background: rgba(201,168,76,.08); color: rgba(0,0,0,.15); }
+    .interval-toggle.empty:hover::after { content: '+'; font-size: 13px; color: rgba(0,0,0,.2); }
+    .total-cell { padding: 0 14px; font-size: 12px; color: #1A1A1A; font-family: 'Work Sans', sans-serif; }
+    .total-formula { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .total-count { font-weight: 800; font-size: 16px; color: #000; min-width: 20px; }
+    .total-pct { font-weight: 700; font-size: 14px; color: #C9A84C; }
+    .total-divider { color: #999; font-size: 11px; }
+    .bdm-footer { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .bdm-footer-actions { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .bdm-btn-export {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 15px; background: transparent; color: #000000;
+      font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .08em;
+      border: 1px solid #e5e0d5; border-radius: 8px; cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .bdm-btn-export:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.15); }
+    .bdm-session-count { font-size: 12px; color: #999; letter-spacing: .05em; }
+    .section-divider { border: none; border-top: 1px solid #e5e0d5; margin: 8px 0 0; }
+  </style>
 </head>
 <body>
 
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-left" id="topbarLeft">
-        <div class="brand-logo">
+      <div class="brand-logo">
         <img src="imgs/psi.png" alt="PSI Logo">
-        </div>
+      </div>
       <span class="brand-text">ATRP</span>
     </div>
-
     <div class="topbar-right">
       <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
         <i class="fas fa-bars"></i>
@@ -29,312 +424,352 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-
     <a class="nav-item active" href="#">
       <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
       <span class="nav-label">Behavior</span>
       <span class="nav-badge">Live</span>
       <span class="tooltip-text">Behavior</span>
     </a>
-
     <a class="nav-item" href="skillscoring.html">
       <span class="nav-icon"><i class="fas fa-folder-open"></i></span>
       <span class="nav-label">Skill Scoring</span>
       <span class="tooltip-text">Skill Scoring</span>
     </a>
-
     <a class="nav-item" href="#">
       <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
       <span class="nav-label">Reports</span>
       <span class="tooltip-text">Reports</span>
     </a>
-
     <a class="nav-item" href="#">
       <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
       <span class="nav-label">Analytics</span>
       <span class="tooltip-text">Analytics</span>
     </a>
-
   </aside>
 
   <!-- MAIN CONTENT -->
   <main class="main" id="mainContent">
 
-<div class="bcm-wrapper">
+    <!-- ═══════════════════════════════════════════════
+         MEASUREMENT CONTAINER  (BCM + BDM tabbed)
+    ════════════════════════════════════════════════ -->
+    <div class="measurement-container">
 
-  <div class="bcm-header">
-    <div class="bcm-header-left">
-      <span class="bcm-eyebrow">Behaviour Tracker</span>
-      <h1 class="bcm-title">Continuous <span class="bcm-title-accent">Measurement</span></h1>
-    </div>
-  </div>
+      <!-- Tab Bar -->
+      <div class="measurement-tabs" role="tablist">
+        <button class="measurement-tab active" role="tab" aria-selected="true"
+                aria-controls="panel-bcm" id="tab-bcm" data-panel="bcm">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="3" width="12" height="1.5" rx=".75" fill="currentColor"/>
+            <rect x="1" y="6.25" width="12" height="1.5" rx=".75" fill="currentColor"/>
+            <rect x="1" y="9.5" width="8" height="1.5" rx=".75" fill="currentColor"/>
+          </svg>
+          Continuous Measurement
+        </button>
+        <button class="measurement-tab" role="tab" aria-selected="false"
+                aria-controls="panel-bdm" id="tab-bdm" data-panel="bdm">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="1" y="1" width="3" height="12" rx="1" fill="currentColor"/>
+            <rect x="5.5" y="1" width="3" height="8" rx="1" fill="currentColor"/>
+            <rect x="10" y="1" width="3" height="10" rx="1" fill="currentColor"/>
+          </svg>
+          Discontinuous Measurement
+        </button>
+      </div>
 
-  <div class="bcm-table-container">
-    <table class="bcm-table">
-      <thead>
-        <tr>
-          <th class="col-antecedent">Antecedent</th>
-          <th class="col-behavior">Problem Behavior</th>
-          <th class="col-session">
-            <span class="session-label">Session</span>
-            <input class="session-num" type="text" placeholder="__" maxlength="3" />
-            <span class="session-sub">Freq.</span>
-          </th>
-          <th class="col-session">
-            <span class="session-label">Session</span>
-            <input class="session-num" type="text" placeholder="__" maxlength="3" />
-            <span class="session-sub">Freq.</span>
-          </th>
-          <th class="col-session">
-            <span class="session-label">Session</span>
-            <input class="session-num" type="text" placeholder="__" maxlength="3" />
-            <span class="session-sub">Freq.</span>
-          </th>
-          <th class="col-session">
-            <span class="session-label">Session</span>
-            <input class="session-num" type="text" placeholder="__" maxlength="3" />
-            <span class="session-sub">Freq.</span>
-          </th>
-          <th class="col-function">Function</th>
-        </tr>
-      </thead>
-      <tbody id="bcmTableBody">
-        <!-- Rows injected by JS -->
-      </tbody>
-    </table>
-  </div>
+      <!-- ── Panel: BCM ─────────────────────────────── -->
+      <div class="measurement-panel active" id="panel-bcm" role="tabpanel" aria-labelledby="tab-bcm">
+        <div class="bcm-wrapper">
 
-  <div class="bcm-footer">
-    <div class="bcm-footer-actions">
-      <button class="bcm-btn-add">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Add Row
-      </button>
-      <button class="bcm-btn-delete">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Delete Row
-      </button>
-    </div>
-    <span class="bcm-row-count" id="rowCount">4 behaviors tracked</span>
-  </div>
+          <div class="bcm-header">
+            <div class="bcm-header-left">
+              <span class="bcm-eyebrow">Behaviour Tracker</span>
+              <h1 class="bcm-title">Continuous <span class="bcm-title-accent">Measurement</span></h1>
+            </div>
+          </div>
 
-  <div class="bcm-notes-section">
-    <label class="bcm-notes-label">Notes</label>
-    <textarea class="bcm-notes-input" id="notesInput" placeholder="Add any additional notes or observations..."></textarea>
-  </div>
-</div>
-</head>
-<body>
+          <div class="bcm-table-container">
+            <table class="bcm-table">
+              <thead>
+                <tr>
+                  <th class="col-antecedent">Antecedent</th>
+                  <th class="col-behavior">Problem Behavior</th>
+                  <th class="col-session">
+                    <span class="session-label">Session</span>
+                    <input class="session-num" type="text" placeholder="__" maxlength="3" />
+                    <span class="session-sub">Freq.</span>
+                  </th>
+                  <th class="col-session">
+                    <span class="session-label">Session</span>
+                    <input class="session-num" type="text" placeholder="__" maxlength="3" />
+                    <span class="session-sub">Freq.</span>
+                  </th>
+                  <th class="col-session">
+                    <span class="session-label">Session</span>
+                    <input class="session-num" type="text" placeholder="__" maxlength="3" />
+                    <span class="session-sub">Freq.</span>
+                  </th>
+                  <th class="col-session">
+                    <span class="session-label">Session</span>
+                    <input class="session-num" type="text" placeholder="__" maxlength="3" />
+                    <span class="session-sub">Freq.</span>
+                  </th>
+                  <th class="col-function">Function</th>
+                </tr>
+              </thead>
+              <tbody id="bcmTableBody">
+                <!-- Rows injected by table.js -->
+              </tbody>
+            </table>
+          </div>
 
-<div class="bdm-wrapper">
+          <div class="bcm-footer">
+            <div class="bcm-footer-actions">
+              <button class="bcm-btn-add" id="bcmAddRow">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Add Row
+              </button>
+              <button class="bcm-btn-delete" id="bcmDeleteRow">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Delete Row
+              </button>
+            </div>
+            <span class="bcm-row-count" id="rowCount">4 behaviors tracked</span>
+          </div>
 
-  <!-- Header -->
-  <div class="bdm-header">
-    <div class="bdm-header-left">
-      <span class="bdm-eyebrow">Behaviour Tracker</span>
-      <h1 class="bdm-title">Discontinuous <span class="bdm-title-accent">Measurement</span></h1>
-    </div>
-  </div>
+          <div class="bcm-notes-section">
+            <label class="bcm-notes-label">Notes</label>
+            <textarea class="bcm-notes-input" id="notesInput" placeholder="Add any additional notes or observations..."></textarea>
+          </div>
 
-  <!-- Meta Row -->
-  <div class="bdm-meta-row">
-    <div class="bdm-meta-field">
-      <span class="bdm-meta-label">Behavior</span>
-      <input class="bdm-meta-input" type="text" placeholder="Enter behavior…" style="min-width:180px;" />
-    </div>
-    <div class="bdm-meta-field">
-      <span class="bdm-meta-label">Interval</span>
-      <input class="bdm-meta-input" type="text" placeholder="e.g. 10 min" style="min-width:100px;" />
-    </div>
-    <div class="bdm-meta-field">
-      <span class="bdm-meta-label">Function</span>
-      <input class="bdm-meta-input" type="text" placeholder="e.g. Escape" style="min-width:140px;" />
-    </div>
-    <div class="bdm-meta-field">
-      <span class="bdm-meta-label">Type</span>
-      <input class="bdm-meta-input" type="text" placeholder="e.g. Whole / Partial" style="min-width:160px;" />
-    </div>
-  </div>
-
-  <!-- Sessions -->
-  <div class="bdm-sessions-grid" id="bdmSessionsGrid">
-    <!-- Injected by JS -->
-  </div>
-
-  <!-- Footer -->
-  <div class="bdm-footer">
-    <div class="bdm-footer-actions">
-      <button class="bdm-btn-add" id="bdmAddSession">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        Add Session
-      </button>
-    </div>
-    <span class="bdm-session-count" id="bdmSessionCount">1 session</span>
-  </div>
-
-</div>
-
-<script>
-  const NUM_INTERVALS = 10;
-  const grid = document.getElementById('bdmSessionsGrid');
-  let sessionCount = 1;
-
-  // State: sessionIdx -> array of 10 states ('', '+', '-')
-  const sessionData = {};
-
-  function createSessionBlock(idx) {
-    sessionData[idx] = Array(NUM_INTERVALS).fill('');
-
-    const block = document.createElement('div');
-    block.className = 'bdm-session-block';
-    block.dataset.sessionIdx = idx;
-
-    // Heading
-    const heading = document.createElement('div');
-    heading.className = 'bdm-session-heading';
-    heading.innerHTML = `
-      <span class="bdm-session-label">Session #</span>
-      <input class="bdm-session-num-input" type="text" placeholder="__" maxlength="3" />
-    `;
-    block.appendChild(heading);
-
-    // Table container
-    const container = document.createElement('div');
-    container.className = 'bdm-table-container';
-
-    const table = document.createElement('table');
-    table.className = 'bdm-table';
-
-    // THEAD
-    let thIntervals = '';
-    for (let i = 1; i <= NUM_INTERVALS; i++) {
-      thIntervals += `<th class="col-interval">${i}</th>`;
-    }
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th class="col-date">Date</th>
-          <th class="col-plusminus">(+/−)</th>
-          <th colspan="${NUM_INTERVALS}" style="text-align:center; border-right:1px solid rgba(0,0,0,0.12);">Interval #</th>
-          <th class="col-total">Total Times Behavior Observed</th>
-        </tr>
-        <tr>
-          <th class="col-date"></th>
-          <th class="col-plusminus"></th>
-          ${thIntervals}
-          <th class="col-total"></th>
-        </tr>
-      </thead>
-    `;
-
-    // TBODY — 2 data rows (Date row + toggle row)
-    const tbody = document.createElement('tbody');
-
-    // Row 1: date input
-    const dateRow = document.createElement('tr');
-    let dateCells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
-    dateCells += `<td class="plusminus-cell">&nbsp;</td>`;
-    for (let i = 0; i < NUM_INTERVALS; i++) {
-      dateCells += `<td></td>`;
-    }
-    dateCells += `<td class="total-cell"></td>`;
-    dateRow.innerHTML = dateCells;
-    tbody.appendChild(dateRow);
-
-    // Row 2: interval toggles + total
-    const toggleRow = document.createElement('tr');
-    let toggleCells = `<td></td>`;
-    toggleCells += `<td class="plusminus-cell" style="font-size:11px; color:var(--muted); padding:0 6px;">(+/−)</td>`;
-
-    for (let i = 0; i < NUM_INTERVALS; i++) {
-      toggleCells += `
-        <td class="interval-cell" data-session="${idx}" data-interval="${i}">
-          <div class="interval-toggle empty"></div>
-        </td>`;
-    }
-
-    // Total cell
-    toggleCells += `
-      <td class="total-cell">
-        <div class="total-formula">
-          [(<span class="total-count" data-session-total="${idx}">0</span>
-          &nbsp;<span class="total-divider">/ ${NUM_INTERVALS})</span>&nbsp;×&nbsp;100]&nbsp;=&nbsp;
-          <span class="total-pct" data-session-pct="${idx}">0%</span>]
         </div>
-      </td>`;
+      </div><!-- /panel-bcm -->
 
-    toggleRow.innerHTML = toggleCells;
-    tbody.appendChild(toggleRow);
+      <!-- ── Panel: BDM ─────────────────────────────── -->
+      <div class="measurement-panel" id="panel-bdm" role="tabpanel" aria-labelledby="tab-bdm">
+        <div class="bdm-wrapper">
 
-    table.appendChild(tbody);
-    container.appendChild(table);
-    block.appendChild(container);
+          <div class="bdm-header">
+            <div class="bdm-header-left">
+              <span class="bdm-eyebrow">Behaviour Tracker</span>
+              <h1 class="bdm-title">Discontinuous <span class="bdm-title-accent">Measurement</span></h1>
+            </div>
+          </div>
 
-    // Divider
-    const hr = document.createElement('hr');
-    hr.className = 'section-divider';
-    block.appendChild(hr);
+          <div class="bdm-meta-row">
+            <div class="bdm-meta-field">
+              <span class="bdm-meta-label">Behavior</span>
+              <input class="bdm-meta-input" type="text" placeholder="Enter behavior…" style="min-width:180px;" />
+            </div>
+            <div class="bdm-meta-field">
+              <span class="bdm-meta-label">Interval</span>
+              <input class="bdm-meta-input" type="text" placeholder="e.g. 10 min" style="min-width:100px;" />
+            </div>
+            <div class="bdm-meta-field">
+              <span class="bdm-meta-label">Function</span>
+              <input class="bdm-meta-input" type="text" placeholder="e.g. Escape" style="min-width:140px;" />
+            </div>
+            <div class="bdm-meta-field">
+              <span class="bdm-meta-label">Type</span>
+              <input class="bdm-meta-input" type="text" placeholder="e.g. Whole / Partial" style="min-width:160px;" />
+            </div>
+          </div>
 
-    // Bind interval toggle clicks
-    container.querySelectorAll('.interval-cell').forEach(cell => {
-      cell.addEventListener('click', () => {
-        const si = parseInt(cell.dataset.session);
-        const ii = parseInt(cell.dataset.interval);
-        const states = ['', '+', '-'];
-        const cur = sessionData[si][ii];
-        const next = states[(states.indexOf(cur) + 1) % states.length];
-        sessionData[si][ii] = next;
-        updateToggleCell(cell.querySelector('.interval-toggle'), next);
-        updateTotal(si);
+          <div class="bdm-sessions-grid" id="bdmSessionsGrid">
+            <!-- Injected by JS below -->
+          </div>
+
+          <div class="bdm-footer">
+            <div class="bdm-footer-actions">
+              <button class="bdm-btn-add" id="bdmAddSession">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Add Session
+              </button>
+            </div>
+            <span class="bdm-session-count" id="bdmSessionCount">1 session</span>
+          </div>
+
+        </div>
+      </div><!-- /panel-bdm -->
+
+    </div><!-- /measurement-container -->
+
+  </main>
+
+  <!-- ── BDM Script ───────────────────────────────── -->
+  <script>
+    /* ── Sidebar toggle ── */
+    const toggleBtn = document.getElementById('toggleBtn');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('sidebar-collapsed');
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.toggle('collapsed');
+        const main = document.getElementById('mainContent');
+        if (main) main.classList.toggle('expanded');
+      });
+    }
+
+    /* ── Tab switching ── */
+    document.querySelectorAll('.measurement-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.measurement-tab').forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.measurement-panel').forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
       });
     });
 
-    return block;
-  }
+    /* ── BDM Logic ── */
+    const NUM_INTERVALS = 10;
+    const grid = document.getElementById('bdmSessionsGrid');
+    let sessionCount = 1;
+    const sessionData = {};
 
-  function updateToggleCell(el, state) {
-    el.className = 'interval-toggle';
-    el.textContent = '';
-    if (state === '+') { el.classList.add('positive'); el.textContent = '+'; }
-    else if (state === '-') { el.classList.add('negative'); el.textContent = '−'; }
-    else { el.classList.add('empty'); }
-  }
+    function createSessionBlock(idx) {
+      sessionData[idx] = Array(NUM_INTERVALS).fill('');
 
-  function updateTotal(si) {
-    const data = sessionData[si];
-    const positives = data.filter(s => s === '+').length;
-    const pct = Math.round((positives / NUM_INTERVALS) * 100);
-    const countEl = document.querySelector(`[data-session-total="${si}"]`);
-    const pctEl   = document.querySelector(`[data-session-pct="${si}"]`);
-    if (countEl) countEl.textContent = positives;
-    if (pctEl)   pctEl.textContent   = pct + '%';
-  }
+      const block = document.createElement('div');
+      block.className = 'bdm-session-block';
+      block.dataset.sessionIdx = idx;
 
-  function renderSessions() {
-    grid.innerHTML = '';
-    for (let i = 0; i < sessionCount; i++) {
-      grid.appendChild(createSessionBlock(i));
+      const heading = document.createElement('div');
+      heading.className = 'bdm-session-heading';
+      heading.innerHTML = `
+        <span class="bdm-session-label">Session #</span>
+        <input class="bdm-session-num-input" type="text" placeholder="__" maxlength="3" />
+      `;
+      block.appendChild(heading);
+
+      const container = document.createElement('div');
+      container.className = 'bdm-table-container';
+
+      const table = document.createElement('table');
+      table.className = 'bdm-table';
+
+      let thIntervals = '';
+      for (let i = 1; i <= NUM_INTERVALS; i++) {
+        thIntervals += `<th class="col-interval">${i}</th>`;
+      }
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th class="col-date">Date</th>
+            <th class="col-plusminus">(+/−)</th>
+            <th colspan="${NUM_INTERVALS}" style="text-align:center; border-right:1px solid rgba(0,0,0,0.12);">Interval #</th>
+            <th class="col-total">Total Times Behavior Observed</th>
+          </tr>
+          <tr>
+            <th class="col-date"></th>
+            <th class="col-plusminus"></th>
+            ${thIntervals}
+            <th class="col-total"></th>
+          </tr>
+        </thead>
+      `;
+
+      const tbody = document.createElement('tbody');
+
+      // Date row
+      const dateRow = document.createElement('tr');
+      let dateCells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
+      dateCells += `<td class="plusminus-cell">&nbsp;</td>`;
+      for (let i = 0; i < NUM_INTERVALS; i++) dateCells += `<td></td>`;
+      dateCells += `<td class="total-cell"></td>`;
+      dateRow.innerHTML = dateCells;
+      tbody.appendChild(dateRow);
+
+      // Toggle row
+      const toggleRow = document.createElement('tr');
+      let toggleCells = `<td></td>`;
+      toggleCells += `<td class="plusminus-cell" style="font-size:11px; color:#999; padding:0 6px;">(+/−)</td>`;
+      for (let i = 0; i < NUM_INTERVALS; i++) {
+        toggleCells += `
+          <td class="interval-cell" data-session="${idx}" data-interval="${i}">
+            <div class="interval-toggle empty"></div>
+          </td>`;
+      }
+      toggleCells += `
+        <td class="total-cell">
+          <div class="total-formula">
+            [(<span class="total-count" data-session-total="${idx}">0</span>
+            &nbsp;<span class="total-divider">/ ${NUM_INTERVALS})</span>&nbsp;×&nbsp;100]&nbsp;=&nbsp;
+            <span class="total-pct" data-session-pct="${idx}">0%</span>]
+          </div>
+        </td>`;
+      toggleRow.innerHTML = toggleCells;
+      tbody.appendChild(toggleRow);
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+      block.appendChild(container);
+
+      const hr = document.createElement('hr');
+      hr.className = 'section-divider';
+      block.appendChild(hr);
+
+      // Bind interval toggle clicks — scoped to this block's container
+      container.querySelectorAll('.interval-cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+          const si = parseInt(cell.dataset.session);
+          const ii = parseInt(cell.dataset.interval);
+          const states = ['', '+', '-'];
+          const next = states[(states.indexOf(sessionData[si][ii]) + 1) % states.length];
+          sessionData[si][ii] = next;
+          updateToggleCell(cell.querySelector('.interval-toggle'), next);
+          // Scoped total update — find elements within this block
+          const countEl = block.querySelector(`[data-session-total="${si}"]`);
+          const pctEl   = block.querySelector(`[data-session-pct="${si}"]`);
+          const positives = sessionData[si].filter(s => s === '+').length;
+          const pct = Math.round((positives / NUM_INTERVALS) * 100);
+          if (countEl) countEl.textContent = positives;
+          if (pctEl)   pctEl.textContent   = pct + '%';
+        });
+      });
+
+      return block;
     }
-    updateSessionCount();
-  }
 
-  function updateSessionCount() {
-    document.getElementById('bdmSessionCount').textContent =
-      `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
-  }
+    function updateToggleCell(el, state) {
+      el.className = 'interval-toggle';
+      el.textContent = '';
+      if (state === '+') { el.classList.add('positive'); el.textContent = '+'; }
+      else if (state === '-') { el.classList.add('negative'); el.textContent = '−'; }
+      else { el.classList.add('empty'); }
+    }
 
-  document.getElementById('bdmAddSession').addEventListener('click', () => {
-    const idx = sessionCount;
-    sessionCount++;
-    grid.appendChild(createSessionBlock(idx));
-    updateSessionCount();
-  });
+    function renderSessions() {
+      grid.innerHTML = '';
+      for (let i = 0; i < sessionCount; i++) grid.appendChild(createSessionBlock(i));
+      updateSessionCount();
+    }
 
-  renderSessions();
-</script>
-  </main>
+    function updateSessionCount() {
+      document.getElementById('bdmSessionCount').textContent =
+        `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
+    }
 
-    <script src="js/index.js"></script>
-    <script src="js/table.js"></script>
+    document.getElementById('bdmAddSession').addEventListener('click', () => {
+      sessionCount++;
+      grid.appendChild(createSessionBlock(sessionCount - 1));
+      updateSessionCount();
+    });
+
+    renderSessions();
+  </script>
+
+  <script src="js/index.js"></script>
+  <script src="js/table.js"></script>
 </body>
 </html>
