@@ -591,14 +591,14 @@
     </a>
     <a class="nav-item active" href="skillscoring.html">
       <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
-      <span class="nav-label">Skill Scoring</span>
+      <span class="nav-label">Skill Scoring Sheets</span>
       <span class="nav-badge">Live</span>
-      <span class="tooltip-text">Skill Scoring</span>
+      <span class="tooltip-text">Skill Scoring Sheets</span>
     </a>
     <a class="nav-item" href="#">
       <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
-      <span class="nav-label">Reports</span>
-      <span class="tooltip-text">Reports</span>
+      <span class="nav-label">Logistics Files</span>
+      <span class="tooltip-text">Logistics Files</span>
     </a>
     <a class="nav-item" href="#">
       <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
@@ -733,11 +733,17 @@
     const tier  = tierByKey(tierKey);
     const color = tier ? tier.color : null;
     const rgb   = color ? hexToRgb(color) : '180,180,180';
+
+    // sync skill input
     const input = document.getElementById('skill-input-'+idx);
     if (input) {
       input.style.color      = color || '#bbb';
       input.style.background = color ? 'rgba('+rgb+',0.13)' : 'rgba(180,180,180,0.10)';
     }
+
+    // FIX: sync the swatch dot — was never updated here before
+    const swatch = document.getElementById('cs-swatch-'+idx);
+    if (swatch) swatch.style.background = color || '#ddd';
   }
 
   /* ═══════════════════════════════════════════════
@@ -851,6 +857,7 @@
     const skillTxt = color || '#bbb';
 
     const tr = document.createElement('tr');
+    tr.dataset.idx = idx;  
 
     /* 1. Subskill dropdown */
     const tdSub = document.createElement('td');
@@ -1038,6 +1045,15 @@
     const delBtn = document.getElementById('btnDelRow');
     if (delBtn) delBtn.disabled = DRILLS.length <= 1;
 
+    const body2 = document.getElementById('tableBody');
+    body2.addEventListener('click', function(e) {
+      const tr = e.target.closest('tr[data-idx]');
+      if (!tr) return;
+      const idx = +tr.dataset.idx;
+      if (DRILLS[idx] && DRILLS[idx].tier) {
+        applyTierToRow(idx, DRILLS[idx].tier);
+      }
+    }, { once: false });
     renderSummary();
   }
 
