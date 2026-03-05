@@ -736,6 +736,26 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .bdm-sessions-grid::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .bdm-sessions-grid::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .bdm-sessions-grid::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .bdm-sessions-grid::-webkit-scrollbar-thumb:hover {
+      background: var(--border); border-radius: 99px;
     }
 
     /* ── Single Session Block ── */
