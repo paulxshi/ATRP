@@ -95,78 +95,33 @@
   }
 
   // ── Dropdown ──────────────────────────────────────────────────
+  // ── Client name lookup — NO dropdown, NO auto-suggest ────────
+  // Clients are loaded into memory once. When the user presses
+  // Enter or tabs/blurs away, we check for an exact name match
+  // and silently load that client's data. No popup, no list.
   function populateClientDropdown(clients) {
     const nameInput = document.getElementById('clientName');
-    if (!nameInput) return;
+    if (!nameInput || nameInput._lookupBound) return;
+    nameInput._lookupBound = true;
 
-    let dropdown = document.getElementById('clientDropdown');
-    if (!dropdown) {
-      dropdown = document.createElement('div');
-      dropdown.id        = 'clientDropdown';
-      dropdown.className = 'client-dropdown';
-      dropdown.style.cssText = `
-        position:absolute; z-index:1000; background:#fff;
-        border:1px solid #ddd; border-radius:6px;
-        max-height:200px; overflow-y:auto; display:none;
-        width:100%; left:0; top:100%;
-        box-shadow:0 4px 12px rgba(0,0,0,.12);
-      `;
-
-      const wrapper = document.createElement('div');
-      wrapper.style.position = 'relative';
-      nameInput.parentNode.insertBefore(wrapper, nameInput);
-      wrapper.appendChild(nameInput);
-      wrapper.appendChild(dropdown);
-
-      // Only show dropdown while user is actively typing — never on focus/click
-      nameInput.addEventListener('input', () => {
-        if (nameInput.value.trim().length > 0) {
-          filterClients(clients, nameInput.value);
-        } else {
-          dropdown.style.display = 'none';
-        }
-      });
-
-      // Close on outside click
-      document.addEventListener('click', (e) => {
-        if (!wrapper.contains(e.target)) dropdown.style.display = 'none';
-      });
+    function tryLookup() {
+      const term = nameInput.value.trim().toLowerCase();
+      if (!term) return;
+      const match = clients.find(c =>
+        (c.full_name || '').toLowerCase() === term
+      );
+      if (match && match.id !== currentClientId) {
+        selectClient(match.id, match.full_name);
+      }
     }
 
-    // Refresh internal data reference only — do NOT auto-show dropdown on load
-    dropdown._clients = clients;
-  }
-
-  function filterClients(clients, term) {
-    const dropdown = document.getElementById('clientDropdown');
-    if (!dropdown) return;
-
-    const filtered = clients.filter(c =>
-      (c.full_name || '').toLowerCase().includes(term.toLowerCase())
-    );
-
-    if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
-
-    dropdown.innerHTML = filtered.map(c => `
-      <div class="client-option"
-           data-id="${c.id}"
-           data-name="${c.full_name}"
-           data-nickname="${c.nickname || ''}"
-           style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f0; font-size:13px;">
-        <span style="font-weight:600;">${c.full_name}</span>
-        ${c.nickname ? `<span style="color:#888; margin-left:6px;">(${c.nickname})</span>` : ''}
-      </div>
-    `).join('');
-
-    dropdown.querySelectorAll('.client-option').forEach(opt => {
-      opt.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // prevent blur before click fires
-        selectClient(parseInt(opt.dataset.id), opt.dataset.name);
-      });
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); tryLookup(); }
     });
 
-    dropdown.style.display = 'block';
+    nameInput.addEventListener('blur', tryLookup);
   }
+
 
   /**
    * Called when user clicks a name from the dropdown.
@@ -179,8 +134,6 @@
     const nameInput = document.getElementById('clientName');
     if (nameInput) nameInput.value = fullName || '';
 
-    const dropdown = document.getElementById('clientDropdown');
-    if (dropdown) dropdown.style.display = 'none';
 
     // Load full client info (fills nickname, age, diagnosis, etc.)
     loadClientInfo(id).then(() => {

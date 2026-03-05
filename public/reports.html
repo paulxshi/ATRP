@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ATRP — Reports</title>
+  <link rel="icon" type="image/png" href="../imgs/psi.png">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=Nevis&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/dashstyle.css">
+
+  <style>
+    /* ══════════════════════════════════════════════════
+       PAGE LAYOUT
+    ══════════════════════════════════════════════════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+
+    .rp-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      animation: fadeUp .4s ease both;
+    }
+
+    /* ── Page heading ── */
+    .rp-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .rp-eyebrow {
+      display: block;
+      font-family: var(--ff-display);
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .rp-title {
+      font-family: var(--ff-display);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--text);
+    }
+    .rp-title-accent { color: var(--gold); }
+
+    /* ══════════════════════════════════════════════════
+       CLIENT SELECTOR CARD
+    ══════════════════════════════════════════════════ */
+    .rp-card {
+      background: var(--surface, #fff);
+      border: 1px solid var(--border, #e8e4dc);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 28px rgba(0,0,0,.06);
+    }
+    .rp-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border2, #f0ece4);
+      background: linear-gradient(90deg, #fdfaf4, #faf7ed);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .rp-card-title {
+      font-family: 'Nevis', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: #8a7a5a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .rp-card-title-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold, #C9A84C);
+      flex-shrink: 0;
+    }
+
+    /* Client search row */
+    .rp-client-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 22px;
+      flex-wrap: wrap;
+    }
+    .rp-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+    .rp-search-icon {
+      position: absolute;
+      left: 13px; top: 50%;
+      transform: translateY(-50%);
+      color: #ccc;
+      pointer-events: none;
+      display: flex; align-items: center;
+    }
+    .rp-search-input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border: 1.5px solid #e8e4dc;
+      border-radius: 10px;
+      font-family: var(--ff-body); font-size: 13.5px;
+      color: var(--text, #1a1a1a);
+      outline: none;
+      background: #fafaf8;
+      transition: border-color .18s, box-shadow .18s;
+      box-sizing: border-box;
+    }
+    .rp-search-input:focus {
+      border-color: #C9A84C;
+      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
+      background: #fff;
+    }
+    .rp-search-results {
+      position: absolute;
+      top: calc(100% + 5px); left: 0; right: 0;
+      background: #fff;
+      border: 1.5px solid #e8e4dc;
+      border-radius: 10px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.1);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 200;
+      display: none;
+    }
+    .rp-search-results::-webkit-scrollbar { width: 4px; }
+    .rp-search-results::-webkit-scrollbar-thumb { background: #e0dcd4; border-radius: 4px; }
+    .rp-result-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f5f3ee;
+      transition: background .12s;
+    }
+    .rp-result-item:last-child { border-bottom: none; }
+    .rp-result-item:hover { background: #faf8f2; }
+    .rp-result-item.active { background: rgba(201,168,76,.08); }
+    .rp-result-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%; background: #C9A84C;
+      flex-shrink: 0;
+    }
+    .rp-result-name {
+      font-family: var(--ff-body); font-size: 13px;
+      font-weight: 600; color: #1a1a1a; flex: 1;
+    }
+    .rp-result-meta {
+      font-size: 11.5px; color: #aaa;
+    }
+    .rp-empty-result {
+      padding: 16px 14px;
+      text-align: center;
+      font-family: var(--ff-body); font-size: 12.5px;
+      color: #bbb; font-style: italic;
+    }
+
+    .rp-load-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px;
+      background: #1a1a1a; color: #fff;
+      border: none; border-radius: 10px;
+      font-family: var(--ff-body); font-size: 13px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: background .18s, transform .12s, box-shadow .18s;
+      box-shadow: 0 3px 10px rgba(0,0,0,.15);
+      letter-spacing: .02em;
+    }
+    .rp-load-btn:hover {
+      background: #333;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 16px rgba(0,0,0,.2);
+    }
+    .rp-load-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    /* ══════════════════════════════════════════════════
+       ACTIVE CLIENT STRIP
+    ══════════════════════════════════════════════════ */
+    .rp-active-strip {
+      display: none; /* shown via JS when client loaded */
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 22px;
+      background: linear-gradient(90deg, rgba(201,168,76,.07), rgba(201,168,76,.03));
+      border-top: 1px solid rgba(201,168,76,.15);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .rp-active-strip.visible { display: flex; }
+    .rp-active-left {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .rp-active-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #C9A84C, #e8ca7a);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(201,168,76,.35);
+      flex-shrink: 0;
+    }
+    .rp-active-info { display: flex; flex-direction: column; gap: 1px; }
+    .rp-active-eyebrow {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: .16em; text-transform: uppercase;
+      color: #C9A84C;
+    }
+    .rp-active-name {
+      font-size: 14px; font-weight: 700; color: #1a1a1a; line-height: 1.2;
+    }
+    .rp-active-sub {
+      font-size: 11px; color: #aaa;
+    }
+    .rp-clear-btn {
+      background: transparent;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      padding: 5px 13px;
+      font-family: var(--ff-body); font-size: 11.5px;
+      color: #aaa; cursor: pointer;
+      transition: border-color .18s, color .18s;
+    }
+    .rp-clear-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+    /* ══════════════════════════════════════════════════
+       DATA SUMMARY ROW  (BCM · BDM · Skills chips)
+    ══════════════════════════════════════════════════ */
+    .rp-data-row {
+      display: none;
+      gap: 10px;
+      padding: 0 22px 18px;
+      flex-wrap: wrap;
+    }
+    .rp-data-row.visible { display: flex; }
+
+    .rp-data-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      font-family: var(--ff-body); font-size: 12px; font-weight: 600;
+      cursor: default;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .rp-data-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .rp-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+    .chip-bcm  { background: rgba(20,71,230,.07);  border-color: rgba(20,71,230,.18);  color: #1447e6; }
+    .chip-bcm  .rp-chip-dot { background: #1447e6; }
+    .chip-bdm  { background: rgba(0,201,80,.07);   border-color: rgba(0,201,80,.18);   color: #00a040; }
+    .chip-bdm  .rp-chip-dot { background: #00c950; }
+    .chip-skill{ background: rgba(134,25,143,.07); border-color: rgba(134,25,143,.18); color: #86198f; }
+    .chip-skill .rp-chip-dot { background: #86198f; }
+    .chip-none { background: #f5f3ee; border-color: #e8e4dc; color: #aaa; }
+    .chip-none .rp-chip-dot { background: #ccc; }
+
+    /* ══════════════════════════════════════════════════
+       RESULTS TRANSPORT PANEL
+    ══════════════════════════════════════════════════ */
+    .rp-transport {
+      display: none;
+    }
+    .rp-transport.visible { display: flex; flex-direction: column; gap: 28px; }
+
+    /* Section label */
+    .rp-section-label {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Nevis', sans-serif;
+      font-size: 10px; font-weight: 800;
+      letter-spacing: .2em; text-transform: uppercase;
+      color: #8a7a5a;
+      padding: 0 2px;
+    }
+    .rp-section-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, rgba(201,168,76,.25), transparent);
+    }
+
+    /* Results grid — BCM + BDM side by side */
+    .rp-results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 760px) {
+      .rp-results-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Individual result panel */
+    .rp-result-panel {
+      border-radius: 14px;
+      border: 1.5px solid var(--border, #e8e4dc);
+      overflow: hidden;
+      background: var(--surface, #fff);
+      box-shadow: 0 4px 16px rgba(0,0,0,.05);
+    }
+    .rp-result-panel-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border2, #f0ece4);
+    }
+    .rp-panel-icon {
+      width: 32px; height: 32px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .rp-panel-icon svg { width: 16px; height: 16px; }
+    .icon-bcm  { background: rgba(20,71,230,.1); }
+    .icon-bcm  svg { color: #1447e6; }
+    .icon-bdm  { background: rgba(0,201,80,.1); }
+    .icon-bdm  svg { color: #00a040; }
+    .icon-skill{ background: rgba(134,25,143,.1); }
+    .icon-skill svg { color: #86198f; }
+
+    .rp-panel-title {
+      font-family: var(--ff-body); font-size: 13px; font-weight: 700;
+      color: var(--text, #1a1a1a); flex: 1;
+    }
+    .rp-panel-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 2px 9px; border-radius: 10px;
+      letter-spacing: .04em;
+    }
+    .badge-bcm  { background: rgba(20,71,230,.1);  color: #1447e6; }
+    .badge-bdm  { background: rgba(0,201,80,.1);   color: #00a040; }
+    .badge-skill{ background: rgba(134,25,143,.1); color: #86198f; }
+
+    .rp-result-body {
+      padding: 16px 18px;
+      min-height: 80px;
+      font-family: var(--ff-body); font-size: 12.5px;
+      color: #888; line-height: 1.7;
+    }
+
+    /* Skeleton loader */
+    .rp-skeleton {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .rp-skel-line {
+      height: 10px; border-radius: 5px;
+      background: linear-gradient(90deg, #f0ece4 25%, #faf8f4 50%, #f0ece4 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    .rp-skel-line.w80 { width: 80%; }
+    .rp-skel-line.w60 { width: 60%; }
+    .rp-skel-line.w90 { width: 90%; }
+    .rp-skel-line.w45 { width: 45%; }
+
+    /* Data table inside panels */
+    .rp-inner-table {
+      width: 100%; border-collapse: collapse;
+      font-family: var(--ff-body); font-size: 12px;
+    }
+    .rp-inner-table thead tr {
+      background: #faf8f2;
+      border-bottom: 1.5px solid #f0ece4;
+    }
+    .rp-inner-table th {
+      padding: 8px 12px;
+      font-weight: 700; font-size: 10px;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: #8a7a5a; text-align: left;
+    }
+    .rp-inner-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f7f5f0;
+      color: #333; vertical-align: top;
+      line-height: 1.5;
+    }
+    .rp-inner-table tr:last-child td { border-bottom: none; }
+    .rp-inner-table tbody tr:hover { background: rgba(201,168,76,.025); }
+
+    .rp-no-data {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 8px;
+      padding: 28px 18px;
+      color: #ccc;
+    }
+    .rp-no-data svg { width: 28px; height: 28px; opacity: .4; }
+    .rp-no-data span { font-size: 12.5px; font-style: italic; }
+
+    /* ══════════════════════════════════════════════════
+       WRITE-UP PREVIEW PANEL
+    ══════════════════════════════════════════════════ */
+    .rp-writeup-card {
+      border-radius: 16px;
+      border: 1.5px solid var(--border, #e8e4dc);
+      overflow: hidden;
+      background: var(--surface, #fff);
+      box-shadow: 0 6px 24px rgba(0,0,0,.06);
+    }
+    .rp-writeup-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px;
+      background: linear-gradient(90deg, #fdfaf4, #faf7ed);
+      border-bottom: 1.5px solid rgba(201,168,76,.15);
+      flex-wrap: wrap; gap: 12px;
+    }
+    .rp-writeup-title-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .rp-writeup-icon {
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #C9A84C, #e8ca7a);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(201,168,76,.3);
+    }
+    .rp-writeup-icon svg { width: 16px; height: 16px; color: #fff; }
+    .rp-writeup-label-wrap { display: flex; flex-direction: column; gap: 1px; }
+    .rp-writeup-eyebrow {
+      font-size: 9.5px; font-weight: 700;
+      letter-spacing: .18em; text-transform: uppercase; color: #C9A84C;
+    }
+    .rp-writeup-label {
+      font-size: 14px; font-weight: 800;
+      color: #1a1a1a; font-family: var(--ff-display);
+    }
+
+    /* Export buttons */
+    .rp-export-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .rp-export-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 16px;
+      border-radius: 9px;
+      font-family: var(--ff-body); font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      transition: background .18s, transform .12s, box-shadow .18s, opacity .18s;
+      border: 1.5px solid transparent;
+      white-space: nowrap;
+    }
+    .rp-export-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .rp-export-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .rp-export-btn:not(:disabled):hover { transform: translateY(-1px); }
+
+    .btn-pdf {
+      background: #fff;
+      border-color: rgba(239,68,68,.35);
+      color: #dc2626;
+    }
+    .btn-pdf:not(:disabled):hover {
+      background: rgba(239,68,68,.06);
+      border-color: #ef4444;
+      box-shadow: 0 3px 10px rgba(239,68,68,.15);
+    }
+
+    .btn-docx {
+      background: #fff;
+      border-color: rgba(37,99,235,.3);
+      color: #1d4ed8;
+    }
+    .btn-docx:not(:disabled):hover {
+      background: rgba(37,99,235,.06);
+      border-color: #3b82f6;
+      box-shadow: 0 3px 10px rgba(37,99,235,.15);
+    }
+
+    .btn-copy {
+      background: #1a1a1a;
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,.15);
+    }
+    .btn-copy:not(:disabled):hover {
+      background: #333;
+      box-shadow: 0 5px 14px rgba(0,0,0,.2);
+    }
+
+    /* Write-up preview body */
+    .rp-writeup-body {
+      padding: 32px 36px;
+      min-height: 240px;
+      position: relative;
+    }
+
+    /* Empty state */
+    .rp-writeup-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .rp-writeup-empty-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #faf8f2, #f5f0e8);
+      border: 1.5px solid rgba(201,168,76,.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rp-writeup-empty-icon svg { width: 24px; height: 24px; color: #C9A84C; opacity: .6; }
+    .rp-writeup-empty h3 {
+      font-family: var(--ff-display); font-size: 16px;
+      font-weight: 700; color: #1a1a1a; margin: 0;
+    }
+    .rp-writeup-empty p {
+      font-family: var(--ff-body); font-size: 13px;
+      color: #aaa; max-width: 300px; margin: 0; line-height: 1.6;
+    }
+
+    /* Write-up content (populated) */
+    .rp-writeup-content {
+      display: none;
+      font-family: 'Work Sans', sans-serif;
+      font-size: 13.5px; line-height: 1.85; color: #333;
+    }
+    .rp-writeup-content.visible { display: block; }
+    .rp-writeup-content h2 {
+      font-family: var(--ff-display); font-size: 15px;
+      font-weight: 800; color: #1a1a1a;
+      letter-spacing: .04em; text-transform: uppercase;
+      margin: 24px 0 8px;
+      padding-bottom: 6px;
+      border-bottom: 1.5px solid rgba(201,168,76,.25);
+    }
+    .rp-writeup-content h2:first-child { margin-top: 0; }
+    .rp-writeup-content p { margin: 0 0 10px; }
+
+    /* Footer note */
+    .rp-writeup-footer {
+      padding: 12px 22px;
+      border-top: 1px solid var(--border2, #f0ece4);
+      background: #fafaf8;
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--ff-body); font-size: 11.5px;
+      color: #bbb;
+    }
+    .rp-writeup-footer svg { width: 13px; height: 13px; flex-shrink: 0; color: #C9A84C; opacity: .7; }
+
+    /* ══════════════════════════════════════════════════
+       LOADING OVERLAY
+    ══════════════════════════════════════════════════ */
+    .rp-loading-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,.8);
+      backdrop-filter: blur(3px);
+      border-radius: 14px;
+      align-items: center; justify-content: center;
+      z-index: 10;
+      flex-direction: column; gap: 12px;
+    }
+    .rp-loading-overlay.visible { display: flex; }
+    .rp-loading-spinner {
+      width: 28px; height: 28px;
+      border: 2.5px solid rgba(201,168,76,.2);
+      border-top-color: #C9A84C;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .rp-loading-text {
+      font-family: var(--ff-body); font-size: 12.5px;
+      font-weight: 600; color: #8a7a5a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left" id="topbarLeft">
+      <div class="brand-logo">
+        <img src="../imgs/psi.png" alt="PSI Logo">
+      </div>
+      <span class="brand-text">ATRP</span>
+    </div>
+    <div class="topbar-right">
+      <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <a class="nav-item" href="index.html">
+      <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+      <span class="nav-label">Behavior</span>
+      <span class="tooltip-text">Behavior</span>
+    </a>
+    <a class="nav-item" href="skillscoring.html">
+      <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
+      <span class="nav-label">Skill Scoring Sheets</span>
+      <span class="tooltip-text">Skill Scoring Sheets</span>
+    </a>
+    <a class="nav-item active" href="reports.html">
+      <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+      <span class="nav-label">Reports</span>
+      <span class="nav-badge">Live</span>
+      <span class="tooltip-text">Reports</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
+      <span class="nav-label">Analytics</span>
+      <span class="tooltip-text">Analytics</span>
+    </a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="mainContent">
+    <div class="rp-wrapper">
+
+      <!-- ── Page Heading ── -->
+      <div class="rp-heading">
+        <div>
+          <span class="rp-eyebrow">Client Reports</span>
+          <h1 class="rp-title">Results &amp; <span class="rp-title-accent">Write-up</span></h1>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           STEP 1 — CLIENT SELECTOR
+      ══════════════════════════════════════════════ -->
+      <div class="rp-card" id="clientSelectorCard">
+        <div class="rp-card-header">
+          <span class="rp-card-title">
+            <span class="rp-card-title-dot"></span>
+            Step 1 — Select Client
+          </span>
+        </div>
+
+        <div class="rp-client-row">
+          <div class="rp-search-wrap" id="searchWrap">
+            <span class="rp-search-icon">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                <circle cx="7" cy="7" r="5" stroke="#ccc" stroke-width="1.6"/>
+                <path d="M11 11l3 3" stroke="#ccc" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input
+              id="rpClientSearch"
+              class="rp-search-input"
+              type="text"
+              placeholder="Search client by name…"
+              autocomplete="off"
+            />
+            <div class="rp-search-results" id="rpSearchResults"></div>
+          </div>
+          <button class="rp-load-btn" id="rpLoadBtn" disabled>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v9M4 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Load Results
+          </button>
+        </div>
+
+        <!-- Active client strip (shown after load) -->
+        <div class="rp-active-strip" id="rpActiveStrip">
+          <div class="rp-active-left">
+            <div class="rp-active-avatar">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+                <circle cx="10" cy="7" r="4" fill="rgba(255,255,255,.9)"/>
+                <path d="M3 18c0-4 3.1-6 7-6s7 2 7 6" stroke="rgba(255,255,255,.9)" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="rp-active-info">
+              <span class="rp-active-eyebrow">Loaded Client</span>
+              <span class="rp-active-name" id="rpActiveName">—</span>
+              <span class="rp-active-sub" id="rpActiveSub">—</span>
+            </div>
+          </div>
+          <button class="rp-clear-btn" id="rpClearBtn">Clear</button>
+        </div>
+
+        <!-- Data availability chips -->
+        <div class="rp-data-row" id="rpDataRow">
+          <span class="rp-data-chip chip-bcm" id="chipBcm">
+            <span class="rp-chip-dot"></span>
+            BCM — loading…
+          </span>
+          <span class="rp-data-chip chip-bdm" id="chipBdm">
+            <span class="rp-chip-dot"></span>
+            BDM — loading…
+          </span>
+          <span class="rp-data-chip chip-skill" id="chipSkill">
+            <span class="rp-chip-dot"></span>
+            Skills — loading…
+          </span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════
+           STEP 2 — RESULTS TRANSPORT
+      ══════════════════════════════════════════════ -->
+      <div class="rp-transport" id="rpTransport">
+
+        <!-- Section label -->
+        <div class="rp-section-label">
+          <span class="rp-card-title-dot"></span>
+          Step 2 — Client Results
+          <span class="rp-section-line"></span>
+        </div>
+
+        <!-- BCM + BDM panels -->
+        <div class="rp-results-grid">
+
+          <!-- BCM Panel -->
+          <div class="rp-result-panel" id="bcmPanel">
+            <div class="rp-result-panel-header">
+              <div class="rp-panel-icon icon-bcm">
+                <svg viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="4" width="12" height="1.5" rx=".75" fill="currentColor"/>
+                  <rect x="2" y="7.25" width="12" height="1.5" rx=".75" fill="currentColor"/>
+                  <rect x="2" y="10.5" width="8" height="1.5" rx=".75" fill="currentColor"/>
+                </svg>
+              </div>
+              <span class="rp-panel-title">Continuous Measurement (BCM)</span>
+              <span class="rp-panel-badge badge-bcm" id="bcmBadge">—</span>
+            </div>
+            <div class="rp-result-body" id="bcmBody">
+              <div class="rp-skeleton">
+                <div class="rp-skel-line w80"></div>
+                <div class="rp-skel-line w60"></div>
+                <div class="rp-skel-line w90"></div>
+                <div class="rp-skel-line w45"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BDM Panel -->
+          <div class="rp-result-panel" id="bdmPanel">
+            <div class="rp-result-panel-header">
+              <div class="rp-panel-icon icon-bdm">
+                <svg viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="2" width="3" height="12" rx="1" fill="currentColor"/>
+                  <rect x="6.5" y="2" width="3" height="8" rx="1" fill="currentColor"/>
+                  <rect x="11" y="2" width="3" height="10" rx="1" fill="currentColor"/>
+                </svg>
+              </div>
+              <span class="rp-panel-title">Discontinuous Measurement (BDM)</span>
+              <span class="rp-panel-badge badge-bdm" id="bdmBadge">—</span>
+            </div>
+            <div class="rp-result-body" id="bdmBody">
+              <div class="rp-skeleton">
+                <div class="rp-skel-line w90"></div>
+                <div class="rp-skel-line w60"></div>
+                <div class="rp-skel-line w80"></div>
+                <div class="rp-skel-line w45"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /rp-results-grid -->
+
+        <!-- Skills Panel (full width) -->
+        <div class="rp-result-panel" id="skillPanel">
+          <div class="rp-result-panel-header">
+            <div class="rp-panel-icon icon-skill">
+              <svg viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M5.5 8l2 2 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="rp-panel-title">Skill Scoring Summary</span>
+            <span class="rp-panel-badge badge-skill" id="skillBadge">—</span>
+          </div>
+          <div class="rp-result-body" id="skillBody">
+            <div class="rp-skeleton">
+              <div class="rp-skel-line w60"></div>
+              <div class="rp-skel-line w80"></div>
+              <div class="rp-skel-line w45"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             STEP 3 — WRITE-UP PREVIEW
+        ══════════════════════════════════════════════ -->
+        <div class="rp-section-label">
+          <span class="rp-card-title-dot"></span>
+          Step 3 — Write-up Preview
+          <span class="rp-section-line"></span>
+        </div>
+
+        <div class="rp-writeup-card">
+          <div class="rp-writeup-header">
+            <div class="rp-writeup-title-row">
+              <div class="rp-writeup-icon">
+                <svg viewBox="0 0 16 16" fill="none">
+                  <path d="M3 4h10M3 7h10M3 10h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="rp-writeup-label-wrap">
+                <span class="rp-writeup-eyebrow">Auto-generated</span>
+                <span class="rp-writeup-label">Write-up Preview</span>
+              </div>
+            </div>
+            <div class="rp-export-actions">
+              <button class="rp-export-btn btn-pdf" id="btnExportPdf" disabled>
+                <svg viewBox="0 0 16 16" fill="none">
+                  <rect x="2" y="1" width="10" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M5 5h4M5 8h4M5 11h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                </svg>
+                Export PDF
+              </button>
+              <button class="rp-export-btn btn-docx" id="btnExportDocx" disabled>
+                <svg viewBox="0 0 16 16" fill="none">
+                  <path d="M9 1H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6L9 1z" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M9 1v5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                Export DOCX
+              </button>
+              <button class="rp-export-btn btn-copy" id="btnCopyText" disabled>
+                <svg viewBox="0 0 16 16" fill="none">
+                  <rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M3 11V3a2 2 0 0 1 2-2h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                Copy Text
+              </button>
+            </div>
+          </div>
+
+          <div class="rp-writeup-body" id="writeupBody">
+            <!-- Loading overlay -->
+            <div class="rp-loading-overlay" id="writeupLoader">
+              <div class="rp-loading-spinner"></div>
+              <span class="rp-loading-text">Generating write-up…</span>
+            </div>
+
+            <!-- Empty state (default) -->
+            <div class="rp-writeup-empty" id="writeupEmpty">
+              <div class="rp-writeup-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h3>Write-up will appear here</h3>
+              <p>Load a client's results to auto-generate a structured write-up preview ready for export.</p>
+            </div>
+
+            <!-- Write-up content (populated after client load) -->
+            <div class="rp-writeup-content" id="writeupContent">
+              <!-- Populated by JS once write-up format is provided -->
+            </div>
+          </div>
+
+          <div class="rp-writeup-footer">
+            <svg viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            Write-up format is configurable. Provide your template and it will be applied automatically.
+          </div>
+        </div><!-- /rp-writeup-card -->
+
+      </div><!-- /rp-transport -->
+
+    </div><!-- /rp-wrapper -->
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ── State ──────────────────────────────────────────────────
+    let activeClientId   = null;
+    let activeClientData = null;
+    let allClients       = [];
+
+    // ── Elements ───────────────────────────────────────────────
+    const searchInput   = document.getElementById('rpClientSearch');
+    const searchResults = document.getElementById('rpSearchResults');
+    const loadBtn       = document.getElementById('rpLoadBtn');
+    const activeStrip   = document.getElementById('rpActiveStrip');
+    const activeName    = document.getElementById('rpActiveName');
+    const activeSub     = document.getElementById('rpActiveSub');
+    const clearBtn      = document.getElementById('rpClearBtn');
+    const dataRow       = document.getElementById('rpDataRow');
+    const transport     = document.getElementById('rpTransport');
+
+    const chipBcm   = document.getElementById('chipBcm');
+    const chipBdm   = document.getElementById('chipBdm');
+    const chipSkill = document.getElementById('chipSkill');
+
+    const bcmBadge  = document.getElementById('bcmBadge');
+    const bdmBadge  = document.getElementById('bdmBadge');
+    const skillBadge= document.getElementById('skillBadge');
+    const bcmBody   = document.getElementById('bcmBody');
+    const bdmBody   = document.getElementById('bdmBody');
+    const skillBody = document.getElementById('skillBody');
+
+    const writeupEmpty   = document.getElementById('writeupEmpty');
+    const writeupContent = document.getElementById('writeupContent');
+    const writeupLoader  = document.getElementById('writeupLoader');
+    const btnPdf   = document.getElementById('btnExportPdf');
+    const btnDocx  = document.getElementById('btnExportDocx');
+    const btnCopy  = document.getElementById('btnCopyText');
+
+    // ── Load client list ───────────────────────────────────────
+    async function fetchClients() {
+      try {
+        const r = await fetch('../php/api_clients.php');
+        const d = await r.json();
+        allClients = d.clients || [];
+      } catch (e) {
+        console.error('fetchClients:', e);
+      }
+    }
+
+    function renderSearch(term) {
+      const filtered = term
+        ? allClients.filter(c => c.full_name.toLowerCase().includes(term.toLowerCase()))
+        : [];
+
+      if (filtered.length === 0) {
+        searchResults.style.display = 'none';
+        return;
+      }
+
+      searchResults.innerHTML = filtered.map(c => `
+        <div class="rp-result-item" data-id="${c.id}" data-name="${c.full_name}"
+             data-diag="${c.diagnosis || ''}" data-age="${c.age || ''}">
+          <span class="rp-result-dot"></span>
+          <span class="rp-result-name">${c.full_name}</span>
+          ${c.nickname ? `<span class="rp-result-meta">(${c.nickname})</span>` : ''}
+          ${c.diagnosis ? `<span class="rp-result-meta" style="margin-left:auto;font-size:11px;">${c.diagnosis}</span>` : ''}
+        </div>
+      `).join('');
+
+      searchResults.querySelectorAll('.rp-result-item').forEach(item => {
+        item.addEventListener('mousedown', e => {
+          e.preventDefault();
+          activeClientId = parseInt(item.dataset.id);
+          searchInput.value = item.dataset.name;
+          activeClientData  = {
+            id:        activeClientId,
+            full_name: item.dataset.name,
+            diagnosis: item.dataset.diag,
+            age:       item.dataset.age
+          };
+          searchResults.style.display = 'none';
+          loadBtn.disabled = false;
+          searchResults.querySelectorAll('.rp-result-item')
+            .forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+        });
+      });
+
+      searchResults.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input', () => {
+      loadBtn.disabled = true;
+      activeClientId   = null;
+      renderSearch(searchInput.value);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value) renderSearch(searchInput.value);
+    });
+
+    document.addEventListener('click', e => {
+      if (!document.getElementById('searchWrap').contains(e.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+
+    // ── Load results ───────────────────────────────────────────
+    loadBtn.addEventListener('click', () => {
+      if (!activeClientId) return;
+      loadClientResults(activeClientId);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      activeClientId   = null;
+      activeClientData = null;
+      searchInput.value = '';
+      loadBtn.disabled  = true;
+      activeStrip.classList.remove('visible');
+      dataRow.classList.remove('visible');
+      transport.classList.remove('visible');
+    });
+
+    async function loadClientResults(clientId) {
+      // Show active strip
+      activeStrip.classList.add('visible');
+      dataRow.classList.add('visible');
+      transport.classList.add('visible');
+
+      const c = activeClientData;
+      activeName.textContent = c.full_name;
+      activeSub.textContent  = [c.diagnosis, c.age].filter(Boolean).join(' · ') || 'No additional info';
+
+      // Reset chips to loading
+      chipBcm.className   = 'rp-data-chip chip-bcm';
+      chipBdm.className   = 'rp-data-chip chip-bdm';
+      chipSkill.className = 'rp-data-chip chip-skill';
+      chipBcm.querySelector('.rp-chip-dot').style.background   = '#1447e6';
+      chipBdm.querySelector('.rp-chip-dot').style.background   = '#00c950';
+      chipSkill.querySelector('.rp-chip-dot').style.background = '#86198f';
+      chipBcm.lastChild.textContent   = ' BCM — loading…';
+      chipBdm.lastChild.textContent   = ' BDM — loading…';
+      chipSkill.lastChild.textContent = ' Skills — loading…';
+
+      // Reset panels to skeleton
+      bcmBody.innerHTML = skeletonHTML();
+      bdmBody.innerHTML = skeletonHTML();
+      skillBody.innerHTML = skeletonHTML(3);
+      bcmBadge.textContent   = '—';
+      bdmBadge.textContent   = '—';
+      skillBadge.textContent = '—';
+
+      // Reset write-up
+      writeupEmpty.style.display   = 'flex';
+      writeupContent.classList.remove('visible');
+      writeupLoader.classList.remove('visible');
+      btnPdf.disabled = btnDocx.disabled = btnCopy.disabled = true;
+
+      // Fetch all three data sources in parallel
+      const [bcmResult, bdmResult, skillResult] = await Promise.allSettled([
+        fetch(`../php/api_bcm.php?client_id=${clientId}`).then(r => r.json()),
+        fetch(`../php/api_bdm.php?client_id=${clientId}`).then(r => r.json()),
+        fetch(`../php/api_skills.php?client_id=${clientId}`).then(r => r.json())
+      ]);
+
+      // ── BCM ──
+      if (bcmResult.status === 'fulfilled' && bcmResult.value.success) {
+        const behaviors = bcmResult.value.behaviors || [];
+        const notes     = bcmResult.value.notes || '';
+        bcmBadge.textContent = behaviors.length + ' behavior' + (behaviors.length !== 1 ? 's' : '');
+        updateChip(chipBcm, behaviors.length > 0, 'BCM', behaviors.length + ' behavior' + (behaviors.length !== 1 ? 's' : ''));
+        bcmBody.innerHTML = behaviors.length > 0
+          ? renderBcmTable(behaviors, notes)
+          : noDataHTML('No BCM behaviors recorded yet');
+      } else {
+        bcmBadge.textContent = 'Error';
+        updateChip(chipBcm, false, 'BCM', 'Error');
+        bcmBody.innerHTML = noDataHTML('Could not load BCM data');
+      }
+
+      // ── BDM ──
+      if (bdmResult.status === 'fulfilled' && bdmResult.value.success) {
+        const sessions = bdmResult.value.sessions || [];
+        const notes    = bdmResult.value.notes || '';
+        bdmBadge.textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
+        updateChip(chipBdm, sessions.length > 0, 'BDM', sessions.length + ' session' + (sessions.length !== 1 ? 's' : ''));
+        bdmBody.innerHTML = sessions.length > 0
+          ? renderBdmTable(sessions, notes)
+          : noDataHTML('No BDM sessions recorded yet');
+      } else {
+        bdmBadge.textContent = 'Error';
+        updateChip(chipBdm, false, 'BDM', 'Error');
+        bdmBody.innerHTML = noDataHTML('Could not load BDM data');
+      }
+
+      // ── Skills ──
+      if (skillResult.status === 'fulfilled' && skillResult.value.success) {
+        const rows = skillResult.value.rows || [];
+        skillBadge.textContent = rows.length + ' drill' + (rows.length !== 1 ? 's' : '');
+        updateChip(chipSkill, rows.length > 0, 'Skills', rows.length + ' drill' + (rows.length !== 1 ? 's' : ''));
+        skillBody.innerHTML = rows.length > 0
+          ? renderSkillTable(rows)
+          : noDataHTML('No skill scoring data yet');
+      } else {
+        skillBadge.textContent = 'Error';
+        updateChip(chipSkill, false, 'Skills', 'Error');
+        skillBody.innerHTML = noDataHTML('Could not load skill data');
+      }
+
+      // ── Write-up (placeholder until format is provided) ──
+      showWriteupPlaceholder(c, bcmResult, bdmResult, skillResult);
+    }
+
+    // ── Chip updater ───────────────────────────────────────────
+    function updateChip(chip, hasData, label, detail) {
+      if (!hasData) {
+        chip.className = 'rp-data-chip chip-none';
+        chip.innerHTML = `<span class="rp-chip-dot" style="background:#ccc"></span>${label} — ${detail}`;
+      } else {
+        chip.lastChild.textContent = ` ${label} — ${detail}`;
+      }
+    }
+
+    // ── BCM table renderer ─────────────────────────────────────
+    function renderBcmTable(behaviors, notes) {
+      const heads = '<th>Antecedent</th><th>Problem Behavior</th><th>Sessions (Freq.)</th><th>Function</th>';
+      const rows = behaviors.map(b => {
+        const sessStr = Object.entries(b.sessions || {})
+          .map(([k,v]) => `S${k}: ${v}`)
+          .join(', ') || '—';
+        const fnStr = Object.entries(b.functions || {})
+          .filter(([,v]) => v)
+          .map(([k]) => k)
+          .join(', ') || '—';
+        return `<tr>
+          <td>${b.antecedent || '—'}</td>
+          <td>${b.behavior || '—'}</td>
+          <td>${sessStr}</td>
+          <td>${fnStr}</td>
+        </tr>`;
+      }).join('');
+      const notesHtml = notes ? `<div style="margin-top:12px;padding:10px 12px;background:#faf8f2;border-radius:8px;font-size:12px;color:#777;border-left:3px solid rgba(201,168,76,.4);">${notes}</div>` : '';
+      return `<table class="rp-inner-table"><thead><tr>${heads}</tr></thead><tbody>${rows}</tbody></table>${notesHtml}`;
+    }
+
+    // ── BDM table renderer ─────────────────────────────────────
+    function renderBdmTable(sessions, notes) {
+      const rows = sessions.map(s => {
+        const pos = Object.values(s.intervals || {}).filter(v => v === '+').length;
+        const tot = s.interval_count || 10;
+        const pct = Math.round((pos / tot) * 100);
+        const bar = `<div style="height:4px;border-radius:3px;background:#e8f7ee;margin-top:4px;">
+          <div style="width:${pct}%;height:100%;border-radius:3px;background:#00c950;transition:width .4s;"></div>
+        </div>`;
+        return `<tr>
+          <td>Session ${s.session_number}</td>
+          <td>${s.session_date || '—'}</td>
+          <td>${pos} / ${tot} intervals ${bar}</td>
+          <td style="font-weight:700;color:${pct>=70?'#00a040':'#d97706'}">${pct}%</td>
+        </tr>`;
+      }).join('');
+      const notesHtml = notes ? `<div style="margin-top:12px;padding:10px 12px;background:#f5fdf8;border-radius:8px;font-size:12px;color:#777;border-left:3px solid rgba(0,201,80,.35);">${notes}</div>` : '';
+      return `<table class="rp-inner-table">
+        <thead><tr><th>Session</th><th>Date</th><th>Occurrence</th><th>%</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>${notesHtml}`;
+    }
+
+    // ── Skill table renderer ───────────────────────────────────
+    const TIER_LABELS = { eye:'Eye Contact', basic:'Basic Understanding', ident:'Identification', adv:'Advanced Understanding' };
+    const TIER_COLORS = { eye:'#1447e6', basic:'#00c950', ident:'#a38f10', adv:'#86198f' };
+
+    function renderSkillTable(rows) {
+      const body = rows.map(r => {
+        const pct = (r.attempts > 0 && r.successful !== null)
+          ? Math.round((parseFloat(r.successful) / r.attempts) * 100)
+          : null;
+        const color = TIER_COLORS[r.tier] || '#aaa';
+        const tierLabel = TIER_LABELS[r.tier] || '—';
+        const bar = pct !== null
+          ? `<div style="height:4px;border-radius:3px;background:#f0f0f0;margin-top:4px;">
+               <div style="width:${pct}%;height:100%;border-radius:3px;background:${color};transition:width .4s;"></div>
+             </div>` : '';
+        return `<tr>
+          <td><span style="display:inline-block;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700;background:${color}20;color:${color};">${tierLabel}</span></td>
+          <td>${r.skill || '—'}</td>
+          <td>${r.successful !== null ? r.successful : '—'} / ${r.attempts || 0} ${r.unit || ''}</td>
+          <td style="font-weight:700;color:${color}">${pct !== null ? pct+'%' : '—'}${bar}</td>
+        </tr>`;
+      }).join('');
+      return `<table class="rp-inner-table">
+        <thead><tr><th>Tier</th><th>Skill / Drill</th><th>Attempts</th><th>Score</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>`;
+    }
+
+    // ── Write-up placeholder ───────────────────────────────────
+    function showWriteupPlaceholder(client, bcm, bdm, skill) {
+      // Write-up content will be provided later.
+      // For now, show a structured placeholder.
+      writeupEmpty.style.display = 'none';
+      writeupContent.classList.add('visible');
+      writeupContent.innerHTML = `
+        <h2>Client Information</h2>
+        <p><em>Write-up template not yet configured.</em> Once your write-up format is provided,
+        this section will auto-populate with a formatted narrative using <strong>${client.full_name}</strong>'s
+        BCM, BDM, and Skill Scoring data.</p>
+        <h2>Behavioral Data Summary</h2>
+        <p>BCM behaviors: <strong>${bcm.value?.behaviors?.length ?? '—'}</strong> &nbsp;|&nbsp;
+           BDM sessions: <strong>${bdm.value?.sessions?.length ?? '—'}</strong></p>
+        <h2>Skills Summary</h2>
+        <p>Skill drills recorded: <strong>${skill.value?.rows?.length ?? '—'}</strong></p>
+        <p style="color:#bbb;font-style:italic;margin-top:16px;font-size:12px;">
+          Provide your write-up template and it will replace this placeholder automatically.
+        </p>
+      `;
+      btnPdf.disabled = btnDocx.disabled = btnCopy.disabled = false;
+    }
+
+    // ── Export handlers ────────────────────────────────────────
+    btnCopy.addEventListener('click', () => {
+      const text = writeupContent.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btnCopy.innerHTML;
+        btnCopy.innerHTML = `<svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+        setTimeout(() => { btnCopy.innerHTML = orig; }, 2000);
+      });
+    });
+
+    btnPdf.addEventListener('click', () => {
+      showToast('PDF export will be available once write-up template is configured.', 'info');
+    });
+
+    btnDocx.addEventListener('click', () => {
+      showToast('DOCX export will be available once write-up template is configured.', 'info');
+    });
+
+    // ── Helpers ────────────────────────────────────────────────
+    function skeletonHTML(lines = 4) {
+      const widths = ['w80','w60','w90','w45','w70','w55'];
+      return '<div class="rp-skeleton">' +
+        Array.from({length: lines}, (_,i) =>
+          `<div class="rp-skel-line ${widths[i % widths.length]}"></div>`
+        ).join('') +
+        '</div>';
+    }
+
+    function noDataHTML(msg) {
+      return `<div class="rp-no-data">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M12 8v4M12 16v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <span>${msg}</span>
+      </div>`;
+    }
+
+    function showToast(msg, type) {
+      const t = document.createElement('div');
+      t.style.cssText = `
+        position:fixed;top:80px;right:20px;padding:12px 20px;border-radius:8px;
+        font-family:var(--ff-body);font-size:13px;font-weight:500;z-index:9999;
+        background:${type==='error'?'#ef4444':type==='info'?'#1447e6':'#10b981'};
+        color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);max-width:320px;
+        animation:fadeUp .3s ease;
+      `;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    // ── Boot ───────────────────────────────────────────────────
+    fetchClients();
+
+  })();
+  </script>
+
+</body>
+</html>
