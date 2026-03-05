@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="../css/table.css">
 </head>
 <body>
+  
  <style>
     /* ── Page Header ── */
     .ss-wrapper {
@@ -42,15 +43,37 @@
       border-radius: 14px;
       overflow: hidden;
       box-shadow: 0 12px 40px rgba(0,0,0,.09);
+      max-height: 1050px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Panel padding ── */
+    .measurement-panel { 
+      display: none; 
+      padding: 24px 28px 20px; 
+    }
+    .measurement-panel.active { 
+      display: block; 
     }
 
     /* ── Table ── */
     .ss-table-container {
-      border-radius: 12;
-      overflow: hidden;
+      border-radius: 12px;
+      overflow-y: auto;
+      overflow-x: hidden;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 45px;
+      max-height: 400px;
+      margin-bottom: 20px;
     }
+
+    /* Make table header sticky */
+    .ss-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
     .ss-table {
       width: 100%;
       border-collapse: collapse;
@@ -230,6 +253,9 @@
       background: #fafafa;
       border: 1px solid var(--border);
       border-radius: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
     .ss-legend-item {
       display: flex;
@@ -246,9 +272,44 @@
       flex-shrink: 0;
     }
 
+    /* Footer styles */
+    .bcm-footer-bottom {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+    .bcm-btn-save {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #C9A84C;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--ff-body);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+    .bcm-btn-save:hover {
+      background: #000;
+    }
+    .bcm-btn-save svg {
+      width: 14px;
+      height: 14px;
+    }
+
     /* ── Panel padding ── */
-    .measurement-panel { display:none; padding:24px 28px 20px; }
-    .measurement-panel.active { display:block; }
+    .measurement-panel { 
+      display: none; 
+      padding: 24px 28px 20px; 
+    }
+    .measurement-panel.active { 
+      display: block; 
+    }
 
   </style>
   <!-- TOPBAR -->
