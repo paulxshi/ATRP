@@ -19,7 +19,7 @@
   
   async function loadClients() {
     try {
-      const response = await fetch('php/api_clients.php');
+      const response = await fetch('../php/api_clients.php');
       const result = await response.json();
       if (result.success && result.clients) return result.clients;
       return [];
@@ -31,7 +31,7 @@
   
   async function saveClient(clientData) {
     try {
-      const response = await fetch('php/api_clients.php', {
+      const response = await fetch('../php/api_clients.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(clientData)
@@ -138,7 +138,7 @@
   
   async function loadClientInfo(clientId) {
     try {
-      const response = await fetch('php/api_clients.php?client_id=' + clientId);
+      const response = await fetch('../php/api_clients.php?client_id=' + clientId);
       const result = await response.json();
       
       if (result.success && result.client) {
@@ -158,7 +158,7 @@
   async function saveClientInfo(clientId) {
     try {
       const get = (id) => document.getElementById(id)?.value || null;
-      const response = await fetch('php/api_clients.php', {
+      const response = await fetch('../php/api_clients.php', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -247,7 +247,7 @@
         sessionNumbers.push(parseInt(input.value) || 0);
       });
 
-      const response = await fetch('php/api_bcm.php', {
+      const response = await fetch('../php/api_bcm.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ client_id: clientId, behaviors, sessions: sessionNumbers, notes })
@@ -276,7 +276,7 @@
     isLoadingData = true;
     
     try {
-      let url = 'php/api_bcm.php';
+      let url = '../php/api_bcm.php';
       if (currentClientId) url += '?client_id=' + currentClientId;
       
       const response = await fetch(url);
@@ -575,7 +575,7 @@ async function saveBdmToDatabase() {
 
     const notes = document.getElementById('bdmNotesInput')?.value || '';
 
-    const response = await fetch('php/api_bdm.php', {
+    const response = await fetch('../php/api_bdm.php', {
       method  : 'POST',
       headers : { 'Content-Type': 'application/json' },
       body    : JSON.stringify({ client_id, sessions, notes })
@@ -606,7 +606,7 @@ async function loadBdmFromDatabase() {
   if (!client_id) return;
 
   try {
-    const response = await fetch(`php/api_bdm.php?client_id=${client_id}`);
+    const response = await fetch(`../php/api_bdm.php?client_id=${client_id}`);
     const result   = await response.json();
 
     const grid = document.getElementById('bdmSessionsGrid');
@@ -687,3 +687,182 @@ function showBdmNotification(message, type) {
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
+
+
+
+ /* ── BDM TABLE── */
+    /* ── Tab switching ── */
+    document.querySelectorAll('.measurement-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.measurement-tab').forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        document.querySelectorAll('.measurement-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+      });
+    });
+
+    /* ── BDM UI State ── */
+    const NUM_INTERVALS = 10;
+    const grid = document.getElementById('bdmSessionsGrid');
+    let sessionCount = 1;
+    const sessionData = {};
+
+    /* ── Notification helper (used by table.js BDM functions too) ── */
+    function showBdmNotification(message, type) {
+      const existing = document.querySelector('.bdm-notification-toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = 'bdm-notification-toast';
+      toast.style.cssText = `
+        position: fixed; top: 80px; right: 20px;
+        padding: 12px 20px; border-radius: 8px;
+        font-family: var(--ff-body); font-size: 13px; font-weight: 500;
+        z-index: 1000; animation: slideIn 0.3s ease;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    /* ── Session block builder ── */
+    function createSessionBlock(idx) {
+      sessionData[idx] = Array(NUM_INTERVALS).fill('');
+
+      const block = document.createElement('div');
+      block.className = 'bdm-session-block';
+      block.dataset.sessionIdx = idx;
+
+      const heading = document.createElement('div');
+      heading.className = 'bdm-session-heading';
+      heading.innerHTML = `
+        <span class="bdm-session-label">Session #</span>
+        <input class="bdm-session-num-input" type="text" placeholder="__" maxlength="3" />
+      `;
+      block.appendChild(heading);
+
+      const container = document.createElement('div');
+      container.className = 'bdm-table-container';
+
+      const table = document.createElement('table');
+      table.className = 'bdm-table';
+
+      let thIntervals = '';
+      for (let i = 1; i <= NUM_INTERVALS; i++) {
+        thIntervals += `<th class="col-interval">${i}</th>`;
+      }
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th class="col-date">Date</th>
+            <th class="col-plusminus">(+/−)</th>
+            <th colspan="${NUM_INTERVALS}" style="text-align:center; border-right:1px solid rgba(0,0,0,0.12);">Interval #</th>
+            <th class="col-total">Total Times Behavior Observed</th>
+          </tr>
+          <tr>
+            <th class="col-date"></th>
+            <th class="col-plusminus"></th>
+            ${thIntervals}
+            <th class="col-total"></th>
+          </tr>
+        </thead>
+      `;
+
+      const tbody = document.createElement('tbody');
+      const mainRow = document.createElement('tr');
+
+      let cells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
+      cells += `<td class="plusminus-cell" style="font-size:11px; color:#999; padding:0 6px;">(+/−)</td>`;
+      for (let i = 0; i < NUM_INTERVALS; i++) {
+        cells += `
+          <td class="interval-cell" data-session="${idx}" data-interval="${i}">
+            <div class="interval-toggle empty"></div>
+          </td>`;
+      }
+      cells += `
+        <td class="total-cell">
+          <div class="total-formula">
+            [(<span class="total-count" data-session-total="${idx}">0</span>
+            &nbsp;<span class="total-divider">/ ${NUM_INTERVALS})</span>&nbsp;×&nbsp;100]&nbsp;=&nbsp;
+            <span class="total-pct" data-session-pct="${idx}">0%</span>]
+          </div>
+        </td>`;
+      mainRow.innerHTML = cells;
+      tbody.appendChild(mainRow);
+
+      mainRow.querySelectorAll('.interval-cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+          const si = parseInt(cell.dataset.session);
+          const ii = parseInt(cell.dataset.interval);
+          const states = ['', '+', '-'];
+          const next = states[(states.indexOf(sessionData[si][ii]) + 1) % states.length];
+          sessionData[si][ii] = next;
+          updateToggleCell(cell.querySelector('.interval-toggle'), next);
+          const positives = sessionData[si].filter(s => s === '+').length;
+          const pct = Math.round((positives / NUM_INTERVALS) * 100);
+          const countEl = block.querySelector(`[data-session-total="${si}"]`);
+          const pctEl   = block.querySelector(`[data-session-pct="${si}"]`);
+          if (countEl) countEl.textContent = positives;
+          if (pctEl)   pctEl.textContent   = pct + '%';
+        });
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+      block.appendChild(container);
+
+      const hr = document.createElement('hr');
+      hr.className = 'section-divider';
+      block.appendChild(hr);
+
+      return block;
+    }
+
+    function updateToggleCell(el, state) {
+      el.className = 'interval-toggle';
+      el.textContent = '';
+      if (state === '+')      { el.classList.add('positive'); el.textContent = '+'; }
+      else if (state === '-') { el.classList.add('negative'); el.textContent = '−'; }
+      else                    { el.classList.add('empty'); }
+    }
+
+    function updateSessionCount() {
+      document.getElementById('bdmSessionCount').textContent =
+        `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
+    }
+
+    document.getElementById('bdmAddSession').addEventListener('click', () => {
+      sessionCount++;
+      grid.appendChild(createSessionBlock(sessionCount - 1));
+      updateSessionCount();
+    });
+
+    document.getElementById('bdmDeleteSession').addEventListener('click', () => {
+      if (sessionCount > 1) {
+        const blocks = grid.querySelectorAll('.bdm-session-block');
+        if (blocks.length > 0) {
+          blocks[blocks.length - 1].remove();
+          sessionCount--;
+          updateSessionCount();
+        }
+      }
+    });
+
+    // Wire Save button — delegates to table.js function after it loads
+    document.getElementById('bdmSave').addEventListener('click', () => {
+      if (typeof saveBdmToDatabase === 'function') {
+        saveBdmToDatabase();
+      }
+    });
+
+    // Render initial empty session
+    grid.appendChild(createSessionBlock(0));
+    updateSessionCount();
