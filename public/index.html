@@ -58,32 +58,42 @@
     <div class="info-container">
       <div class="info-header">
         <h2 class="info-title">Information</h2>
+        <!-- Shows the resolved client name + nickname once a client is active -->
+        <span class="info-client-badge" id="infoClientBadge" style="display:none;"></span>
       </div>
       <div class="info-grid">
+
         <div class="field">
-          <label class="label">Name</label>
-          <input type="text" class="input" id="clientName" placeholder="Enter client name..." />
+          <label class="label">Name <span class="required">*</span></label>
+          <input type="text" class="input" id="clientName" placeholder="Enter client name..." autocomplete="off" required />
+        </div>
+
+        <div class="field">
+          <label class="label">Nickname <span class="required">*</span></label>
+          <input type="text" class="input" id="clientNickname" placeholder="e.g. Juan" autocomplete="off" required />
+        </div>
+
+        <div class="field">
+          <label class="label">Age <span class="required">*</span></label>
+          <input type="text" class="input" id="clientAge" placeholder="e.g. 8 years" required />
         </div>
         <div class="field">
-          <label class="label">Age</label>
-          <input type="text" class="input" id="clientAge" placeholder="e.g. 8 years" />
+          <label class="label">Recorder/s <span class="required">*</span></label>
+          <input type="text" class="input" id="clientRecorder" placeholder="Enter recorder name(s)..." required />
         </div>
         <div class="field">
-          <label class="label">Diagnosis</label>
-          <input type="text" class="input" id="clientDiagnosis" placeholder="e.g. Autism Spectrum Disorder" />
+          <label class="label">Diagnosis <span class="required">*</span></label>
+          <input type="text" class="input" id="clientDiagnosis" placeholder="e.g. Autism Spectrum Disorder" required />
         </div>
         <div class="field">
-          <label class="label">Recorder/s</label>
-          <input type="text" class="input" id="clientRecorder" placeholder="Enter recorder name(s)..." />
-        </div>
-        <div class="field field-full">
-          <label class="label">Baseline Report Period</label>
+          <label class="label">Baseline Report Period <span class="required">*</span></label>
           <div class="date-range-inputs">
-            <input type="date" class="input date-input" id="reportStartDate" />
+            <input type="date" class="input date-input" id="reportStartDate" required />
             <span class="date-separator">to</span>
-            <input type="date" class="input date-input" id="reportEndDate" />
+            <input type="date" class="input date-input" id="reportEndDate" required />
           </div>
         </div>
+
       </div>
     </div>
 
@@ -117,6 +127,11 @@
             <div class="bcm-header-left">
               <span class="bcm-eyebrow">Behaviour Tracker</span>
               <h1 class="bcm-title">Continuous <span class="bcm-title-accent">Measurement</span></h1>
+            </div>
+            <!-- Live client name indicator inside BCM panel -->
+            <div class="bcm-client-indicator" id="bcmClientIndicator" style="display:none;">
+              <span class="bcm-client-label">Client:</span>
+              <span class="bcm-client-name" id="bcmClientName"></span>
             </div>
           </div>
           <div class="bcm-table-container">
@@ -192,6 +207,11 @@
             <div class="bdm-header-left">
               <span class="bdm-eyebrow">Behaviour Tracker</span>
               <h1 class="bdm-title">Discontinuous <span class="bdm-title-accent">Measurement</span></h1>
+            </div>
+            <!-- Live client name indicator inside BDM panel -->
+            <div class="bdm-client-indicator" id="bdmClientIndicator" style="display:none;">
+              <span class="bdm-client-label">Client:</span>
+              <span class="bdm-client-name" id="bdmClientName"></span>
             </div>
           </div>
           <div class="bdm-sessions-grid" id="bdmSessionsGrid"></div>

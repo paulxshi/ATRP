@@ -1,168 +1,237 @@
-(function() {
+/**
+ * ATRP — index.js
+ * BCM (Continuous Measurement) logic + Client management.
+ * BDM functions live in table.js but read window.ATRP_CLIENT_ID set here.
+ *
+ * Key design:
+ *  • Data is ALWAYS stored against the client whose name is currently in #clientName.
+ *  • On Save: if no client ID is known yet, we POST to api_clients.php which either
+ *    creates a new client OR returns the existing one (duplicate guard lives in PHP).
+ *  • On name selection from dropdown: load that client's full info + BCM + BDM data.
+ *  • Nickname is a first-class field saved with the client record.
+ */
+
+(function () {
+  'use strict';
+
+  // ── Constants ────────────────────────────────────────────────
   const FUNCTIONS = ['Sensory', 'Escape', 'Attention', 'Tangible'];
   let SESSIONS = 3;
-  let sessionCountEl;
-  let isLoadingData = false;
-  let currentClientId = null;
 
-  // ── Expose client ID globally so BDM functions can read it ──
-  // This replaces the broken getClientId() approach
+  // ── State ────────────────────────────────────────────────────
+  let currentClientId  = null;
+  let isLoadingData    = false;
+  let sessionCountEl   = null;
+  let rows             = 0;
+
+  // ── Share client ID with BDM (table.js) via window property ──
   Object.defineProperty(window, 'ATRP_CLIENT_ID', {
-    get: () => currentClientId,
+    get: ()  => currentClientId,
     set: (v) => { currentClientId = v; },
     configurable: true
   });
 
-  // ============================================
+  // ─────────────────────────────────────────────────────────────
+  // CLIENT NAME INDICATOR  (updates badges in BCM + BDM panels)
+  // ─────────────────────────────────────────────────────────────
+  function updateClientIndicators(name, nickname) {
+    const display = name
+      ? (nickname ? `${name} (${nickname})` : name)
+      : null;
+
+    // Info-container badge
+    const badge = document.getElementById('infoClientBadge');
+    if (badge) {
+      if (display) { badge.textContent = display; badge.style.display = 'inline-flex'; }
+      else          { badge.style.display = 'none'; }
+    }
+
+    // BCM panel indicator
+    const bcmInd  = document.getElementById('bcmClientIndicator');
+    const bcmName = document.getElementById('bcmClientName');
+    if (bcmInd && bcmName) {
+      if (display) { bcmName.textContent = display; bcmInd.style.display = 'flex'; }
+      else          { bcmInd.style.display = 'none'; }
+    }
+
+    // BDM panel indicator
+    const bdmInd  = document.getElementById('bdmClientIndicator');
+    const bdmName = document.getElementById('bdmClientName');
+    if (bdmInd && bdmName) {
+      if (display) { bdmName.textContent = display; bdmInd.style.display = 'flex'; }
+      else          { bdmInd.style.display = 'none'; }
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // CLIENT MANAGEMENT
-  // ============================================
-  
+  // ─────────────────────────────────────────────────────────────
   async function loadClients() {
     try {
-      const response = await fetch('../php/api_clients.php');
-      const result = await response.json();
-      if (result.success && result.clients) return result.clients;
-      return [];
-    } catch (error) {
-      console.error('Error loading clients:', error);
+      const res    = await fetch('../php/api_clients.php');
+      const result = await res.json();
+      return (result.success && result.clients) ? result.clients : [];
+    } catch (e) {
+      console.error('loadClients:', e);
       return [];
     }
   }
-  
+
+  /**
+   * POST to create a client (PHP returns existing record if name already exists).
+   */
   async function saveClient(clientData) {
     try {
-      const response = await fetch('../php/api_clients.php', {
-        method: 'POST',
+      const res = await fetch('../php/api_clients.php', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(clientData)
+        body:    JSON.stringify(clientData)
       });
-      return await response.json();
-    } catch (error) {
-      console.error('Error saving client:', error);
-      return { success: false, error: error.message };
+      return await res.json();
+    } catch (e) {
+      console.error('saveClient:', e);
+      return { success: false, error: e.message };
     }
   }
-  
+
+  // ── Dropdown ──────────────────────────────────────────────────
   function populateClientDropdown(clients) {
     const nameInput = document.getElementById('clientName');
     if (!nameInput) return;
-    
+
     let dropdown = document.getElementById('clientDropdown');
     if (!dropdown) {
       dropdown = document.createElement('div');
-      dropdown.id = 'clientDropdown';
+      dropdown.id        = 'clientDropdown';
       dropdown.className = 'client-dropdown';
       dropdown.style.cssText = `
-        position: absolute;
-        z-index: 1000;
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        max-height: 200px;
-        overflow-y: auto;
-        display: none;
-        width: 100%;
-        left: 0;
-        top: 100%;
+        position:absolute; z-index:1000; background:#fff;
+        border:1px solid #ddd; border-radius:6px;
+        max-height:200px; overflow-y:auto; display:none;
+        width:100%; left:0; top:100%;
+        box-shadow:0 4px 12px rgba(0,0,0,.12);
       `;
-      
-      const inputWrapper = document.createElement('div');
-      inputWrapper.style.position = 'relative';
-      nameInput.parentNode.insertBefore(inputWrapper, nameInput);
-      inputWrapper.appendChild(nameInput);
-      inputWrapper.appendChild(dropdown);
-      
-      nameInput.addEventListener('input', () => filterClients(clients, nameInput.value));
-      nameInput.addEventListener('focus', () => filterClients(clients, nameInput.value));
+
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'relative';
+      nameInput.parentNode.insertBefore(wrapper, nameInput);
+      wrapper.appendChild(nameInput);
+      wrapper.appendChild(dropdown);
+
+      // Only show dropdown while user is actively typing — never on focus/click
+      nameInput.addEventListener('input', () => {
+        if (nameInput.value.trim().length > 0) {
+          filterClients(clients, nameInput.value);
+        } else {
+          dropdown.style.display = 'none';
+        }
+      });
+
+      // Close on outside click
       document.addEventListener('click', (e) => {
-        if (!inputWrapper.contains(e.target)) dropdown.style.display = 'none';
+        if (!wrapper.contains(e.target)) dropdown.style.display = 'none';
       });
     }
-    
-    dropdown.clientsData = clients;
-    if (!nameInput.value) filterClients(clients, '');
+
+    // Refresh internal data reference only — do NOT auto-show dropdown on load
+    dropdown._clients = clients;
   }
-  
-  function filterClients(clients, searchTerm) {
+
+  function filterClients(clients, term) {
     const dropdown = document.getElementById('clientDropdown');
     if (!dropdown) return;
-    
+
     const filtered = clients.filter(c =>
-      (c.full_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (c.full_name || '').toLowerCase().includes(term.toLowerCase())
     );
-    
-    if (filtered.length === 0) {
-      dropdown.style.display = 'none';
-      return;
-    }
+
+    if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
 
     dropdown.innerHTML = filtered.map(c => `
-      <div class="client-option" data-id="${c.id}" data-name="${c.full_name}"
-           style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;">
-        ${c.full_name}
+      <div class="client-option"
+           data-id="${c.id}"
+           data-name="${c.full_name}"
+           data-nickname="${c.nickname || ''}"
+           style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #f0f0f0; font-size:13px;">
+        <span style="font-weight:600;">${c.full_name}</span>
+        ${c.nickname ? `<span style="color:#888; margin-left:6px;">(${c.nickname})</span>` : ''}
       </div>
     `).join('');
-    
-    dropdown.querySelectorAll('.client-option').forEach(option => {
-      option.addEventListener('click', () => {
-        selectClient(parseInt(option.dataset.id), option.dataset.name);
+
+    dropdown.querySelectorAll('.client-option').forEach(opt => {
+      opt.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // prevent blur before click fires
+        selectClient(parseInt(opt.dataset.id), opt.dataset.name);
       });
     });
 
     dropdown.style.display = 'block';
   }
-  
+
+  /**
+   * Called when user clicks a name from the dropdown.
+   * Loads all data for that client.
+   */
   function selectClient(id, fullName) {
-    currentClientId = id;
-    window.ATRP_CLIENT_ID = id; // keep the global in sync explicitly too
+    currentClientId        = id;
+    window.ATRP_CLIENT_ID  = id;
 
     const nameInput = document.getElementById('clientName');
     if (nameInput) nameInput.value = fullName || '';
-    
+
     const dropdown = document.getElementById('clientDropdown');
     if (dropdown) dropdown.style.display = 'none';
-    
-    // Load BCM data for this client
-    loadClientInfo(id);
+
+    // Load full client info (fills nickname, age, diagnosis, etc.)
+    loadClientInfo(id).then(() => {
+      // After info is loaded, update the indicator with nickname
+      const nickname = document.getElementById('clientNickname')?.value || '';
+      updateClientIndicators(fullName, nickname);
+    });
+
+    // Load BCM table data
     loadFromDatabase();
 
-    // Load BDM data for this client now that client_id is set
-    if (typeof loadBdmFromDatabase === 'function') {
-      loadBdmFromDatabase();
-    }
+    // Load BDM table data (table.js)
+    if (typeof loadBdmFromDatabase === 'function') loadBdmFromDatabase();
   }
 
-  // ============================================
-  // CLIENT INFO LOAD/SAVE
-  // ============================================
-  
+  // ─────────────────────────────────────────────────────────────
+  // CLIENT INFO  LOAD / SAVE
+  // ─────────────────────────────────────────────────────────────
   async function loadClientInfo(clientId) {
     try {
-      const response = await fetch('../php/api_clients.php?client_id=' + clientId);
-      const result = await response.json();
-      
+      const res    = await fetch('../php/api_clients.php?client_id=' + clientId);
+      const result = await res.json();
+
       if (result.success && result.client) {
-        const client = result.client;
-        const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
-        set('clientAge',        client.age);
-        set('clientDiagnosis',  client.diagnosis);
-        set('clientRecorder',   client.recorder);
-        set('reportStartDate',  client.report_start_date);
-        set('reportEndDate',    client.report_end_date);
+        const c   = result.client;
+        const set = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.value = val || '';
+        };
+        set('clientNickname',  c.nickname);
+        set('clientAge',       c.age);
+        set('clientDiagnosis', c.diagnosis);
+        set('clientRecorder',  c.recorder);
+        set('reportStartDate', c.report_start_date);
+        set('reportEndDate',   c.report_end_date);
       }
-    } catch (error) {
-      console.error('Error loading client info:', error);
+    } catch (e) {
+      console.error('loadClientInfo:', e);
     }
   }
 
   async function saveClientInfo(clientId) {
+    const get = (id) => document.getElementById(id)?.value || null;
     try {
-      const get = (id) => document.getElementById(id)?.value || null;
-      const response = await fetch('../php/api_clients.php', {
-        method: 'PUT',
+      const res = await fetch('../php/api_clients.php', {
+        method:  'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           client_id:         clientId,
+          full_name:         document.getElementById('clientName')?.value?.trim() || null,
+          nickname:          get('clientNickname'),
           age:               get('clientAge'),
           diagnosis:         get('clientDiagnosis'),
           recorder:          get('clientRecorder'),
@@ -170,216 +239,293 @@
           report_end_date:   get('reportEndDate')
         })
       });
-      return await response.json();
-    } catch (error) {
-      console.error('Error saving client info:', error);
-      return { success: false, error: error.message };
+      return await res.json();
+    } catch (e) {
+      console.error('saveClientInfo:', e);
+      return { success: false, error: e.message };
     }
   }
-  
-  // ============================================
-  // DATABASE API FUNCTIONS
-  // ============================================
-  
+
+  // ─────────────────────────────────────────────────────────────
+  // RESOLVE CLIENT
+  // Returns a valid client ID — either the known one, or a newly
+  // created / matched one based on the current name field.
+  // ─────────────────────────────────────────────────────────────
+  async function resolveClientId() {
+    const nameValue = document.getElementById('clientName')?.value?.trim() || '';
+    if (!nameValue) return null;
+
+    // Already have an ID from a dropdown selection
+    if (currentClientId) return currentClientId;
+
+    // No ID yet — POST to PHP (which returns existing or creates new)
+    const get = (id) => document.getElementById(id)?.value || null;
+    const result = await saveClient({
+      full_name:         nameValue,
+      nickname:          get('clientNickname'),
+      age:               get('clientAge'),
+      diagnosis:         get('clientDiagnosis'),
+      recorder:          get('clientRecorder'),
+      report_start_date: get('reportStartDate'),
+      report_end_date:   get('reportEndDate')
+    });
+
+    if (result.success && result.id) {
+      currentClientId       = result.id;
+      window.ATRP_CLIENT_ID = result.id;
+
+      if (result.duplicate) {
+        showNotification(`Linked to existing client "${nameValue}"`, 'success');
+        // Reload their stored info so fields are populated
+        await loadClientInfo(result.id);
+      }
+      return result.id;
+    }
+
+    showNotification(result.error || 'Could not resolve client', 'error');
+    return null;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // BCM  SAVE
+  // ─────────────────────────────────────────────────────────────
   async function saveToDatabase() {
+    const nameValue = document.getElementById('clientName')?.value?.trim() || '';
+    if (!nameValue) {
+      showNotification('Please enter a client name before saving', 'error');
+      return;
+    }
+
     const saveBtn = document.getElementById('bcmSave');
     if (saveBtn) {
       saveBtn.classList.add('saving');
-      saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="20" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" from="0 7 7" to="360 7 7" dur="1s" repeatCount="indefinite"/></circle></svg> Saving...';
+      saveBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14">
+          <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="2" fill="none"
+            stroke-dasharray="20" stroke-dashoffset="0">
+            <animateTransform attributeName="transform" type="rotate"
+              from="0 7 7" to="360 7 7" dur="1s" repeatCount="indefinite"/>
+          </circle>
+        </svg> Saving...`;
     }
 
     try {
-      const nameValue = document.getElementById('clientName')?.value?.trim() || '';
-      if (!nameValue) {
-        showNotification('Please enter a client name', 'error');
-        return;
-      }
+      const clientId = await resolveClientId();
+      if (!clientId) return;
 
-      let clientId = currentClientId;
-      
-      if (!clientId) {
-        const get = (id) => document.getElementById(id)?.value || null;
-        const clientResult = await saveClient({
-          full_name:         nameValue,
-          age:               get('clientAge'),
-          diagnosis:         get('clientDiagnosis'),
-          recorder:          get('clientRecorder'),
-          report_start_date: get('reportStartDate'),
-          report_end_date:   get('reportEndDate')
-        });
-        
-        if (clientResult.success && clientResult.id) {
-          clientId = clientResult.id;
-          currentClientId = clientId;
-          window.ATRP_CLIENT_ID = clientId; // keep global in sync
-        } else {
-          showNotification('Error creating client: ' + (clientResult.error || 'Unknown error'), 'error');
-          return;
-        }
-      }
-      
+      // Always push the latest info-container values (including nickname)
       await saveClientInfo(clientId);
-      
-      // Gather behaviors
+
+      // Update the live name indicators
+      const nickname = document.getElementById('clientNickname')?.value || '';
+      updateClientIndicators(nameValue, nickname);
+
+      // ── Collect BCM rows ──────────────────────────────────────
       const behaviors = [];
       document.querySelectorAll('#bcmTableBody tr').forEach(row => {
-        const cells = row.querySelectorAll('td');
+        const cells    = row.querySelectorAll('td');
         const behavior = {
           antecedent: cells[0]?.querySelector('.cell-input')?.value || '',
           behavior:   cells[1]?.querySelector('.cell-input')?.value || '',
           sessions:   {},
           functions:  {}
         };
-        row.querySelectorAll('.freq-display').forEach((display, index) => {
-          behavior.sessions[index + 1] = parseInt(display.value) || 0;
+        row.querySelectorAll('.freq-display').forEach((display, i) => {
+          behavior.sessions[i + 1] = parseInt(display.value) || 0;
         });
         const checkboxes = row.querySelectorAll('.fn-check input[type="checkbox"]');
         const fnLabels   = row.querySelectorAll('.fn-label');
-        checkboxes.forEach((cb, index) => {
-          if (fnLabels[index]) behavior.functions[fnLabels[index].textContent] = cb.checked;
+        checkboxes.forEach((cb, i) => {
+          if (fnLabels[i]) behavior.functions[fnLabels[i].textContent] = cb.checked;
         });
         behaviors.push(behavior);
       });
-      
-      const notes = document.getElementById('notesInput')?.value || '';
+
+      const notes          = document.getElementById('notesInput')?.value || '';
       const sessionNumbers = [];
       document.querySelectorAll('.bcm-table thead .session-num').forEach(input => {
         sessionNumbers.push(parseInt(input.value) || 0);
       });
 
-      const response = await fetch('../php/api_bcm.php', {
-        method: 'POST',
+      const res    = await fetch('../php/api_bcm.php', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: clientId, behaviors, sessions: sessionNumbers, notes })
+        body:    JSON.stringify({ client_id: clientId, behaviors, sessions: sessionNumbers, notes })
       });
-      
-      const result = await response.json();
+      const result = await res.json();
+
       if (result.success) {
-        showNotification('Data saved successfully!', 'success');
+        showNotification(`Saved BCM data for "${nameValue}"`, 'success');
+
+        // Refresh dropdown in background so new client appears
+        loadClients().then(clients => populateClientDropdown(clients));
       } else {
-        showNotification('Error saving data: ' + result.error, 'error');
+        showNotification('Error saving BCM: ' + result.error, 'error');
       }
-      
-    } catch (error) {
-      console.error('Save error:', error);
+
+    } catch (e) {
+      console.error('BCM save error:', e);
       showNotification('Failed to connect to database', 'error');
     } finally {
       if (saveBtn) {
         saveBtn.classList.remove('saving');
-        saveBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Save';
+        saveBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round"/>
+          </svg> Save`;
       }
     }
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // BCM  LOAD
+  // ─────────────────────────────────────────────────────────────
   async function loadFromDatabase() {
     if (isLoadingData) return;
     isLoadingData = true;
-    
+
     try {
-      let url = '../php/api_bcm.php';
-      if (currentClientId) url += '?client_id=' + currentClientId;
-      
-      const response = await fetch(url);
-      const result = await response.json();
-      
+      if (!currentClientId) return; // nothing to load without a client
+
+      const res    = await fetch('../php/api_bcm.php?client_id=' + currentClientId);
+      const result = await res.json();
+
       if (result.success && result.behaviors && result.behaviors.length > 0) {
         const tbody = document.getElementById('bcmTableBody');
         tbody.innerHTML = '';
-        
+        rows = 0;
+
+        // Ensure we have enough session columns
         let maxSessions = 0;
         result.behaviors.forEach(b => {
           if (b.sessions) {
             const keys = Object.keys(b.sessions).map(k => parseInt(k));
-            maxSessions = Math.max(maxSessions, ...keys);
+            if (keys.length) maxSessions = Math.max(maxSessions, ...keys);
           }
         });
-        if (maxSessions > 0) {
-          while (SESSIONS < maxSessions) addSessionColumn();
-        }
-        
+
+        // Reset to base columns, then add as needed
+        while (SESSIONS > 3)  { deleteSessionColumn(true); }
+        while (SESSIONS < 3)  { addSessionColumn(true); }
+        while (SESSIONS < maxSessions) { addSessionColumn(true); }
+
         result.behaviors.forEach(behavior => {
-          const row = createRow();
+          const row   = createRow();
           const cells = row.querySelectorAll('td');
-          const antecedentInput = cells[0]?.querySelector('.cell-input');
-          const behaviorInput   = cells[1]?.querySelector('.cell-input');
-          if (antecedentInput) antecedentInput.value = behavior.antecedent || '';
-          if (behaviorInput)   behaviorInput.value   = behavior.behavior   || '';
-          
-          row.querySelectorAll('.freq-display').forEach((display, index) => {
-            if (behavior.sessions?.[index + 1] !== undefined) {
-              display.value = behavior.sessions[index + 1];
+
+          const antInput = cells[0]?.querySelector('.cell-input');
+          const behInput = cells[1]?.querySelector('.cell-input');
+          if (antInput) antInput.value = behavior.antecedent || '';
+          if (behInput) behInput.value = behavior.behavior   || '';
+
+          row.querySelectorAll('.freq-display').forEach((display, i) => {
+            if (behavior.sessions?.[i + 1] !== undefined) {
+              display.value = behavior.sessions[i + 1];
             }
           });
-          
+
           const checkboxes = row.querySelectorAll('.fn-check input[type="checkbox"]');
           const fnLabels   = row.querySelectorAll('.fn-label');
-          checkboxes.forEach((cb, index) => {
-            if (fnLabels[index] && behavior.functions) {
-              cb.checked = behavior.functions[fnLabels[index].textContent] || false;
+          checkboxes.forEach((cb, i) => {
+            if (fnLabels[i] && behavior.functions) {
+              cb.checked = behavior.functions[fnLabels[i].textContent] || false;
             }
           });
-          
+
           tbody.appendChild(row);
           rows++;
         });
-        
-        const rowCount = document.getElementById('rowCount');
-        if (rowCount) rowCount.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
-        
+
+        const rowCountEl = document.getElementById('rowCount');
+        if (rowCountEl) rowCountEl.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
+
         const notesInput = document.getElementById('notesInput');
         if (notesInput && result.notes) notesInput.value = result.notes;
-        
-        showNotification('Data loaded from database', 'success');
-      } else if (currentClientId) {
+
+        showNotification('BCM data loaded', 'success');
+
+      } else {
+        // Client has no BCM data yet — show a blank row
         const tbody = document.getElementById('bcmTableBody');
-        if (tbody && tbody.children.length === 0) {
+        if (tbody) {
+          tbody.innerHTML = '';
           tbody.appendChild(createRow());
           rows = 1;
+          const rowCountEl = document.getElementById('rowCount');
+          if (rowCountEl) rowCountEl.textContent = '1 behavior tracked';
         }
       }
-      
-    } catch (error) {
-      console.error('Load error:', error);
+
+    } catch (e) {
+      console.error('BCM load error:', e);
     } finally {
       isLoadingData = false;
     }
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // NOTIFICATION TOAST
+  // ─────────────────────────────────────────────────────────────
   function showNotification(message, type) {
     const existing = document.querySelector('.notification-toast');
     if (existing) existing.remove();
-    
+
     const toast = document.createElement('div');
     toast.className = 'notification-toast';
     toast.style.cssText = `
-      position: fixed; top: 80px; right: 20px;
-      padding: 12px 20px; border-radius: 8px;
-      font-family: var(--ff-body); font-size: 13px; font-weight: 500;
-      z-index: 1000; animation: slideIn 0.3s ease;
-      background: ${type === 'success' ? '#10b981' : '#ef4444'};
-      color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position:fixed; top:80px; right:20px;
+      padding:12px 20px; border-radius:8px;
+      font-family:var(--ff-body); font-size:13px; font-weight:500;
+      z-index:9999; animation:slideIn .3s ease;
+      background:${type === 'success' ? '#10b981' : '#ef4444'};
+      color:#fff; box-shadow:0 4px 12px rgba(0,0,0,.15);
+      max-width:320px;
     `;
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => {
-      toast.style.animation = 'slideOut 0.3s ease';
+      toast.style.animation = 'slideOut .3s ease';
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }
 
+  // Inject keyframe styles
   const style = document.createElement('style');
   style.textContent = `
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+    @keyframes slideIn  { from { transform:translateX(110%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+    @keyframes slideOut { from { transform:translateX(0);    opacity:1; } to { transform:translateX(110%); opacity:0; } }
+
+    /* Nickname label hint */
+    .label-hint { font-size:11px; color:#aaa; font-weight:400; margin-left:4px; }
+
+    /* Client badge in info-header */
+    .info-client-badge {
+      display:inline-flex; align-items:center;
+      background:var(--accent, #6366f1); color:#fff;
+      font-size:11px; font-weight:600; padding:3px 10px;
+      border-radius:20px; letter-spacing:.02em;
+      margin-left:12px;
+    }
+
+    /* Panel indicators */
+    .bcm-client-indicator,
+    .bdm-client-indicator {
+      display:flex; align-items:center; gap:6px;
+      font-size:12px; color:#888;
+    }
+    .bcm-client-label,
+    .bdm-client-label { font-weight:500; }
+    .bcm-client-name,
+    .bdm-client-name  { font-weight:700; color:var(--accent, #6366f1); }
   `;
   document.head.appendChild(style);
 
-  // ============================================
-  // TABLE FUNCTIONS
-  // ============================================
-
+  // ─────────────────────────────────────────────────────────────
+  // BCM TABLE HELPERS
+  // ─────────────────────────────────────────────────────────────
   function createSessionHeader() {
-    const thead = document.querySelector('.bcm-table thead tr');
+    const thead      = document.querySelector('.bcm-table thead tr');
     const functionTh = thead.querySelector('.col-function');
     const th = document.createElement('th');
     th.className = 'col-session';
@@ -392,27 +538,33 @@
   }
 
   function createFreqCell() {
-    const tdS = document.createElement('td');
-    const div = document.createElement('div');
+    const tdS     = document.createElement('td');
+    const div     = document.createElement('div');
     div.className = 'freq-cell';
-    const display = document.createElement('input');
+
+    const display   = document.createElement('input');
     display.className = 'freq-display';
-    display.type = 'number';
-    display.value = '0';
-    display.min = '0';
+    display.type    = 'number';
+    display.value   = '0';
+    display.min     = '0';
+
     let count = 0;
+
     const minus = document.createElement('button');
     minus.className = 'freq-btn minus';
     minus.textContent = '−';
     minus.addEventListener('click', () => { if (count > 0) { count--; display.value = count; } });
+
     const plus = document.createElement('button');
     plus.className = 'freq-btn';
     plus.textContent = '+';
     plus.addEventListener('click', () => { count++; display.value = count; });
+
     display.addEventListener('change', () => {
-      count = parseInt(display.value) || 0;
-      if (count < 0) { count = 0; display.value = 0; }
+      count = Math.max(0, parseInt(display.value) || 0);
+      display.value = count;
     });
+
     div.appendChild(minus);
     div.appendChild(display);
     div.appendChild(plus);
@@ -420,16 +572,20 @@
     return tdS;
   }
 
-  function addSessionColumn() {
+  /**
+   * @param {boolean} silent — if true, suppresses session-count update
+   *   (used during bulk restore to avoid flicker)
+   */
+  function addSessionColumn(silent = false) {
     SESSIONS++;
     createSessionHeader();
     document.querySelectorAll('#bcmTableBody tr').forEach(tr => {
       tr.insertBefore(createFreqCell(), tr.querySelector('td:last-child'));
     });
-    updateSessionCount();
+    if (!silent) updateSessionCount();
   }
 
-  function deleteSessionColumn() {
+  function deleteSessionColumn(silent = false) {
     if (SESSIONS <= 1) return;
     SESSIONS--;
     const headerCells = document.querySelectorAll('.bcm-table thead tr .col-session');
@@ -438,7 +594,7 @@
       const freqCells = tr.querySelectorAll('.freq-cell');
       if (freqCells.length > 1) freqCells[freqCells.length - 1].parentElement.remove();
     });
-    updateSessionCount();
+    if (!silent) updateSessionCount();
   }
 
   function updateSessionCount() {
@@ -449,30 +605,38 @@
 
   function createRow() {
     const tr = document.createElement('tr');
+
+    // Antecedent
     const tdA = document.createElement('td');
     const taA = document.createElement('textarea');
-    taA.className = 'cell-input';
+    taA.className   = 'cell-input';
     taA.placeholder = 'Describe antecedent…';
     tdA.appendChild(taA);
     tr.appendChild(tdA);
+
+    // Behavior
     const tdB = document.createElement('td');
     const taB = document.createElement('textarea');
-    taB.className = 'cell-input';
+    taB.className   = 'cell-input';
     taB.placeholder = 'Describe behavior…';
     tdB.appendChild(taB);
     tr.appendChild(tdB);
+
+    // Session frequency cells
     for (let s = 0; s < SESSIONS; s++) tr.appendChild(createFreqCell());
+
+    // Function checkboxes
     const tdF = document.createElement('td');
     const div = document.createElement('div');
     div.className = 'function-cell';
     FUNCTIONS.forEach(fn => {
       const label = document.createElement('label');
       label.className = 'fn-check';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      const box = document.createElement('span');
+      const cb     = document.createElement('input');
+      cb.type      = 'checkbox';
+      const box    = document.createElement('span');
       box.className = 'fn-box';
-      const text = document.createElement('span');
+      const text   = document.createElement('span');
       text.className = 'fn-label';
       text.textContent = fn;
       label.appendChild(cb);
@@ -482,82 +646,109 @@
     });
     tdF.appendChild(div);
     tr.appendChild(tdF);
+
     return tr;
   }
 
-  // ============================================
+  // ─────────────────────────────────────────────────────────────
   // INITIALIZATION
-  // ============================================
+  // ─────────────────────────────────────────────────────────────
+  const tbody      = document.getElementById('bcmTableBody');
+  const rowCountEl = document.getElementById('rowCount');
+  sessionCountEl   = document.getElementById('sessionCount');
 
-  const tbody = document.getElementById('bcmTableBody');
-  const rowCount = document.getElementById('rowCount');
-  sessionCountEl = document.getElementById('sessionCount');
-  let rows = 1;
-
-  for (let i = 0; i < rows; i++) tbody.appendChild(createRow());
+  // Start with one blank row
+  tbody.appendChild(createRow());
+  rows = 1;
   updateSessionCount();
 
-  document.querySelector('.bcm-btn-save')?.addEventListener('click', saveToDatabase);
-  document.querySelector('.bcm-btn-add-session').addEventListener('click', addSessionColumn);
-  document.querySelector('.bcm-btn-delete-session').addEventListener('click', deleteSessionColumn);
-  document.querySelector('.bcm-btn-add').addEventListener('click', () => {
-    tbody.appendChild(createRow());
-    rows++;
-    rowCount.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
-  });
-  document.querySelector('.bcm-btn-delete').addEventListener('click', () => {
-    if (rows > 1) {
-      tbody.removeChild(tbody.lastChild);
-      rows--;
-      rowCount.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
-    }
-  });
+  // ── Button wiring ────────────────────────────────────────────
+  document.getElementById('bcmSave')
+    ?.addEventListener('click', saveToDatabase);
 
+  document.getElementById('bcmAddSession')
+    ?.addEventListener('click', () => addSessionColumn());
+
+  document.getElementById('bcmDeleteSession')
+    ?.addEventListener('click', () => deleteSessionColumn());
+
+  document.getElementById('bcmAddRow')
+    ?.addEventListener('click', () => {
+      tbody.appendChild(createRow());
+      rows++;
+      rowCountEl.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
+    });
+
+  document.getElementById('bcmDeleteRow')
+    ?.addEventListener('click', () => {
+      if (rows > 1) {
+        tbody.removeChild(tbody.lastChild);
+        rows--;
+        rowCountEl.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
+      }
+    });
+
+  // ── Boot ─────────────────────────────────────────────────────
   async function initApp() {
     const clients = await loadClients();
     populateClientDropdown(clients);
-    loadFromDatabase();
+    // Do NOT auto-load data — wait until a specific client is chosen/typed
   }
-  
+
   initApp();
+
+  // ── Expose helpers for table.js ──────────────────────────────
+  window._atrp = {
+    showNotification,
+    resolveClientId,
+    saveClientInfo,
+    updateClientIndicators
+  };
 
 })();
 
 
-// ============================================
-// BDM FUNCTIONS
-// These run outside the IIFE and read
-// window.ATRP_CLIENT_ID set above.
-// ============================================
+// =============================================================
+// BDM FUNCTIONS  (outside IIFE — read window.ATRP_CLIENT_ID)
+// =============================================================
 
 function getClientId() {
-  // Reads from the live getter defined in the IIFE above
   return window.ATRP_CLIENT_ID || null;
 }
 
 async function saveBdmToDatabase() {
   const client_id = getClientId();
   if (!client_id) {
-    showBdmNotification('Please select a client before saving.', 'error');
-    return;
+    // Try to resolve from the name field using the same helper
+    if (window._atrp && typeof window._atrp.resolveClientId === 'function') {
+      const resolved = await window._atrp.resolveClientId();
+      if (!resolved) {
+        showBdmNotification('Please select or enter a client name before saving.', 'error');
+        return;
+      }
+    } else {
+      showBdmNotification('Please select a client before saving.', 'error');
+      return;
+    }
   }
 
   const saveBtn = document.getElementById('bdmSave');
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
 
   try {
-    const sessions = [];
+    const resolvedId   = getClientId();
     const NUM_INTERVALS = 10;
+    const sessions     = [];
 
     document.querySelectorAll('.bdm-session-block').forEach((block, blockIndex) => {
       const dateInput       = block.querySelector('.date-input');
       const sessionNumInput = block.querySelector('.bdm-session-num-input');
 
       const session = {
-        session_number : parseInt(sessionNumInput?.value) || (blockIndex + 1),
-        session_date   : dateInput?.value || '',
-        interval_count : NUM_INTERVALS,
-        intervals      : {}
+        session_number: parseInt(sessionNumInput?.value) || (blockIndex + 1),
+        session_date:   dateInput?.value || '',
+        interval_count: NUM_INTERVALS,
+        intervals:      {}
       };
 
       block.querySelectorAll('.interval-cell').forEach(cell => {
@@ -575,15 +766,25 @@ async function saveBdmToDatabase() {
 
     const notes = document.getElementById('bdmNotesInput')?.value || '';
 
+    // Also push updated client info (including nickname) on BDM save
+    if (window._atrp) await window._atrp.saveClientInfo(resolvedId);
+
     const response = await fetch('../php/api_bdm.php', {
-      method  : 'POST',
-      headers : { 'Content-Type': 'application/json' },
-      body    : JSON.stringify({ client_id, sessions, notes })
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ client_id: resolvedId, sessions, notes })
     });
 
     const result = await response.json();
     if (result.success) {
-      showBdmNotification(`Saved ${result.sessions_saved} session(s) successfully!`, 'success');
+      const clientName = document.getElementById('clientName')?.value || 'client';
+      showBdmNotification(`Saved ${result.sessions_saved} session(s) for "${clientName}"`, 'success');
+
+      // Update name indicators
+      if (window._atrp) {
+        const nickname = document.getElementById('clientNickname')?.value || '';
+        window._atrp.updateClientIndicators(clientName, nickname);
+      }
     } else {
       showBdmNotification('Error: ' + result.error, 'error');
     }
@@ -594,9 +795,11 @@ async function saveBdmToDatabase() {
   } finally {
     if (saveBtn) {
       saveBtn.disabled = false;
-      saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round"/></svg> Save`;
+      saveBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg> Save`;
     }
   }
 }
@@ -614,8 +817,6 @@ async function loadBdmFromDatabase() {
 
     if (result.success && result.sessions?.length > 0) {
       grid.innerHTML = '';
-      // Reset the outer sessionCount used by BDM panel
-      if (typeof window.bdmSessionCount !== 'undefined') window.bdmSessionCount = 0;
 
       result.sessions.forEach((session, idx) => {
         const block = createSessionBlock(idx);
@@ -649,7 +850,6 @@ async function loadBdmFromDatabase() {
         grid.appendChild(block);
       });
 
-      // Sync the session counter shown in the footer
       sessionCount = result.sessions.length;
       document.getElementById('bdmSessionCount').textContent =
         `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
@@ -670,199 +870,181 @@ async function loadBdmFromDatabase() {
 function showBdmNotification(message, type) {
   const existing = document.querySelector('.bdm-notification-toast');
   if (existing) existing.remove();
+
   const toast = document.createElement('div');
-  toast.className = 'bdm-notification-toast';
+  toast.className  = 'bdm-notification-toast';
   toast.style.cssText = `
-    position: fixed; top: 80px; right: 20px;
-    padding: 12px 20px; border-radius: 8px;
-    font-family: var(--ff-body); font-size: 13px; font-weight: 500;
-    z-index: 1000; animation: slideIn 0.3s ease;
-    background: ${type === 'success' ? '#10b981' : '#ef4444'};
-    color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position:fixed; top:80px; right:20px;
+    padding:12px 20px; border-radius:8px;
+    font-family:var(--ff-body); font-size:13px; font-weight:500;
+    z-index:9999; animation:slideIn .3s ease;
+    background:${type === 'success' ? '#10b981' : '#ef4444'};
+    color:#fff; box-shadow:0 4px 12px rgba(0,0,0,.15);
+    max-width:320px;
   `;
   toast.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => {
-    toast.style.animation = 'slideOut 0.3s ease';
+    toast.style.animation = 'slideOut .3s ease';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
 
 
+// =============================================================
+// BDM TABLE UI (tab switching + session block builder)
+// Must run after DOM is ready — uses DOMContentLoaded guard
+// =============================================================
+document.addEventListener('DOMContentLoaded', function () {
 
- /* ── BDM TABLE── */
-    /* ── Tab switching ── */
-    document.querySelectorAll('.measurement-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.measurement-tab').forEach(t => {
-          t.classList.remove('active');
-          t.setAttribute('aria-selected', 'false');
-        });
-        document.querySelectorAll('.measurement-panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        tab.setAttribute('aria-selected', 'true');
-        document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+  // ── Tab switching ─────────────────────────────────────────────
+  document.querySelectorAll('.measurement-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.measurement-tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
       });
+      document.querySelectorAll('.measurement-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
     });
+  });
 
-    /* ── BDM UI State ── */
-    const NUM_INTERVALS = 10;
-    const grid = document.getElementById('bdmSessionsGrid');
-    let sessionCount = 1;
-    const sessionData = {};
+  // ── BDM state ─────────────────────────────────────────────────
+  const NUM_INTERVALS = 10;
+  const grid = document.getElementById('bdmSessionsGrid');
+  window.sessionCount = 1;         // exposed so loadBdmFromDatabase can update it
+  window.sessionData  = {};        // exposed so loadBdmFromDatabase can write intervals
 
-    /* ── Notification helper (used by table.js BDM functions too) ── */
-    function showBdmNotification(message, type) {
-      const existing = document.querySelector('.bdm-notification-toast');
-      if (existing) existing.remove();
-      const toast = document.createElement('div');
-      toast.className = 'bdm-notification-toast';
-      toast.style.cssText = `
-        position: fixed; top: 80px; right: 20px;
-        padding: 12px 20px; border-radius: 8px;
-        font-family: var(--ff-body); font-size: 13px; font-weight: 500;
-        z-index: 1000; animation: slideIn 0.3s ease;
-        background: ${type === 'success' ? '#10b981' : '#ef4444'};
-        color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      `;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+  // ── Session block builder ─────────────────────────────────────
+  window.createSessionBlock = function createSessionBlock(idx) {
+    sessionData[idx] = Array(NUM_INTERVALS).fill('');
+
+    const block = document.createElement('div');
+    block.className         = 'bdm-session-block';
+    block.dataset.sessionIdx = idx;
+
+    const heading = document.createElement('div');
+    heading.className = 'bdm-session-heading';
+    heading.innerHTML = `
+      <span class="bdm-session-label">Session #</span>
+      <input class="bdm-session-num-input" type="text" placeholder="__" maxlength="3" />
+    `;
+    block.appendChild(heading);
+
+    const container = document.createElement('div');
+    container.className = 'bdm-table-container';
+
+    const table = document.createElement('table');
+    table.className = 'bdm-table';
+
+    let thIntervals = '';
+    for (let i = 1; i <= NUM_INTERVALS; i++) {
+      thIntervals += `<th class="col-interval">${i}</th>`;
     }
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th class="col-date">Date</th>
+          <th class="col-plusminus">(+/−)</th>
+          <th colspan="${NUM_INTERVALS}" style="text-align:center; border-right:1px solid rgba(0,0,0,0.12);">Interval #</th>
+          <th class="col-total">Total Times Behavior Observed</th>
+        </tr>
+        <tr>
+          <th class="col-date"></th>
+          <th class="col-plusminus"></th>
+          ${thIntervals}
+          <th class="col-total"></th>
+        </tr>
+      </thead>
+    `;
 
-    /* ── Session block builder ── */
-    function createSessionBlock(idx) {
-      sessionData[idx] = Array(NUM_INTERVALS).fill('');
+    const tbody   = document.createElement('tbody');
+    const mainRow = document.createElement('tr');
 
-      const block = document.createElement('div');
-      block.className = 'bdm-session-block';
-      block.dataset.sessionIdx = idx;
-
-      const heading = document.createElement('div');
-      heading.className = 'bdm-session-heading';
-      heading.innerHTML = `
-        <span class="bdm-session-label">Session #</span>
-        <input class="bdm-session-num-input" type="text" placeholder="__" maxlength="3" />
-      `;
-      block.appendChild(heading);
-
-      const container = document.createElement('div');
-      container.className = 'bdm-table-container';
-
-      const table = document.createElement('table');
-      table.className = 'bdm-table';
-
-      let thIntervals = '';
-      for (let i = 1; i <= NUM_INTERVALS; i++) {
-        thIntervals += `<th class="col-interval">${i}</th>`;
-      }
-      table.innerHTML = `
-        <thead>
-          <tr>
-            <th class="col-date">Date</th>
-            <th class="col-plusminus">(+/−)</th>
-            <th colspan="${NUM_INTERVALS}" style="text-align:center; border-right:1px solid rgba(0,0,0,0.12);">Interval #</th>
-            <th class="col-total">Total Times Behavior Observed</th>
-          </tr>
-          <tr>
-            <th class="col-date"></th>
-            <th class="col-plusminus"></th>
-            ${thIntervals}
-            <th class="col-total"></th>
-          </tr>
-        </thead>
-      `;
-
-      const tbody = document.createElement('tbody');
-      const mainRow = document.createElement('tr');
-
-      let cells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
-      cells += `<td class="plusminus-cell" style="font-size:11px; color:#999; padding:0 6px;">(+/−)</td>`;
-      for (let i = 0; i < NUM_INTERVALS; i++) {
-        cells += `
-          <td class="interval-cell" data-session="${idx}" data-interval="${i}">
-            <div class="interval-toggle empty"></div>
-          </td>`;
-      }
+    let cells = `<td><input class="bdm-cell-input date-input" type="text" placeholder="MM/DD/YYYY" /></td>`;
+    cells    += `<td class="plusminus-cell" style="font-size:11px; color:#999; padding:0 6px;">(+/−)</td>`;
+    for (let i = 0; i < NUM_INTERVALS; i++) {
       cells += `
-        <td class="total-cell">
-          <div class="total-formula">
-            [(<span class="total-count" data-session-total="${idx}">0</span>
-            &nbsp;<span class="total-divider">/ ${NUM_INTERVALS})</span>&nbsp;×&nbsp;100]&nbsp;=&nbsp;
-            <span class="total-pct" data-session-pct="${idx}">0%</span>]
-          </div>
+        <td class="interval-cell" data-session="${idx}" data-interval="${i}">
+          <div class="interval-toggle empty"></div>
         </td>`;
-      mainRow.innerHTML = cells;
-      tbody.appendChild(mainRow);
+    }
+    cells += `
+      <td class="total-cell">
+        <div class="total-formula">
+          [(<span class="total-count" data-session-total="${idx}">0</span>
+          &nbsp;<span class="total-divider">/ ${NUM_INTERVALS})</span>&nbsp;×&nbsp;100]&nbsp;=&nbsp;
+          <span class="total-pct" data-session-pct="${idx}">0%</span>]
+        </div>
+      </td>`;
+    mainRow.innerHTML = cells;
+    tbody.appendChild(mainRow);
 
-      mainRow.querySelectorAll('.interval-cell').forEach(cell => {
-        cell.addEventListener('click', () => {
-          const si = parseInt(cell.dataset.session);
-          const ii = parseInt(cell.dataset.interval);
-          const states = ['', '+', '-'];
-          const next = states[(states.indexOf(sessionData[si][ii]) + 1) % states.length];
-          sessionData[si][ii] = next;
-          updateToggleCell(cell.querySelector('.interval-toggle'), next);
-          const positives = sessionData[si].filter(s => s === '+').length;
-          const pct = Math.round((positives / NUM_INTERVALS) * 100);
-          const countEl = block.querySelector(`[data-session-total="${si}"]`);
-          const pctEl   = block.querySelector(`[data-session-pct="${si}"]`);
-          if (countEl) countEl.textContent = positives;
-          if (pctEl)   pctEl.textContent   = pct + '%';
-        });
+    mainRow.querySelectorAll('.interval-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const si     = parseInt(cell.dataset.session);
+        const ii     = parseInt(cell.dataset.interval);
+        const states = ['', '+', '-'];
+        const next   = states[(states.indexOf(sessionData[si][ii]) + 1) % states.length];
+        sessionData[si][ii] = next;
+        updateToggleCell(cell.querySelector('.interval-toggle'), next);
+        const positives = sessionData[si].filter(s => s === '+').length;
+        const pct       = Math.round((positives / NUM_INTERVALS) * 100);
+        const countEl   = block.querySelector(`[data-session-total="${si}"]`);
+        const pctEl     = block.querySelector(`[data-session-pct="${si}"]`);
+        if (countEl) countEl.textContent = positives;
+        if (pctEl)   pctEl.textContent   = pct + '%';
       });
-
-      table.appendChild(tbody);
-      container.appendChild(table);
-      block.appendChild(container);
-
-      const hr = document.createElement('hr');
-      hr.className = 'section-divider';
-      block.appendChild(hr);
-
-      return block;
-    }
-
-    function updateToggleCell(el, state) {
-      el.className = 'interval-toggle';
-      el.textContent = '';
-      if (state === '+')      { el.classList.add('positive'); el.textContent = '+'; }
-      else if (state === '-') { el.classList.add('negative'); el.textContent = '−'; }
-      else                    { el.classList.add('empty'); }
-    }
-
-    function updateSessionCount() {
-      document.getElementById('bdmSessionCount').textContent =
-        `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
-    }
-
-    document.getElementById('bdmAddSession').addEventListener('click', () => {
-      sessionCount++;
-      grid.appendChild(createSessionBlock(sessionCount - 1));
-      updateSessionCount();
     });
 
-    document.getElementById('bdmDeleteSession').addEventListener('click', () => {
-      if (sessionCount > 1) {
-        const blocks = grid.querySelectorAll('.bdm-session-block');
-        if (blocks.length > 0) {
-          blocks[blocks.length - 1].remove();
-          sessionCount--;
-          updateSessionCount();
-        }
+    table.appendChild(tbody);
+    container.appendChild(table);
+    block.appendChild(container);
+
+    const hr = document.createElement('hr');
+    hr.className = 'section-divider';
+    block.appendChild(hr);
+
+    return block;
+  };
+
+  window.updateToggleCell = function updateToggleCell(el, state) {
+    el.className   = 'interval-toggle';
+    el.textContent = '';
+    if      (state === '+') { el.classList.add('positive'); el.textContent = '+'; }
+    else if (state === '-') { el.classList.add('negative'); el.textContent = '−'; }
+    else                    { el.classList.add('empty'); }
+  };
+
+  function updateBdmSessionCount() {
+    document.getElementById('bdmSessionCount').textContent =
+      `${sessionCount} session${sessionCount !== 1 ? 's' : ''}`;
+  }
+
+  document.getElementById('bdmAddSession').addEventListener('click', () => {
+    sessionCount++;
+    grid.appendChild(createSessionBlock(sessionCount - 1));
+    updateBdmSessionCount();
+  });
+
+  document.getElementById('bdmDeleteSession').addEventListener('click', () => {
+    if (sessionCount > 1) {
+      const blocks = grid.querySelectorAll('.bdm-session-block');
+      if (blocks.length > 0) {
+        blocks[blocks.length - 1].remove();
+        sessionCount--;
+        updateBdmSessionCount();
       }
-    });
+    }
+  });
 
-    // Wire Save button — delegates to table.js function after it loads
-    document.getElementById('bdmSave').addEventListener('click', () => {
-      if (typeof saveBdmToDatabase === 'function') {
-        saveBdmToDatabase();
-      }
-    });
+  document.getElementById('bdmSave').addEventListener('click', () => {
+    if (typeof saveBdmToDatabase === 'function') saveBdmToDatabase();
+  });
 
-    // Render initial empty session
-    grid.appendChild(createSessionBlock(0));
-    updateSessionCount();
+  // Render initial blank session
+  grid.appendChild(createSessionBlock(0));
+  updateBdmSessionCount();
+});
