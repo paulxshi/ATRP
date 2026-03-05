@@ -12,47 +12,6 @@
 </head>
 <body>
  <style>
-    :root {
-      --gold: #C9A84C;
-      --gold-light: #E8CA7A;
-      --surface: #F5F4F0;
-      --text: #1A1A1A;
-      --muted: #888;
-      --border: #E0DDD5;
-      --border2: #EBEBEB;
-      --radius: 10px;
-      --ff-body: 'Work Sans', sans-serif;
-      --ff-display: 'Syne', sans-serif;
-      --ff-heading: 'Syne', sans-serif;
-
-      /* Subskill tier colors */
-      --eye-contact:        #C9A84C;
-      --eye-contact-bg:     rgba(201,168,76,.10);
-      --eye-contact-border: rgba(201,168,76,.35);
-
-      --basic:              #3aa06f;
-      --basic-bg:           rgba(58,160,111,.10);
-      --basic-border:       rgba(58,160,111,.35);
-
-      --identification:     #e87c4e;
-      --identification-bg:  rgba(232,124,78,.10);
-      --identification-border: rgba(232,124,78,.35);
-
-      --advanced:           #7c6ff7;
-      --advanced-bg:        rgba(124,111,247,.10);
-      --advanced-border:    rgba(124,111,247,.35);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: var(--ff-body);
-      background: var(--surface);
-      color: var(--text);
-      padding: 32px 36px;
-      min-height: 100vh;
-    }
-
     /* ── Page Header ── */
     .ss-wrapper {
       font-family: var(--ff-body);
@@ -117,10 +76,11 @@
     .ss-table th:last-child { border-right: none; }
 
     /* Column widths */
-    .col-subskill { width: 30%; }
-    .col-skill    { width: 22%; }
-    .col-criteria { width: 22%; }
-    .col-score    { width: 26%; }
+    .col-subskill   { width: 18%; }
+    .col-skill      { width: 16%; }
+    .col-criteria   { width: 14%; }
+    .col-successful { width: 16%; }
+    .col-score      { width: 10%; }
 
     /* TD */
     .ss-table tbody tr {
@@ -351,34 +311,6 @@
     .measurement-panel { display:none; padding:24px 28px 20px; }
     .measurement-panel.active { display:block; }
 
-    /* ── Notes ── */
-    .bcm-notes-section { display:flex; flex-direction:column; gap:8px; margin-top:20px; }
-    .bcm-notes-label { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
-    .bcm-notes-input {
-      width:100%; min-height:130px; background:#fff; border:1px solid var(--border);
-      border-radius:8px; color:var(--text); font-family:var(--ff-body); font-size:13px;
-      padding:12px 14px; resize:vertical; outline:none; transition:border-color .2s, box-shadow .2s;
-    }
-    .bcm-notes-input::placeholder { color:rgba(0,0,0,.25); }
-    .bcm-notes-input:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,137,58,.1); }
-
-    /* ── Footer ── */
-    .bcm-footer-bottom {
-      padding:18px 24px;
-      border-top:1px solid var(--border);
-      background:#fafafa;
-      display:flex;
-      justify-content:flex-end;
-    }
-    .bcm-btn-save {
-      display:flex; align-items:center; gap:8px; padding:11px 22px;
-      font-family:var(--ff-body); font-size:13px; font-weight:600;
-      color:#fff; background:#000; border:none; border-radius:8px;
-      cursor:pointer; transition:background .2s, transform .1s;
-    }
-    .bcm-btn-save:hover { background:#222; }
-    .bcm-btn-save:active { transform:scale(.98); }
-    .bcm-btn-save svg { width:14px; height:14px; }
   </style>
   <!-- TOPBAR -->
   <header class="topbar">
@@ -448,6 +380,7 @@
             <col class="col-subskill" />
             <col class="col-skill" />
             <col class="col-criteria" />
+            <col class="col-successful" />
             <col class="col-score" />
           </colgroup>
           <thead>
@@ -455,6 +388,7 @@
               <th class="col-subskill">Subskill Level</th>
               <th class="col-skill">Skill</th>
               <th class="col-criteria">No. of Attempts</th>
+              <th class="col-successful">Successful</th>
               <th class="col-score">Score</th>
             </tr>
           </thead>
@@ -528,8 +462,9 @@
     { skill: 'Using One Object',               criteria: '4 Points',    max: 4,  color: '#7c6ff7', defaultTier: 'advanced' },
   ];
 
-  const scores     = new Array(DRILLS.length).fill('');
-  const tierSel    = DRILLS.map(d => d.defaultTier);
+  const scores            = new Array(DRILLS.length).fill('');
+  const successfulScores  = new Array(DRILLS.length).fill('');
+  const tierSel           = DRILLS.map(d => d.defaultTier);
 
   function pct(val, max) {
     const n = parseFloat(val);
@@ -599,6 +534,25 @@
       </div>`;
     tr.appendChild(tdCrit);
 
+    /* ── Successful attempts cell ── */
+    const tdSucc = document.createElement('td');
+    tdSucc.innerHTML = `
+      <div class="score-cell">
+        <span class="score-pct" id="pct-succ-${idx}">—</span>
+        <input
+          type="number"
+          class="score-input-inline"
+          id="input-succ-${idx}"
+          data-idx="${idx}"
+          data-max="${drill.max}"
+          placeholder="0"
+          min="0"
+          max="${drill.max}"
+          value="${successfulScores[idx]}"
+        />
+      </div>`;
+    tr.appendChild(tdSucc);
+
     /* ── Score cell ── */
     const tdScore = document.createElement('td');
     const p = pct(scores[idx], drill.max);
@@ -633,9 +587,17 @@
         const max = +this.dataset.max;
         let v = parseFloat(this.value);
         if (!isNaN(v) && v > max) { this.value = max; v = max; }
-        scores[idx] = this.value;
-        const p = pct(this.value, max);
-        document.getElementById('pct-' + idx).textContent = p !== null ? p + '%' : '—';
+        
+        // Determine if this is a successful attempts input or score input
+        if (this.id.startsWith('input-succ-')) {
+          successfulScores[idx] = this.value;
+          const succPct = pct(this.value, max);
+          document.getElementById('pct-succ-' + idx).textContent = succPct !== null ? succPct + '%' : '—';
+        } else {
+          scores[idx] = this.value;
+          const p = pct(this.value, max);
+          document.getElementById('pct-' + idx).textContent = p !== null ? p + '%' : '—';
+        }
       });
     });
   }

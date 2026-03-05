@@ -28,6 +28,22 @@
       --radius:     14px;
       --ff-body: 'Inter', sans-serif;
       --ff-display: 'Nevis', sans-serif;   
+            /* Subskill tier colors */
+      --eye-contact:        #C9A84C;
+      --eye-contact-bg:     rgba(201,168,76,.10);
+      --eye-contact-border: rgba(201,168,76,.35);
+
+      --basic:              #3aa06f;
+      --basic-bg:           rgba(58,160,111,.10);
+      --basic-border:       rgba(58,160,111,.35);
+
+      --identification:     #e87c4e;
+      --identification-bg:  rgba(232,124,78,.10);
+      --identification-border: rgba(232,124,78,.35);
+
+      --advanced:           #7c6ff7;
+      --advanced-bg:        rgba(124,111,247,.10);
+      --advanced-border:    rgba(124,111,247,.35);
     }
 
     html, body {
