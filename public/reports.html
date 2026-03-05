@@ -1069,11 +1069,12 @@
 
       // ── Skills ──
       if (skillResult.status === 'fulfilled' && skillResult.value.success) {
-        const rows = skillResult.value.rows || [];
+        const rows        = skillResult.value.rows        || [];
+        const tierSummary = skillResult.value.tier_summary || [];
         skillBadge.textContent = rows.length + ' drill' + (rows.length !== 1 ? 's' : '');
         updateChip(chipSkill, rows.length > 0, 'Skills', rows.length + ' drill' + (rows.length !== 1 ? 's' : ''));
         skillBody.innerHTML = rows.length > 0
-          ? renderSkillTable(rows)
+          ? renderSkillTable(rows, tierSummary)
           : noDataHTML('No skill scoring data yet');
       } else {
         skillBadge.textContent = 'Error';
@@ -1140,30 +1141,67 @@
       </table>${notesHtml}`;
     }
 
-    // ── Skill table renderer ───────────────────────────────────
+    // ── Skill table renderer — uses individual rows (matches screenshot exactly) ──
     const TIER_LABELS = { eye:'Eye Contact', basic:'Basic Understanding', ident:'Identification', adv:'Advanced Understanding' };
     const TIER_COLORS = { eye:'#1447e6', basic:'#00c950', ident:'#a38f10', adv:'#86198f' };
+    const TIER_BG     = {
+      eye:   'rgba(20,71,230,.10)',
+      basic: 'rgba(0,201,80,.10)',
+      ident: 'rgba(163,143,16,.10)',
+      adv:   'rgba(134,25,143,.10)'
+    };
 
-    function renderSkillTable(rows) {
+    function renderSkillTable(rows, tierSummary) {
+      // Build table rows — one per drill, matching the screenshot layout
       const body = rows.map(r => {
-        const pct = (r.attempts > 0 && r.successful !== null)
-          ? Math.round((parseFloat(r.successful) / r.attempts) * 100)
+        const succ  = parseFloat(r.successful);
+        const att   = parseInt(r.attempts) || 0;
+        const pct   = (!isNaN(succ) && att > 0)
+          ? Math.round(Math.min(100, (succ / att) * 100))
           : null;
-        const color = TIER_COLORS[r.tier] || '#aaa';
-        const tierLabel = TIER_LABELS[r.tier] || '—';
+        const color    = TIER_COLORS[r.tier] || '#aaa';
+        const bg       = TIER_BG[r.tier]     || 'rgba(180,180,180,.10)';
+        const tierLabel= TIER_LABELS[r.tier]  || '—';
+        const unit     = r.unit || 'attempts';
+
         const bar = pct !== null
-          ? `<div style="height:4px;border-radius:3px;background:#f0f0f0;margin-top:4px;">
-               <div style="width:${pct}%;height:100%;border-radius:3px;background:${color};transition:width .4s;"></div>
+          ? `<div style="height:3.5px;border-radius:3px;background:#f0f0f0;margin-top:5px;min-width:80px;">
+               <div style="width:${pct}%;height:100%;border-radius:3px;background:${color};transition:width .5s cubic-bezier(.4,0,.2,1);"></div>
              </div>` : '';
+
         return `<tr>
-          <td><span style="display:inline-block;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700;background:${color}20;color:${color};">${tierLabel}</span></td>
-          <td>${r.skill || '—'}</td>
-          <td>${r.successful !== null ? r.successful : '—'} / ${r.attempts || 0} ${r.unit || ''}</td>
-          <td style="font-weight:700;color:${color}">${pct !== null ? pct+'%' : '—'}${bar}</td>
+          <td style="width:28%;">
+            <span style="
+              display:inline-flex;align-items:center;gap:6px;
+              padding:4px 11px;border-radius:7px;
+              font-size:11.5px;font-weight:700;
+              background:${bg};color:${color};
+              border:1px solid ${color}30;
+              white-space:nowrap;
+            ">${tierLabel}</span>
+          </td>
+          <td style="font-weight:600;color:#1a1a1a;">${r.skill || '—'}</td>
+          <td style="color:#555;">
+            ${!isNaN(succ) ? succ.toFixed(2) : '—'} / ${att} ${unit}
+          </td>
+          <td>
+            <span style="font-size:14px;font-weight:800;color:${color};letter-spacing:-.02em;">
+              ${pct !== null ? pct + '%' : '—'}
+            </span>
+            ${bar}
+          </td>
         </tr>`;
       }).join('');
+
       return `<table class="rp-inner-table">
-        <thead><tr><th>Tier</th><th>Skill / Drill</th><th>Attempts</th><th>Score</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Skill / Drill</th>
+            <th>Attempts</th>
+            <th>Score</th>
+          </tr>
+        </thead>
         <tbody>${body}</tbody>
       </table>`;
     }
@@ -1250,4 +1288,4 @@
   </script>
 
 </body>
-</html>
+</html> 
