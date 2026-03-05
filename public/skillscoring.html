@@ -148,7 +148,16 @@
   color: #b0966a;
   letter-spacing: .03em;
   white-space: nowrap;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(201,168,76,.3);
+  padding: 0 2px;
+  width: 40px;
+  text-align: left;
+  outline: none;
+  transition: border-color .18s;
 }
+.attempts-unit:focus { border-color: var(--gold); }
 
 .score-wrap {
   padding: 0 14px;
@@ -690,8 +699,8 @@
   ];
 
   const DRILLS = [
-    { skill: '', attempts: 5, tier: null, succ: '' },
-    { skill: '', attempts: 5, tier: null, succ: '' },
+    { skill: '', attempts: 0, tier: null, succ: '', unit: 'tries' },
+    { skill: '', attempts: 0, tier: null, succ: '', unit: 'tries' },
   ];
 
   /* ── Helpers ── */
@@ -883,8 +892,8 @@
       '<div class="crit-wrap">'+
         '<div class="attempts-field">'+
           '<input type="number" class="attempts-input" id="attempts-'+idx+'" data-idx="'+idx+'"'+
-            ' min="1" value="'+(drill.attempts||5)+'" placeholder="5" />'+
-          '<span class="attempts-unit">tries</span>'+
+            ' min="0" value="'+(drill.attempts||0)+'" placeholder="0" />'+
+          '<input type="text" class="attempts-unit" id="unit-'+idx+'" data-idx="'+idx+'" value="'+(drill.unit||'tries')+'" />'+
         '</div>'+
       '</div>';
     tr.appendChild(tdCrit);
@@ -998,11 +1007,18 @@
       });
       input.addEventListener('blur', function() {
         const idx = +this.dataset.idx;
-        if (!this.value || parseInt(this.value) < 1) {
-          this.value = 1;
-          DRILLS[idx].attempts = 1;
+        if (!this.value || parseInt(this.value) < 0) {
+          this.value = 0;
+          DRILLS[idx].attempts = 0;
           recalcPct(idx);
         }
+      });
+    });
+
+    /* Unit text input */
+    document.querySelectorAll('.attempts-unit').forEach(function(input) {
+      input.addEventListener('input', function() {
+        DRILLS[+this.dataset.idx].unit = this.value;
       });
     });
 
@@ -1027,7 +1043,7 @@
 
   /* ── Add row ── */
   document.getElementById('btnAddRow').addEventListener('click', function() {
-    DRILLS.push({ skill: '', attempts: 5, tier: null, succ: '' });
+    DRILLS.push({ skill: '', attempts: 0, tier: null, succ: '', unit: 'tries' });
     render();
     var scroll = document.querySelector('.table-scroll');
     if (scroll) scroll.scrollTop = scroll.scrollHeight;
