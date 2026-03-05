@@ -46,9 +46,10 @@
 
     /* ── Table ── */
     .ss-table-container {
-      border-radius: 0;
+      border-radius: 12;
       overflow: hidden;
       border-bottom: 1px solid var(--border);
+      margin-bottom: 45px;
     }
     .ss-table {
       width: 100%;
@@ -224,7 +225,7 @@
       display: flex;
       gap: 20px;
       flex-wrap: wrap;
-      margin-top: 20px;
+      margin: 20px;
       padding: 14px 18px;
       background: #fafafa;
       border: 1px solid var(--border);
@@ -312,6 +313,27 @@
   <!-- SCORING TABLE CARD -->
   <div class="measurement-container">
     <div class="measurement-panel active" id="tab-receptive">
+
+      <!-- LEGEND -->
+      <div class="ss-legend">
+        <div class="ss-legend-item">
+          <span class="ss-legend-dot" style="background:#C9A84C;"></span>
+          <span>Eye Contact</span>
+        </div>
+        <div class="ss-legend-item">
+          <span class="ss-legend-dot" style="background:#3aa06f;"></span>
+          <span>Basic Understanding</span>
+        </div>
+        <div class="ss-legend-item">
+          <span class="ss-legend-dot" style="background:#e87c4e;"></span>
+          <span>Identification</span>
+        </div>
+        <div class="ss-legend-item">
+          <span class="ss-legend-dot" style="background:#7c6ff7;"></span>
+          <span>Advanced Understanding</span>
+        </div>
+      </div>
+
       <div class="ss-table-container">
         <table class="ss-table">
           <colgroup>
@@ -334,26 +356,6 @@
             <!-- rows injected by JS -->
           </tbody>
         </table>
-      </div>
-
-      <!-- LEGEND -->
-      <div class="ss-legend">
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#C9A84C;"></span>
-          <span>Eye Contact</span>
-        </div>
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#3aa06f;"></span>
-          <span>Basic Understanding</span>
-        </div>
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#e87c4e;"></span>
-          <span>Identification</span>
-        </div>
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#7c6ff7;"></span>
-          <span>Advanced Understanding</span>
-        </div>
       </div>
 
       <!-- NOTES -->
