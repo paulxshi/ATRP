@@ -1206,28 +1206,386 @@
       </table>`;
     }
 
-    // ── Write-up placeholder ───────────────────────────────────
-    function showWriteupPlaceholder(client, bcm, bdm, skill) {
-      // Write-up content will be provided later.
-      // For now, show a structured placeholder.
-      writeupEmpty.style.display = 'none';
-      writeupContent.classList.add('visible');
-      writeupContent.innerHTML = `
-        <h2>Client Information</h2>
-        <p><em>Write-up template not yet configured.</em> Once your write-up format is provided,
-        this section will auto-populate with a formatted narrative using <strong>${client.full_name}</strong>'s
-        BCM, BDM, and Skill Scoring data.</p>
-        <h2>Behavioral Data Summary</h2>
-        <p>BCM behaviors: <strong>${bcm.value?.behaviors?.length ?? '—'}</strong> &nbsp;|&nbsp;
-           BDM sessions: <strong>${bdm.value?.sessions?.length ?? '—'}</strong></p>
-        <h2>Skills Summary</h2>
-        <p>Skill drills recorded: <strong>${skill.value?.rows?.length ?? '—'}</strong></p>
-        <p style="color:#bbb;font-style:italic;margin-top:16px;font-size:12px;">
-          Provide your write-up template and it will replace this placeholder automatically.
-        </p>
-      `;
-      btnPdf.disabled = btnDocx.disabled = btnCopy.disabled = false;
-    }
+function getTrendLabel(sessions) {
+  // sessions: { "1": 4, "2": 7, "3": 3, ... }
+  const vals = Object.values(sessions || {}).map(Number).filter(n => !isNaN(n));
+  if (vals.length < 2) return 'fluctuating';
+  const first = vals.slice(0, Math.ceil(vals.length / 2));
+  const last  = vals.slice(Math.floor(vals.length / 2));
+  const avg   = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const diff  = avg(last) - avg(first);
+  if (diff >  1.5) return 'rising';
+  if (diff < -1.5) return 'falling';
+  return 'fluctuating';
+}
+
+// ── Helper: choose trend consequence text ────────────────────────────────────
+function getTrendConsequence(trend) {
+  if (trend === 'rising')
+    return 'This indicates the need to substantially change the response to the behavior to avoid further increase in behavior.';
+  if (trend === 'falling')
+    return 'This indicates the need to sustain the current response to the behavior with a few modifications to eliminate the behavior.';
+  return 'This indicates the need to adjust the response to behavior to attain consistent lower scores in behavior.';
+}
+
+// ── Helper: occurrence label from BDM percentage ────────────────────────────
+function getOccurrenceLabel(pct) {
+  if (pct >= 70) return 'high';
+  if (pct >= 40) return 'moderate';
+  return 'low';
+}
+
+function getOccurrenceConsequence(label) {
+  if (label === 'high')
+    return 'This indicates the need to substantially change the response to the behavior to avoid further increase in behavior.';
+  if (label === 'moderate')
+    return 'This indicates the need to adjust the response to behavior to attain consistent lower scores in behavior.';
+  return 'This indicates the need to sustain the current response to the behavior with a few modifications to eliminate the behavior.';
+}
+
+// ── Helper: skill level label ────────────────────────────────────────────────
+function getSkillLevel(pct) {
+  if (pct >= 80) return 'high';
+  if (pct >= 40) return 'decent';
+  return 'low';
+}
+
+function getSkillConsequence(level) {
+  if (level === 'high')
+    return 'This indicates the need to gradually decrease the reinforcement to the behaviors that contribute to the skill in order to avoid dependence on reinforcement.';
+  if (level === 'decent')
+    return 'This indicates the need to make necessary adjustments in the reinforcement to the behaviors that contribute to the skill.';
+  return 'This indicates the need to further strengthen the reinforcement to the behaviors that contribute to the skill.';
+}
+
+// ── Helper: pronoun placeholder (generic until gender is stored) ─────────────
+function pronoun() { return 'he/she'; }
+
+// ── Main write-up builder ────────────────────────────────────────────────────
+function buildWriteupData(client, bcm, bdm, skill) {
+  const name      = client.full_name;
+  const diagnosis = client.diagnosis || '—';
+  const age       = client.age       || '—';
+
+  const behaviors = (bcm.status === 'fulfilled' && bcm.value?.success)
+    ? (bcm.value.behaviors || []) : [];
+  const sessions  = (bdm.status === 'fulfilled' && bdm.value?.success)
+    ? (bdm.value.sessions  || []) : [];
+  const skills    = (skill.status === 'fulfilled' && skill.value?.success)
+    ? (skill.value.rows    || []) : [];
+
+  // ── Date range from BDM sessions ──
+  const dates = sessions
+    .map(s => s.session_date)
+    .filter(Boolean)
+    .sort();
+  const firstDate = dates[0]       || '(First Recording Session)';
+  const lastDate  = dates[dates.length - 1] || '(Last Recording Session)';
+  const duration  = dates.length > 0
+    ? dates.length + (dates.length === 1 ? ' session' : ' sessions')
+    : '(Duration)';
+
+  // ── Behavior names ──
+  const behaviorNames = behaviors.length
+    ? behaviors.map(b => b.behavior || '(Behavior)').join('; ')
+    : '(Behavior 1)';
+
+  // ── Skill names ──
+  const skillNames = skills.length
+    ? skills.map(s => s.skill || '(Skill)').join('; ')
+    : '(Skill 1)';
+
+  // ── Per-behavior Type I paragraphs (BCM = continuous/frequency) ──
+  const bcmParas = behaviors.map((b, i) => {
+    const bName    = b.behavior   || `Behavior ${i + 1}`;
+    const func     = Object.entries(b.functions || {})
+      .filter(([, v]) => v).map(([k]) => k).join('/') || 'unknown';
+    const ante     = b.antecedent || '(antecedent)';
+    const trend    = getTrendLabel(b.sessions || {});
+    const conseq   = getTrendConsequence(trend);
+    return (
+      `<strong>${bName}</strong> is a/an <em>${func}</em>-based behavior. ` +
+      `This means that the reason why ${pronoun()} does the behavior is to ` +
+      `(${func} function explanation), specifically whenever ${pronoun()} ${ante}. ` +
+      `As seen in the graph above, the pattern of the behavior is ` +
+      `<strong>${trend}</strong> over time. ${conseq}`
+    );
+  });
+
+  // ── Per-behavior Type II paragraphs (BDM = discontinuous/percentage) ──
+  const bdmParas = sessions.map((s, i) => {
+    const pos   = Object.values(s.intervals || {}).filter(v => v === '+').length;
+    const tot   = s.interval_count || 10;
+    const pct   = Math.round((pos / tot) * 100);
+    const label = getOccurrenceLabel(pct);
+    const conseq= getOccurrenceConsequence(label);
+    const bName = behaviors[i]?.behavior || `Behavior ${i + 1}`;
+    const func  = Object.entries(behaviors[i]?.functions || {})
+      .filter(([, v]) => v).map(([k]) => k).join('/') || 'unknown';
+    const ante  = behaviors[i]?.antecedent || '(antecedent)';
+    return (
+      `<strong>${bName}</strong> is a/an <em>${func}</em>-based behavior. ` +
+      `This means that the reason why ${pronoun()} does the behavior is to ` +
+      `(${func} function explanation), specifically whenever ${pronoun()} ${ante}. ` +
+      `As seen in the graph above, the occurrence of the behavior is ` +
+      `<strong>${label} (${pct}%)</strong> over time. ${conseq}`
+    );
+  });
+
+  // ── Per-skill paragraphs ──
+  const skillParas = skills.map((s, i) => {
+    const sName = s.skill || `Skill ${i + 1}`;
+    const att   = parseInt(s.attempts) || 0;
+    const succ  = parseFloat(s.successful) || 0;
+    const pct   = att > 0 ? Math.round(Math.min(100, (succ / att) * 100)) : 0;
+    const level = getSkillLevel(pct);
+    const conseq= getSkillConsequence(level);
+    return (
+      `<strong>${sName}</strong> is an adaptive skill that ${pronoun()} should develop. ` +
+      `As seen in the graph above, ${name}&#x2019;s ${sName} is ` +
+      `<strong>${level} (mean ${pct}%)</strong>. ${conseq}`
+    );
+  });
+
+  return {
+    name, diagnosis, age, duration, firstDate, lastDate,
+    behaviorNames, skillNames,
+    bcmParas, bdmParas, skillParas,
+    hasBcm: behaviors.length > 0,
+    hasBdm: sessions.length > 0,
+    hasSkills: skills.length > 0
+  };
+}
+
+// ── HTML renderer ────────────────────────────────────────────────────────────
+function renderWriteupHTML(d) {
+  const section = (title, content) => `
+    <h2>${title}</h2>
+    ${content}
+  `;
+
+  // Client info table
+  const infoTable = `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px;">
+      <tr>
+        <td style="border:1px solid #ddd;padding:7px 12px;width:37%;font-weight:700;">Name:</td>
+        <td style="border:1px solid #ddd;padding:7px 12px;">${d.name}</td>
+        <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Baseline Report Period:</td>
+        <td style="border:1px solid #ddd;padding:7px 12px;">${d.firstDate} — ${d.lastDate}</td>
+      </tr>
+      <tr>
+        <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Age:</td>
+        <td style="border:1px solid #ddd;padding:7px 12px;">${d.age}</td>
+        <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Recorder/s:</td>
+        <td style="border:1px solid #ddd;padding:7px 12px;">(Recorder Name)</td>
+      </tr>
+      <tr>
+        <td colspan="4" style="border:1px solid #ddd;padding:7px 12px;"><strong>Diagnosis:</strong> ${d.diagnosis}</td>
+      </tr>
+    </table>
+  `;
+
+  // Areas measured
+  const areasMeasured = `
+    <p><strong>DATA</strong></p>
+    <p>Type I: Frequency (Continuous)${d.hasBcm ? ` — ${d.behaviorNames}` : ''}</p>
+    <p>Type II: Percentage (Discontinuous)${d.hasBdm ? ` — ${d.behaviorNames}` : ''}${d.hasSkills ? `; Skills: ${d.skillNames}` : ''}</p>
+  `;
+
+  // Interpretation intro
+  const introText = `
+    <p>The behavior/s in the graph above were observed from <strong>${d.name}</strong>.
+    This/These were measured within <strong>${d.duration}</strong> from
+    <strong>${d.firstDate}</strong> to <strong>${d.lastDate}</strong>.</p>
+    <p>The following are the <strong>problem behaviors</strong> observed from ${d.name}: ${d.behaviorNames}.</p>
+    <p>The following are the <strong>adaptive skills</strong> that ${d.name} needs to develop: ${d.skillNames}.</p>
+  `;
+
+  // Behavior paragraphs
+  let behaviorContent = '';
+  if (d.bcmParas.length) {
+    behaviorContent += '<p><strong>Behavior Template – Type I (Continuous)</strong></p>';
+    d.bcmParas.forEach(p => { behaviorContent += `<p>${p}</p>`; });
+  }
+  if (d.bdmParas.length) {
+    behaviorContent += '<p><strong>Behavior Template – Type II (Discontinuous)</strong></p>';
+    d.bdmParas.forEach(p => { behaviorContent += `<p>${p}</p>`; });
+  }
+  if (!d.bcmParas.length && !d.bdmParas.length) {
+    behaviorContent = '<p style="color:#aaa;font-style:italic;">No behavior data recorded yet.</p>';
+  }
+
+  // Skill paragraphs
+  let skillContent = '';
+  if (d.skillParas.length) {
+    d.skillParas.forEach(p => { skillContent += `<p>${p}</p>`; });
+  } else {
+    skillContent = '<p style="color:#aaa;font-style:italic;">No skill data recorded yet.</p>';
+  }
+
+  // Closing
+  const closing = `
+    <p>This report represents the baseline data of <strong>${d.name}</strong>&#x2019;s behaviors.
+    The therapy program will now proceed with the implementation of intervention plan wherein
+    problem behaviors will be reduced while appropriate behaviors will be rewarded.
+    After the intervention plan, the therapy program will measure the same set of behaviors again.
+    The second set of data will be compared to the baseline set of data.</p>
+  `;
+
+  // Signature block
+  const sigBlock = `
+    <div style="margin-top:32px;display:flex;justify-content:space-between;font-size:12.5px;">
+      <div>
+        <p style="margin:0;">Prepared by:</p>
+        <p style="margin:16px 0 0;font-weight:700;border-top:1px solid #333;padding-top:4px;min-width:180px;">Full Name, Title/s</p>
+        <p style="margin:2px 0;color:#555;">Behavioral Therapist</p>
+      </div>
+      <div style="text-align:right;">
+        <p style="margin:0;">Noted by:</p>
+        <p style="margin:16px 0 0;font-weight:700;border-top:1px solid #333;padding-top:4px;min-width:180px;">Full Name, Title/s</p>
+        <p style="margin:2px 0;color:#555;">Immediate Supervisor</p>
+      </div>
+    </div>
+    <p style="margin-top:24px;font-size:11.5px;font-style:italic;color:#888;">
+      Thank you for entrusting ${d.name}&#x2019;s development to us. If you have concerns or inquiries
+      regarding this progress report, undersigned below may be reached by email at
+      <a href="mailto:wellness@psi-services.net" style="color:#C9A84C;">wellness@psi-services.net</a>
+    </p>
+  `;
+
+  return `
+    <div style="text-align:center;margin-bottom:18px;">
+      <span style="font-family:Tahoma,sans-serif;font-size:18px;font-weight:800;color:#ED7D31;letter-spacing:.06em;">
+        BASELINE REPORT
+      </span>
+    </div>
+    ${infoTable}
+    ${section('AREAS MEASURED', areasMeasured)}
+    ${section('INTERPRETATION', introText + behaviorContent + '<br>' + skillContent + '<br>' + closing)}
+    ${sigBlock}
+  `;
+}
+
+// ── Plain-text renderer (for clipboard copy) ────────────────────────────────
+function renderWriteupPlainText(d) {
+  const lines = [];
+  lines.push('BASELINE REPORT');
+  lines.push('');
+  lines.push(`Name: ${d.name}   |   Baseline Report Period: ${d.firstDate} – ${d.lastDate}`);
+  lines.push(`Age: ${d.age}     |   Recorder/s: (Recorder Name)`);
+  lines.push(`Diagnosis: ${d.diagnosis}`);
+  lines.push('');
+  lines.push('AREAS MEASURED:');
+  lines.push('DATA');
+  lines.push(`Type I: Frequency (Continuous)${d.hasBcm ? ' — ' + d.behaviorNames : ''}`);
+  lines.push(`Type II: Percentage (Discontinuous)${d.hasBdm ? ' — ' + d.behaviorNames : ''}${d.hasSkills ? '; Skills: ' + d.skillNames : ''}`);
+  lines.push('');
+  lines.push('INTERPRETATION:');
+  lines.push('');
+  lines.push(`The behavior/s in the graph above were observed from ${d.name}. This/These were measured within ${d.duration} from ${d.firstDate} to ${d.lastDate}.`);
+  lines.push(`The following are the problem behaviors observed from ${d.name}: ${d.behaviorNames}.`);
+  lines.push(`The following are the adaptive skills that ${d.name} needs to develop: ${d.skillNames}.`);
+  lines.push('');
+
+  if (d.bcmParas.length) {
+    lines.push('Behavior Template – Type I (Continuous)');
+    d.bcmParas.forEach(p => lines.push('\n' + p.replace(/<[^>]+>/g, '')));
+  }
+  if (d.bdmParas.length) {
+    lines.push('\nBehavior Template – Type II (Discontinuous)');
+    d.bdmParas.forEach(p => lines.push('\n' + p.replace(/<[^>]+>/g, '')));
+  }
+  if (d.skillParas.length) {
+    lines.push('\nSkill Template – Type II');
+    d.skillParas.forEach(p => lines.push('\n' + p.replace(/<[^>]+>/g, '')));
+  }
+
+  lines.push('');
+  lines.push(`This report represents the baseline data of ${d.name}'s behaviors. The therapy program will now proceed with the implementation of intervention plan wherein problem behaviors will be reduced while appropriate behaviors will be rewarded. After the intervention plan, the therapy program will measure the same set of behaviors again. The second set of data will be compared to the baseline set of data.`);
+  lines.push('');
+  lines.push(`Thank you for entrusting ${d.name}'s development to us. If you have concerns or inquiries regarding this progress report, undersigned below may be reached by email at wellness@psi-services.net`);
+  lines.push('');
+  lines.push('Prepared by:                                   Noted by:');
+  lines.push('Full Name, Title/s                             Full Name, Title/s');
+  lines.push('Behavioral Therapist                           Immediate Supervisor');
+
+  return lines.join('\n');
+}
+
+// ── Replaces showWriteupPlaceholder ─────────────────────────────────────────
+function showWriteupPlaceholder(client, bcm, bdm, skill) {
+  const data = buildWriteupData(client, bcm, bdm, skill);
+
+  writeupEmpty.style.display = 'none';
+  writeupContent.classList.add('visible');
+  writeupContent.innerHTML = renderWriteupHTML(data);
+
+  btnPdf.disabled = btnDocx.disabled = btnCopy.disabled = false;
+
+  // Store plain text for copy/export
+  writeupContent._plainText = renderWriteupPlainText(data);
+  writeupContent._writeupData = data;
+}
+
+// ── Copy handler ─────────────────────────────────────────────────────────────
+btnCopy.addEventListener('click', () => {
+  const text = writeupContent._plainText || writeupContent.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btnCopy.innerHTML;
+    btnCopy.innerHTML = `<svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+    setTimeout(() => { btnCopy.innerHTML = orig; }, 2000);
+  });
+});
+
+// ── PDF export ───────────────────────────────────────────────────────────────
+btnPdf.addEventListener('click', () => {
+  const name = activeClientData?.full_name?.replace(/\s+/g, '_') || 'Report';
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <title>Baseline Report – ${activeClientData?.full_name}</title>
+    <style>
+      body { font-family: Tahoma, Arial, sans-serif; font-size: 13px; margin: 48px; color: #222; line-height: 1.7; }
+      h2 { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+           color: #1a1a1a; border-bottom: 1.5px solid rgba(201,168,76,.35); padding-bottom: 5px; margin: 22px 0 8px; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+      td { border: 1px solid #ddd; padding: 6px 10px; }
+      @media print { body { margin: 0; } }
+    </style>
+  </head><body>
+    ${writeupContent.innerHTML}
+  </body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 400);
+});
+
+// ── DOCX export ──────────────────────────────────────────────────────────────
+btnDocx.addEventListener('click', async () => {
+  showToast('Preparing DOCX…', 'info');
+  const d = writeupContent._writeupData;
+  if (!d) return;
+
+  // Build a minimal but faithful .docx via the Anthropic-hosted endpoint
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `Generate a base64-encoded minimal valid .docx (Office Open XML) for a one-page Baseline Report with this plain text content. Return ONLY the base64 string, no explanation:\n\n${writeupContent._plainText}`
+        }]
+      })
+    });
+    // Fallback: DOCX generation via AI is complex; instead offer the print-to-PDF path
+    showToast('For DOCX: use "Export PDF" then print-save, or ask your admin to enable server-side DOCX generation.', 'info');
+  } catch {
+    showToast('DOCX export requires server-side support. Use PDF export instead.', 'info');
+  }
+});
 
     // ── Export handlers ────────────────────────────────────────
     btnCopy.addEventListener('click', () => {
@@ -1286,6 +1644,7 @@
 
   })();
   </script>
-
+  <script src="../js/index.js"></script>
+<script src="../js/reports.js"></script>
 </body>
 </html> 

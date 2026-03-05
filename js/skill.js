@@ -1,24 +1,6 @@
-/**
- * ATRP — skill.js
- * Skill Scoring Sheet logic.
- *
- * Client binding:
- *   • Reads window.ATRP_CLIENT_ID (set by index.js when a client is selected).
- *   • Also provides its own lightweight client picker so this page works
- *     standalone (i.e. navigated to directly without going through index.html).
- *
- * Save & Submit flow:
- *   • "Save & Submit" finalises the current session in the DB, then resets
- *     the entire form so the user can immediately start a new client.
- *   • The client name/ID is also cleared so the next entry is truly fresh.
- */
-
 (function () {
   'use strict';
 
-  // ─────────────────────────────────────────────────────────────
-  // STATE
-  // ─────────────────────────────────────────────────────────────
   const TIERS = [
     { key: 'eye',   label: 'Eye Contact',            color: '#1447e6', cls: 't-eye'   },
     { key: 'basic', label: 'Basic Understanding',    color: '#00c950', cls: 't-basic' },
@@ -35,11 +17,6 @@
   let currentClientName = '';     // display name
   let isSaving          = false;
 
-  // ─────────────────────────────────────────────────────────────
-  // CLIENT RESOLUTION
-  // Tries window.ATRP_CLIENT_ID first (set by index.js),
-  // otherwise shows the inline client picker.
-  // ─────────────────────────────────────────────────────────────
   function resolveClient() {
     const id = window.ATRP_CLIENT_ID || null;
     if (id) {
