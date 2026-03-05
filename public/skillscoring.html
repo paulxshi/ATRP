@@ -62,9 +62,12 @@
 .chip-ident { background: var(--c-ident); border-color: rgba(232,124,78,.4); }
 .chip-adv   { background: var(--c-adv);   border-color: rgba(124,111,247,.4); }
 
+/* ─── Table scroll — extra bottom padding so last-row dropdowns are reachable ── */
 .table-scroll {
   overflow-y: auto; overflow-x: auto;
-  max-height: 520px;
+  min-height: 200px; max-height: 400px;
+  /* FIX: padding-bottom gives room for dropdowns on the last rows */
+  padding-bottom: 120px;
 }
 .table-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
 .table-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -72,21 +75,23 @@
 
 /* ─── Table ──────────────────────────────────────── */
 .ss-table {
+  min-height: 250px;
+  min-width: 450px;
   width: 100%; border-collapse: collapse;
   font-family: var(--ff-body);
   table-layout: fixed;
 }
 .ss-table thead { position: sticky; top: 0; z-index: 10; }
 .ss-table thead tr {
-  background: linear-gradient(90deg, #141414 0%, #252525 100%);
+  background: linear-gradient(90deg, #C9A84C 0%, #E8CA7A 50%, #C9A84C 100%);
   border-bottom: 2px solid var(--gold);
 }
 .ss-table th {
-  padding: 13px 16px;
-  font-family: var(--ff-display);
-  font-size: 9.5px; font-weight: 700;
+  padding: 16px 16px;
+  font-family: 'Nevis', sans-serif;
+  font-size: 10px; font-weight: 800;
   letter-spacing: .15em; text-transform: uppercase;
-  color: var(--gold);
+  color: #000;
   border-right: 1px solid rgba(255,255,255,.06);
   white-space: nowrap;
 }
@@ -115,55 +120,71 @@
 }
 .ss-table td:last-child { border-right: none; }
 
-/* ── Criteria pill ── */
-.crit-wrap { padding: 12px 16px; }
-.crit-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-  background: var(--gold-soft); color: #6b4f10;
-  border: 1px solid rgba(201,168,76,.25);
+/* ── Criteria / Attempts cell ── */
+.crit-wrap {
+  padding: 0 14px;
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; min-height: 52px;
+}
+
+/* ── Attempts — clean underline number field ── */
+.attempts-field {
+  display: flex; align-items: baseline; gap: 5px;
+}
+.attempts-input {
+  width: 36px;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid rgba(201,168,76,.45);
+  font-family: var(--ff-body);
+  font-size: 15px; font-weight: 700;
+  color: #7a5c1e;
+  text-align: center;
+  outline: none;
+  padding: 2px 0 3px;
+  transition: border-color .18s, color .18s;
+}
+.attempts-input:focus {
+  border-color: var(--gold);
+  color: #3d2b00;
+}
+.attempts-input::-webkit-inner-spin-button,
+.attempts-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.attempts-unit {
+  font-family: var(--ff-body);
+  font-size: 11px; font-weight: 500;
+  color: #b0966a;
+  letter-spacing: .03em;
   white-space: nowrap;
 }
 
-/* Attempts static label */
-.attempts-static {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-family: var(--ff-body); font-size: 11.5px; font-weight: 600;
-  background: var(--gold-soft); color: #6b4f10;
-  border: 1px solid rgba(201,168,76,.25);
-  white-space: nowrap;
-  user-select: none;
-}
-
-/* ── Score cell ── */
+/* ── Score / Successful cell ── */
 .score-wrap {
-  padding: 10px 16px;
+  padding: 0 14px;
   display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 100%; min-height: 52px;
 }
 .score-input {
-  width: 60px; height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fafafa;
-  font-family: var(--ff-body); font-size: 14px; font-weight: 600;
+  width: 36px;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid rgba(0,0,0,.15);
+  font-family: var(--ff-body); font-size: 15px; font-weight: 700;
   text-align: center; color: var(--text);
   outline: none;
-  transition: border-color .18s, box-shadow .18s, background .18s;
+  padding: 2px 0 3px;
+  transition: border-color .18s, color .18s;
 }
 .score-input:focus {
   border-color: var(--gold);
-  box-shadow: 0 0 0 3px var(--gold-soft);
-  background: #fff;
+  color: #3d2b00;
 }
 .score-input::-webkit-inner-spin-button,
 .score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
 .score-pct {
-  font-size: 14px; font-weight: 800;
-  color: var(--gold); min-width: 40px;
+  font-size: 13px; font-weight: 800;
+  color: var(--gold); min-width: 36px;
   text-align: right; letter-spacing: -.02em;
 }
 
@@ -172,54 +193,41 @@
 ───────────────────────────────────────────────── */
 .custom-select-wrap {
   position: relative;
-  padding: 10px 12px;
+  padding: 6px 10px;
   user-select: none;
 }
 
-/* The visible trigger button */
 .cs-trigger {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px 9px 10px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  background: #FAFAF9;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 4px 6px 8px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: border-color .18s, box-shadow .18s, background .18s;
-  min-height: 40px;
+  transition: background .18s;
+  min-height: 32px;
 }
-.cs-trigger:hover {
-  border-color: #ccc;
-  background: #fff;
-}
-.cs-trigger.open {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px var(--gold-soft);
-  background: #fff;
-}
+.cs-trigger:hover { background: rgba(0,0,0,.04); }
+.cs-trigger.open  { background: rgba(201,168,76,.08); }
 
-/* Color swatch on trigger */
 .cs-swatch {
-  width: 10px; height: 10px;
-  border-radius: 3px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
   flex-shrink: 0;
   transition: background .2s;
 }
 
-/* Label text */
 .cs-label {
   flex: 1;
-  font-family: var(--ff-body); font-size: 12.5px; font-weight: 500;
+  font-family: var(--ff-body); font-size: 12px; font-weight: 500;
   color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   line-height: 1;
 }
-.cs-label.placeholder { color: #aaa; font-weight: 400; }
+.cs-label.placeholder { color: #bbb; font-weight: 400; font-size: 11.5px; }
 
-/* Chevron */
 .cs-chevron {
-  width: 14px; height: 14px;
+  width: 11px; height: 11px;
   flex-shrink: 0;
-  color: #bbb;
+  color: #ccc;
   transition: transform .2s, color .2s;
 }
 .cs-trigger.open .cs-chevron {
@@ -227,7 +235,7 @@
   color: var(--gold);
 }
 
-/* Dropdown panel */
+/* Dropdown panel — opens DOWNWARD, z-index above scroll */
 .cs-panel {
   position: absolute;
   top: calc(100% - 6px); left: 12px; right: 12px;
@@ -235,7 +243,7 @@
   border: 1.5px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 12px 36px rgba(0,0,0,.13);
-  z-index: 200;
+  z-index: 999;
   overflow: hidden;
   opacity: 0; transform: translateY(-6px) scale(.98);
   pointer-events: none;
@@ -246,7 +254,6 @@
   pointer-events: all;
 }
 
-/* Each option */
 .cs-option {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 14px;
@@ -258,18 +265,15 @@
 .cs-option:hover { background: var(--bg); }
 .cs-option.selected { background: var(--gold-soft); }
 
-/* Color bar on left of option */
 .cs-opt-bar {
   width: 3px; height: 28px;
   border-radius: 2px;
   flex-shrink: 0;
 }
-/* Option text */
 .cs-opt-label {
   font-family: var(--ff-body); font-size: 12.5px; font-weight: 500;
   color: var(--text); flex: 1;
 }
-/* Check icon */
 .cs-opt-check {
   width: 14px; height: 14px;
   opacity: 0; color: var(--gold);
@@ -286,7 +290,6 @@
   padding: 10px 14px;
 }
 
-/* Badge-style text input — color reflects chosen tier */
 .skill-input {
   width: 100%;
   padding: 6px 12px;
@@ -339,24 +342,24 @@
 }
 
 .btn-del {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 15px;
-    background: transparent;
-    color: #d32f2f;
-    font-family: var(--ff-display);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .08em;
-    border: 1px solid #d32f2f;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background .2s, border-color .2s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 15px;
+  background: transparent;
+  color: #d32f2f;
+  font-family: var(--ff-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  border: 1px solid #d32f2f;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
 }
 .btn-del:hover:not(:disabled) {
-background: rgba(211,47,47,0.08); border-color: #d32f2f;
-transform: translateY(-1px);
+  background: rgba(211,47,47,0.08); border-color: #d32f2f;
+  transform: translateY(-1px);
 }
 .btn-save {
   display: inline-flex; align-items: center; gap: 8px;
@@ -401,12 +404,12 @@ transform: translateY(-1px);
     <a class="nav-item" href="index.html">
       <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
       <span class="nav-label">Behavior</span>
-      <span class="nav-badge">Live</span>
       <span class="tooltip-text">Behavior</span>
     </a>
     <a class="nav-item active" href="skillscoring.html">
       <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
       <span class="nav-label">Skill Scoring</span>
+      <span class="nav-badge">Live</span>
       <span class="tooltip-text">Skill Scoring</span>
     </a>
     <a class="nav-item" href="#">
@@ -441,6 +444,7 @@ transform: translateY(-1px);
       <span class="legend-chip chip-ident"><span class="legend-chip-dot"></span>Identification</span>
       <span class="legend-chip chip-adv">  <span class="legend-chip-dot"></span>Advanced Understanding</span>
     </div>
+
     <div class="table-scroll">
       <table class="ss-table">
         <colgroup>
@@ -453,7 +457,7 @@ transform: translateY(-1px);
         <thead>
           <tr>
             <th class="c-sub">Subskill Level</th>
-            <th class="c-skl">Skill</th>
+            <th class="c-skl">Drills</th>
             <th class="c-crit">No. of Attempts</th>
             <th class="c-succ" style="text-align:center">Successful</th>
             <th class="c-sc"   style="text-align:center">Score</th>
@@ -471,23 +475,24 @@ transform: translateY(-1px);
           Add Row
         </button>
         <button class="btn-row btn-del" id="btnDelRow">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Delete Row
         </button>
       </div>
     </div>
 
-  <div class="bcm-footer bcm-footer-bottom">
-    <div class="bcm-footer-actions">
-      <button class="btn-save" id="btnSave">
-<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Save &amp; Submit
-      </button>
+    <div class="bcm-footer bcm-footer-bottom">
+      <div class="bcm-footer-actions">
+        <button class="btn-save" id="btnSave">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Save &amp; Submit
+        </button>
+      </div>
     </div>
-  </div>
-  </div>
 
-</div>
+  </div><!-- /.measurement-container -->
+
+</div><!-- /.ss-wrapper -->
 </main>
 
 <script>
@@ -495,13 +500,13 @@ transform: translateY(-1px);
 
   /* ── Tier data ── */
   const TIERS = [
-    { key: 'eye',   label: 'Eye Contact',            color: '#C9A84C' },
-    { key: 'basic', label: 'Basic Understanding',    color: '#3aa06f' },
-    { key: 'ident', label: 'Identification',         color: '#e87c4e' },
-    { key: 'adv',   label: 'Advanced Understanding', color: '#7c6ff7' },
+    { key: 'eye',   label: 'Eye Contact',            color: '#9A7B2C' },
+    { key: 'basic', label: 'Basic Understanding',    color: '#2A7050' },
+    { key: 'ident', label: 'Identification',         color: '#B85A2E' },
+    { key: 'adv',   label: 'Advanced Understanding', color: '#5A4FB0' },
   ];
 
-  /* ── Data ── */
+  /* ── Data — attempts is now editable, default 5 ── */
   const DRILLS = [
     { skill: '', attempts: 5, tier: null, succ: '' },
     { skill: '', attempts: 5, tier: null, succ: '' },
@@ -516,7 +521,7 @@ transform: translateY(-1px);
   }
 
   function recalcPct(idx) {
-    const max   = DRILLS[idx].attempts || 5;
+    const max    = parseInt(DRILLS[idx].attempts) || 0;
     const succEl = document.getElementById('succ-'+idx);
     const v      = succEl ? parseFloat(succEl.value) : NaN;
     const p      = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v / max) * 100)) : null;
@@ -588,12 +593,16 @@ transform: translateY(-1px);
       '</div>';
     tr.appendChild(tdSkill);
 
-    /* 3. Attempts static display */
+    /* 3. Attempts — typeable, clean underline style */
     const tdCrit = document.createElement('td');
     tdCrit.className = 'c-crit';
     tdCrit.innerHTML =
       '<div class="crit-wrap">'+
-        '<span class="attempts-static">'+(drill.attempts||5)+' Attempts</span>'+
+        '<div class="attempts-field">'+
+          '<input type="number" class="attempts-input" id="attempts-'+idx+'" data-idx="'+idx+'"'+
+            ' min="1" value="'+(drill.attempts||5)+'" placeholder="5" />'+
+          '<span class="attempts-unit">tries</span>'+
+        '</div>'+
       '</div>';
     tr.appendChild(tdCrit);
 
@@ -610,7 +619,7 @@ transform: translateY(-1px);
     /* 5. Score % */
     const tdScore = document.createElement('td');
     tdScore.className = 'c-sc';
-    const max = drill.attempts || 5;
+    const max = parseInt(drill.attempts) || 0;
     const v   = parseFloat(drill.succ);
     const p   = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v/max)*100)) : null;
     tdScore.innerHTML =
@@ -639,6 +648,18 @@ transform: translateY(-1px);
         if (!isOpen) {
           panel.classList.add('open');
           this.classList.add('open');
+          /* Scroll the table so the dropdown is visible */
+          setTimeout(function() {
+            var scroll = document.querySelector('.table-scroll');
+            var panelEl = document.getElementById('cs-panel-'+idx);
+            if (scroll && panelEl) {
+              var scrollRect = scroll.getBoundingClientRect();
+              var panelRect  = panelEl.getBoundingClientRect();
+              if (panelRect.bottom > scrollRect.bottom) {
+                scroll.scrollTop += (panelRect.bottom - scrollRect.bottom + 16);
+              }
+            }
+          }, 20);
         }
       });
     });
@@ -675,13 +696,41 @@ transform: translateY(-1px);
       });
     });
 
+    /* ── ATTEMPTS input — updates max, clamps successful, recalcs % ── */
+    document.querySelectorAll('.attempts-input').forEach(function(input) {
+      input.addEventListener('input', function() {
+        const idx = +this.dataset.idx;
+        let v = parseInt(this.value);
+        if (isNaN(v) || v < 1) v = 1;
+        DRILLS[idx].attempts = v;
+
+        /* Clamp successful to new max */
+        const succEl = document.getElementById('succ-'+idx);
+        if (succEl) {
+          let s = parseFloat(succEl.value);
+          if (!isNaN(s) && s > v) { succEl.value = v; DRILLS[idx].succ = v; }
+          succEl.max = v;
+        }
+        recalcPct(idx);
+      });
+      /* Prevent negative / zero on blur */
+      input.addEventListener('blur', function() {
+        const idx = +this.dataset.idx;
+        if (!this.value || parseInt(this.value) < 1) {
+          this.value = 1;
+          DRILLS[idx].attempts = 1;
+          recalcPct(idx);
+        }
+      });
+    });
+
     /* Successful input */
     document.querySelectorAll('.score-input').forEach(function(input) {
       input.addEventListener('input', function() {
         const idx = +this.dataset.idx;
-        let v = parseFloat(this.value);
-        if (!isNaN(v) && v < 0) { this.value = 0; v = 0; }
-        const max = DRILLS[idx].attempts || 5;
+        let v   = parseFloat(this.value);
+        const max = parseInt(DRILLS[idx].attempts) || 1;
+        if (!isNaN(v) && v < 0)   { this.value = 0;   v = 0; }
         if (!isNaN(v) && v > max) { this.value = max; v = max; }
         DRILLS[idx].succ = this.value;
         recalcPct(idx);

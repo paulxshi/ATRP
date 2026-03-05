@@ -296,23 +296,6 @@
 
   .bcm-meta-input:focus { border-color: var(--gold); }
   .bcm-meta-input[type="date"]::-webkit-calendar-picker-indicator { filter: none; opacity: 0.5; }
-
-  .bcm-btn-save {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 16px;
-    background: #C9A84C;
-    color: #000000;
-    font-family: var(--ff-display);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .06em;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: opacity .2s, transform .15s;
-  }
   .bcm-btn-save:hover { opacity: .88; transform: translateY(-1px); }
   .bcm-btn-save.saving { opacity: 0.7; pointer-events: none; }
 

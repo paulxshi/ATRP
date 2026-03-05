@@ -46,10 +46,10 @@
       --advanced-border:    rgba(124,111,247,.35);
 
       /* tier palette */
-      --c-eye   : #C9A84C;
-      --c-basic : #3aa06f;
-      --c-ident : #e87c4e;
-      --c-adv   : #7c6ff7;
+      --c-eye   : #9A7B2C;
+      --c-basic : #2A7050;
+      --c-ident : #B85A2E;
+      --c-adv   : #5A4FB0;
     }
 
     html, body {
