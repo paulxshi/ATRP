@@ -79,7 +79,7 @@
     .col-subskill   { width: 18%; }
     .col-skill      { width: 16%; }
     .col-criteria   { width: 14%; }
-    .col-successful { width: 16%; }
+    .col-successful { width: 10%; }
     .col-score      { width: 10%; }
 
     /* TD */
@@ -98,7 +98,16 @@
     }
     .ss-table td:last-child { border-right: none; }
 
-    /* ── Subskill Radio Group ── */
+    /* Center the Successful column input */
+    .col-successful td {
+      text-align: center;
+      justify-content: center;
+    }
+    .col-successful .score-cell {
+      justify-content: center;
+    }
+
+    /* ── Subskill Dropdown ── */
     .subskill-cell {
       padding: 12px 14px;
       display: flex;
@@ -106,99 +115,27 @@
       gap: 6px;
     }
 
-    .radio-option {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .subskill-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fafafa;
+      font-family: var(--ff-body);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
       cursor: pointer;
-      user-select: none;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
     }
-    .radio-option input[type="radio"] { display: none; }
-
-    .radio-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid #ccc;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: border-color .18s, background .18s;
-      position: relative;
+    .subskill-select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,.15);
+      background: #fff;
     }
-    .radio-dot::after {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: transparent;
-      transition: background .18s, transform .18s;
-      transform: scale(0);
-    }
-    .radio-option input:checked + .radio-dot::after {
-      transform: scale(1);
-    }
-
-    /* Tier badge */
-    .radio-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: .03em;
-      white-space: nowrap;
-      border: 1px solid transparent;
-      transition: opacity .18s, transform .15s;
-    }
-    .radio-option:not(:has(input:checked)) .radio-badge {
-      opacity: .55;
-    }
-    .radio-option:has(input:checked) .radio-badge {
-      opacity: 1;
-      transform: translateX(2px);
-    }
-
-    /* Eye Contact — gold */
-    .radio-option.tier-eye .radio-dot        { border-color: rgba(201,168,76,.45); }
-    .radio-option.tier-eye input:checked + .radio-dot { border-color: var(--eye-contact); background: var(--eye-contact); }
-    .radio-option.tier-eye input:checked + .radio-dot::after { background: #fff; }
-    .radio-option.tier-eye .radio-badge {
-      background: var(--eye-contact-bg);
-      color: #7a5c0a;
-      border-color: var(--eye-contact-border);
-    }
-
-    /* Basic Understanding — green */
-    .radio-option.tier-basic .radio-dot        { border-color: rgba(58,160,111,.45); }
-    .radio-option.tier-basic input:checked + .radio-dot { border-color: var(--basic); background: var(--basic); }
-    .radio-option.tier-basic input:checked + .radio-dot::after { background: #fff; }
-    .radio-option.tier-basic .radio-badge {
-      background: var(--basic-bg);
-      color: #1a6644;
-      border-color: var(--basic-border);
-    }
-
-    /* Identification — orange */
-    .radio-option.tier-identification .radio-dot        { border-color: rgba(232,124,78,.45); }
-    .radio-option.tier-identification input:checked + .radio-dot { border-color: var(--identification); background: var(--identification); }
-    .radio-option.tier-identification input:checked + .radio-dot::after { background: #fff; }
-    .radio-option.tier-identification .radio-badge {
-      background: var(--identification-bg);
-      color: #8a3910;
-      border-color: var(--identification-border);
-    }
-
-    /* Advanced Understanding — purple */
-    .radio-option.tier-advanced .radio-dot        { border-color: rgba(124,111,247,.45); }
-    .radio-option.tier-advanced input:checked + .radio-dot { border-color: var(--advanced); background: var(--advanced); }
-    .radio-option.tier-advanced input:checked + .radio-dot::after { background: #fff; }
-    .radio-option.tier-advanced .radio-badge {
-      background: var(--advanced-bg);
-      color: #3d2f9e;
-      border-color: var(--advanced-border);
+    .subskill-select::placeholder {
+      color: #999;
     }
 
     /* Skill label cell with color tag */
@@ -251,6 +188,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      justify-content: center;
     }
     .score-pct {
       font-size: 16px;
@@ -475,38 +413,66 @@
   function buildRow(drill, idx) {
     const tr = document.createElement('tr');
 
-    /* ── Subskill cell: radio group ── */
+    /* ── Subskill cell: dropdown with color ── */
     const tdSub = document.createElement('td');
-    const cell  = document.createElement('div');
+    const cell = document.createElement('div');
     cell.className = 'subskill-cell';
 
+    const select = document.createElement('select');
+    select.className = 'subskill-select';
+    select.id = `tier-select-${idx}`;
+    
+    // Default placeholder option
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Choose subskill level';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+
+    // Add tier options with colors
+    const tierColors = {
+      'eye': '#C9A84C',
+      'basic': '#3aa06f',
+      'identification': '#e87c4e',
+      'advanced': '#7c6ff7'
+    };
+
     TIERS.forEach(tier => {
-      const label = document.createElement('label');
-      label.className = `radio-option ${tier.cls}`;
-
-      const input = document.createElement('input');
-      input.type  = 'radio';
-      input.name  = `tier-${idx}`;
-      input.value = tier.key;
-      if (tierSel[idx] === tier.key) input.checked = true;
-
-      input.addEventListener('change', () => {
-        tierSel[idx] = tier.key;
-      });
-
-      const dot   = document.createElement('span');
-      dot.className = 'radio-dot';
-
-      const badge = document.createElement('span');
-      badge.className = 'radio-badge';
-      badge.textContent = tier.label;
-
-      label.appendChild(input);
-      label.appendChild(dot);
-      label.appendChild(badge);
-      cell.appendChild(label);
+      const option = document.createElement('option');
+      option.value = tier.key;
+      option.textContent = tier.label;
+      option.dataset.color = tierColors[tier.key];
+      if (tierSel[idx] === tier.key) option.selected = true;
+      select.appendChild(option);
     });
 
+    // Create color badge indicator
+    const colorBadge = document.createElement('span');
+    colorBadge.className = 'subskill-color-badge';
+    colorBadge.style.backgroundColor = tierColors[tierSel[idx]] || '#ccc';
+    colorBadge.style.width = '12px';
+    colorBadge.style.height = '12px';
+    colorBadge.style.borderRadius = '50%';
+    colorBadge.style.display = 'inline-block';
+    colorBadge.style.marginRight = '8px';
+    colorBadge.style.verticalAlign = 'middle';
+    colorBadge.style.flexShrink = '0';
+
+    select.addEventListener('change', () => {
+      tierSel[idx] = select.value;
+      colorBadge.style.backgroundColor = tierColors[select.value] || '#ccc';
+    });
+
+    // Wrap select in a container
+    const selectWrapper = document.createElement('div');
+    selectWrapper.style.display = 'flex';
+    selectWrapper.style.alignItems = 'center';
+    selectWrapper.style.gap = '8px';
+    selectWrapper.appendChild(colorBadge);
+    selectWrapper.appendChild(select);
+
+    cell.appendChild(selectWrapper);
     tdSub.appendChild(cell);
     tr.appendChild(tdSub);
 
@@ -530,15 +496,14 @@
           </svg>
           ${drill.criteria}
         </span>
-        <span style="font-size:11px;color:#bbb;">/ ${drill.max}</span>
       </div>`;
     tr.appendChild(tdCrit);
 
     /* ── Successful attempts cell ── */
     const tdSucc = document.createElement('td');
+    tdSucc.className = 'successful-cell';
     tdSucc.innerHTML = `
-      <div class="score-cell">
-        <span class="score-pct" id="pct-succ-${idx}">—</span>
+      <div class="score-cell" style="justify-content: center;">
         <input
           type="number"
           class="score-input-inline"
@@ -555,21 +520,10 @@
 
     /* ── Score cell ── */
     const tdScore = document.createElement('td');
-    const p = pct(scores[idx], drill.max);
+    const p = pct(successfulScores[idx], drill.max);
     tdScore.innerHTML = `
       <div class="score-cell">
-        <span class="score-pct" id="pct-${idx}">${p !== null ? p + '%' : '—'}</span>
-        <input
-          type="number"
-          class="score-input-inline"
-          id="input-${idx}"
-          data-idx="${idx}"
-          data-max="${drill.max}"
-          placeholder="0"
-          min="0"
-          max="${drill.max}"
-          value="${scores[idx]}"
-        />
+        <span class="score-pct" id="pct-${idx}">${p !== null ? p + '%' : ''}</span>
       </div>`;
     tr.appendChild(tdScore);
 
@@ -588,15 +542,11 @@
         let v = parseFloat(this.value);
         if (!isNaN(v) && v > max) { this.value = max; v = max; }
         
-        // Determine if this is a successful attempts input or score input
+        // Update percentage when successful attempts input changes
         if (this.id.startsWith('input-succ-')) {
           successfulScores[idx] = this.value;
-          const succPct = pct(this.value, max);
-          document.getElementById('pct-succ-' + idx).textContent = succPct !== null ? succPct + '%' : '—';
-        } else {
-          scores[idx] = this.value;
           const p = pct(this.value, max);
-          document.getElementById('pct-' + idx).textContent = p !== null ? p + '%' : '—';
+          document.getElementById('pct-' + idx).textContent = p !== null ? p + '%' : '';
         }
       });
     });
