@@ -44,6 +44,12 @@
       --advanced:           #7c6ff7;
       --advanced-bg:        rgba(124,111,247,.10);
       --advanced-border:    rgba(124,111,247,.35);
+
+      /* tier palette */
+      --c-eye   : #C9A84C;
+      --c-basic : #3aa06f;
+      --c-ident : #e87c4e;
+      --c-adv   : #7c6ff7;
     }
 
     html, body {

@@ -176,6 +176,8 @@
       padding-bottom: 0;
       flex-shrink: 0;
       transition: max-width .3s ease;
+      max-height: 1050px;
+      min-height: 400px;
     }
 
     /* When sidebar is collapsed, container expands fully */
@@ -388,7 +390,7 @@
     cursor: pointer;
     transition: background .2s, border-color .2s;
   }
-  .bcm-btn-delete:hover { background: rgba(211,47,47,0.08); border-color: #d32f2f; }
+  .bcm-btn-delete:hover { background: rgba(211,47,47,0.08); border-color: #d32f2f; transform: translateY(-1px);}
 
   .bcm-session-count {
     font-size: 12px;
@@ -400,8 +402,10 @@
 
   /* ── Table Container ──────────────────────────── */
   .bcm-table-container {
+    max-height: 500px;
     border-radius: var(--radius);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     border: 1px solid var(--border);
     box-shadow: 0 8px 24px rgba(0,0,0,.08);
     background: rgba(0,0,0,0.025);

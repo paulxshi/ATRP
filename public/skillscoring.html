@@ -9,318 +9,378 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../css/dashstyle.css">
   <link rel="stylesheet" href="../css/table.css">
+<style>
+/* ─── Page header ────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ss-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex; flex-direction: column; gap: 24px;
+  animation: fadeUp .45s ease both;
+}
+.ss-eyebrow {
+  display: block;
+  font-family: var(--ff-display); font-size: 10px;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.ss-title { font-family: var(--ff-display); font-size: 28px; font-weight: 800; line-height: 1; }
+.ss-title-accent { color: var(--gold); }
+
+/* ─── Card ───────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.07);
+}
+
+/* ─── Legend bar ─────────────────────────────────── */
+.legend-bar {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border2);
+  background: #FDFCFA;
+}
+.legend-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px 5px 8px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-family: var(--ff-body); font-size: 11.5px; font-weight: 500;
+  color: #fff;
+  transition: transform .15s, box-shadow .15s;
+}
+.legend-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+.legend-chip-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.55); flex-shrink: 0; }
+.chip-eye   { background: var(--c-eye);   border-color: rgba(201,168,76,.4); color: #fff; }
+.chip-basic { background: var(--c-basic); border-color: rgba(58,160,111,.4); }
+.chip-ident { background: var(--c-ident); border-color: rgba(232,124,78,.4); }
+.chip-adv   { background: var(--c-adv);   border-color: rgba(124,111,247,.4); }
+
+/* ─── Table ──────────────────────────────────────── */
+.ss-table {
+  width: 100%; border-collapse: collapse;
+  font-family: var(--ff-body);
+  table-layout: fixed;
+}
+.ss-table thead { position: sticky; top: 0; z-index: 10; }
+.ss-table thead tr {
+  background: linear-gradient(90deg, #141414 0%, #252525 100%);
+  border-bottom: 2px solid var(--gold);
+}
+.ss-table th {
+  padding: 13px 16px;
+  font-family: var(--ff-display);
+  font-size: 9.5px; font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: var(--gold);
+  border-right: 1px solid rgba(255,255,255,.06);
+  white-space: nowrap;
+}
+.ss-table th:last-child { border-right: none; }
+
+/* col widths */
+.c-sub  { width: 22%; }
+.c-skl  { width: 24%; }
+.c-crit { width: 16%; }
+.c-succ { width: 13%; }
+.c-sc   { width: 12%; }
+
+/* Body rows */
+.ss-table tbody tr {
+  border-bottom: 1px solid var(--border2);
+  transition: background .15s;
+}
+.ss-table tbody tr:nth-child(odd)  { background: #fff; }
+.ss-table tbody tr:nth-child(even) { background: #FAFAF7; }
+.ss-table tbody tr:hover           { background: rgba(201,168,76,.035); }
+.ss-table tbody tr:last-child      { border-bottom: none; }
+.ss-table td {
+  padding: 0;
+  border-right: 1px solid var(--border2);
+  vertical-align: middle;
+}
+.ss-table td:last-child { border-right: none; }
+
+/* ── Criteria pill ── */
+.crit-wrap { padding: 12px 16px; }
+.crit-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  background: var(--gold-soft); color: #6b4f10;
+  border: 1px solid rgba(201,168,76,.25);
+  white-space: nowrap;
+}
+
+/* Attempts static label */
+.attempts-static {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-family: var(--ff-body); font-size: 11.5px; font-weight: 600;
+  background: var(--gold-soft); color: #6b4f10;
+  border: 1px solid rgba(201,168,76,.25);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ── Score cell ── */
+.score-wrap {
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.score-input {
+  width: 60px; height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fafafa;
+  font-family: var(--ff-body); font-size: 14px; font-weight: 600;
+  text-align: center; color: var(--text);
+  outline: none;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+.score-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+  background: #fff;
+}
+.score-input::-webkit-inner-spin-button,
+.score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.score-pct {
+  font-size: 14px; font-weight: 800;
+  color: var(--gold); min-width: 40px;
+  text-align: right; letter-spacing: -.02em;
+}
+
+/* ─────────────────────────────────────────────────
+   CUSTOM SELECT DROPDOWN
+───────────────────────────────────────────────── */
+.custom-select-wrap {
+  position: relative;
+  padding: 10px 12px;
+  user-select: none;
+}
+
+/* The visible trigger button */
+.cs-trigger {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px 9px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #FAFAF9;
+  cursor: pointer;
+  transition: border-color .18s, box-shadow .18s, background .18s;
+  min-height: 40px;
+}
+.cs-trigger:hover {
+  border-color: #ccc;
+  background: #fff;
+}
+.cs-trigger.open {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-soft);
+  background: #fff;
+}
+
+/* Color swatch on trigger */
+.cs-swatch {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: background .2s;
+}
+
+/* Label text */
+.cs-label {
+  flex: 1;
+  font-family: var(--ff-body); font-size: 12.5px; font-weight: 500;
+  color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  line-height: 1;
+}
+.cs-label.placeholder { color: #aaa; font-weight: 400; }
+
+/* Chevron */
+.cs-chevron {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+  color: #bbb;
+  transition: transform .2s, color .2s;
+}
+.cs-trigger.open .cs-chevron {
+  transform: rotate(180deg);
+  color: var(--gold);
+}
+
+/* Dropdown panel */
+.cs-panel {
+  position: absolute;
+  top: calc(100% - 6px); left: 12px; right: 12px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,.13);
+  z-index: 200;
+  overflow: hidden;
+  opacity: 0; transform: translateY(-6px) scale(.98);
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+.cs-panel.open {
+  opacity: 1; transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* Each option */
+.cs-option {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background .12s;
+  border-bottom: 1px solid var(--border2);
+}
+.cs-option:last-child { border-bottom: none; }
+.cs-option:hover { background: var(--bg); }
+.cs-option.selected { background: var(--gold-soft); }
+
+/* Color bar on left of option */
+.cs-opt-bar {
+  width: 3px; height: 28px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+/* Option text */
+.cs-opt-label {
+  font-family: var(--ff-body); font-size: 12.5px; font-weight: 500;
+  color: var(--text); flex: 1;
+}
+/* Check icon */
+.cs-opt-check {
+  width: 14px; height: 14px;
+  opacity: 0; color: var(--gold);
+  transition: opacity .15s;
+}
+.cs-option.selected .cs-opt-check { opacity: 1; }
+
+/* ─────────────────────────────────────────────────
+   TYPEABLE SKILL CELL
+───────────────────────────────────────────────── */
+.skill-wrap {
+  display: flex; align-items: center;
+  height: 100%; min-height: 56px;
+  padding: 10px 14px;
+}
+
+/* Badge-style text input — color reflects chosen tier */
+.skill-input {
+  width: 100%;
+  padding: 6px 12px;
+  border: none; outline: none;
+  border-radius: 7px;
+  background: var(--skill-bg, rgba(200,200,200,.13));
+  font-family: var(--ff-body); font-size: 13px; font-weight: 700;
+  color: var(--skill-color, #555);
+  transition: background .22s ease, color .22s ease, box-shadow .18s;
+  letter-spacing: .01em;
+}
+.skill-input::placeholder { color: rgba(0,0,0,.25); font-weight: 400; }
+.skill-input:focus {
+  box-shadow: 0 0 0 2px var(--skill-color, #ccc);
+  outline: none;
+}
+
+/* ─── Footer ─────────────────────────────────────── */
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--border2);
+}
+.footer-row-actions {
+  display: flex; gap: 8px;
+}
+.btn-row {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--ff-body); font-size: 12.5px; font-weight: 600;
+  cursor: pointer;
+  transition: background .18s, color .18s, box-shadow .18s, transform .12s, opacity .18s;
+  border: 1.5px solid transparent;
+}
+.btn-row svg { width: 13px; height: 13px; }
+.btn-row:active { transform: scale(.97); }
+.btn-row:disabled { opacity: .35; cursor: not-allowed; }
+
+.btn-add {
+  background: #000;
+  color: #ffffff;
+  border-color: rgba(201,168,76,.3);
+}
+.btn-add:hover:not(:disabled) {
+  background: #111;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(201,168,76,.3);
+  transform: translateY(-1px);
+}
+
+.btn-del {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 15px;
+    background: transparent;
+    color: #d32f2f;
+    font-family: var(--ff-display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    border: 1px solid #d32f2f;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+.btn-del:hover:not(:disabled) {
+background: rgba(211,47,47,0.08); border-color: #d32f2f;
+transform: translateY(-1px);
+}
+.btn-save {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px;
+  color: #FAFAF7;
+  background: #000;
+  border: none; border-radius: 9px;
+  font-family: var(--ff-display); font-size: 13px; font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 14px rgba(201,168,76,.35);
+}
+.btn-save:hover {
+  background: #111;
+  box-shadow: 0 6px 20px rgba(0,0,0,.2);
+  transform: translateY(-1px);
+}
+.btn-save:active { transform: translateY(0); }
+.btn-save svg { width: 14px; height: 14px; }
+</style>
 </head>
 <body>
-  
- <style>
-    /* ── Page Header ── */
-    .ss-wrapper {
-      font-family: var(--ff-body);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      animation: fadeUp .5s ease both;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-    @keyframes fadeUp {
-      from { opacity:0; transform:translateY(16px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-    .ss-header { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; }
-    .ss-eyebrow {
-      display:block; font-family:var(--ff-display); font-size:10px;
-      letter-spacing:.18em; text-transform:uppercase; color:#000; margin-bottom:6px;
-    }
-    .ss-title { font-family:var(--ff-display); font-size:28px; font-weight:800; color:#1A1A1A; line-height:1; margin:0; }
-    .ss-title-accent { color:var(--gold); }
 
-    /* ── Container ── */
-    .measurement-container {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 12px 40px rgba(0,0,0,.09);
-      max-height: 1050px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── Panel padding ── */
-    .measurement-panel { 
-      display: none; 
-      padding: 24px 28px 20px; 
-    }
-    .measurement-panel.active { 
-      display: block; 
-    }
-
-    /* ── Table ── */
-    .ss-table-container {
-      border-radius: 12px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      border-bottom: 1px solid var(--border);
-      max-height: 400px;
-      margin-bottom: 20px;
-    }
-
-    /* Make table header sticky */
-    .ss-table thead {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    }
-
-    .ss-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      font-family: var(--ff-body);
-    }
-
-    /* TH */
-    .ss-table thead tr {
-      background: linear-gradient(90deg, #1A1A1A 0%, #2E2E2E 100%);
-      border-bottom: 3px solid var(--gold);
-    }
-    .ss-table th {
-      padding: 14px 16px 12px;
-      font-family: var(--ff-heading);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--gold);
-      border-right: 1px solid rgba(255,255,255,.08);
-      vertical-align: bottom;
-    }
-    .ss-table th:last-child { border-right: none; }
-
-    /* Column widths */
-    .col-subskill   { width: 18%; }
-    .col-skill      { width: 16%; }
-    .col-criteria   { width: 14%; }
-    .col-successful { width: 10%; }
-    .col-score      { width: 10%; }
-
-    /* TD */
-    .ss-table tbody tr {
-      border-bottom: 1px solid var(--border2);
-      transition: background .2s;
-    }
-    .ss-table tbody tr:nth-child(odd)  { background: #fff; }
-    .ss-table tbody tr:nth-child(even) { background: #FAFAF7; }
-    .ss-table tbody tr:hover           { background: rgba(201,168,76,.04); }
-    .ss-table tbody tr:last-child      { border-bottom: none; }
-    .ss-table td {
-      padding: 0;
-      border-right: 1px solid var(--border2);
-      vertical-align: middle;
-    }
-    .ss-table td:last-child { border-right: none; }
-
-    /* Center the Successful column input */
-    .col-successful td {
-      text-align: center;
-      justify-content: center;
-    }
-    .col-successful .score-cell {
-      justify-content: center;
-    }
-
-    /* ── Subskill Dropdown ── */
-    .subskill-cell {
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .subskill-select {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fafafa;
-      font-family: var(--ff-body);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-      cursor: pointer;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s, background .2s;
-    }
-    .subskill-select:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(201,168,76,.15);
-      background: #fff;
-    }
-    .subskill-select::placeholder {
-      color: #999;
-    }
-
-    /* Skill label cell with color tag */
-    .skill-cell {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      height: 100%;
-      min-height: 56px;
-    }
-    .skill-color-bar {
-      width: 4px;
-      align-self: stretch;
-      flex-shrink: 0;
-    }
-    .skill-name {
-      padding: 14px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.4;
-    }
-
-    /* Criteria */
-    .criteria-cell {
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .criteria-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(201,168,76,.12);
-      color: #6b4f10;
-      border: 1px solid rgba(201,168,76,.3);
-      white-space: nowrap;
-    }
-    .criteria-pill svg { width:10px;height:10px;opacity:.6; }
-
-    /* Score cell */
-    .score-cell {
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      justify-content: center;
-    }
-    .score-pct {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--gold);
-      min-width: 44px;
-      letter-spacing: -.01em;
-    }
-    .score-input-inline {
-      width: 64px;
-      height: 34px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      background: #fafafa;
-      font-family: var(--ff-body);
-      font-size: 14px;
-      font-weight: 700;
-      text-align: center;
-      color: var(--text);
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .score-input-inline:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(201,168,76,.15);
-      background: #fff;
-    }
-    .score-input-inline::-webkit-outer-spin-button,
-    .score-input-inline::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
-
-    /* ── Legend ── */
-    .ss-legend {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin: 20px;
-      padding: 14px 18px;
-      background: #fafafa;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .ss-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-    .ss-legend-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    /* Footer styles */
-    .bcm-footer-bottom {
-      padding: 16px 20px;
-      display: flex;
-      justify-content: flex-end;
-      flex-shrink: 0;
-    }
-    .bcm-btn-save {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: #C9A84C;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-family: var(--ff-body);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .2s, transform .2s;
-    }
-    .bcm-btn-save:hover {
-      background: #000;
-    }
-    .bcm-btn-save svg {
-      width: 14px;
-      height: 14px;
-    }
-
-    /* ── Panel padding ── */
-    .measurement-panel { 
-      display: none; 
-      padding: 24px 28px 20px; 
-    }
-    .measurement-panel.active { 
-      display: block; 
-    }
-
-  </style>
-  <!-- TOPBAR -->
+<!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-left" id="topbarLeft">
-        <div class="brand-logo">
+      <div class="brand-logo">
         <img src="../imgs/psi.png" alt="PSI Logo">
-        </div>
+      </div>
       <span class="brand-text">ATRP</span>
     </div>
-
     <div class="topbar-right">
       <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
         <i class="fas fa-bars"></i>
@@ -330,306 +390,332 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-
     <a class="nav-item" href="index.html">
       <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
       <span class="nav-label">Behavior</span>
+      <span class="nav-badge">Live</span>
       <span class="tooltip-text">Behavior</span>
     </a>
-
     <a class="nav-item active" href="skillscoring.html">
       <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
       <span class="nav-label">Skill Scoring</span>
-      <span class="nav-badge">Live</span>
       <span class="tooltip-text">Skill Scoring</span>
     </a>
-
     <a class="nav-item" href="#">
       <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
       <span class="nav-label">Reports</span>
       <span class="tooltip-text">Reports</span>
     </a>
-
     <a class="nav-item" href="#">
       <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
       <span class="nav-label">Analytics</span>
       <span class="tooltip-text">Analytics</span>
     </a>
-
   </aside>
 
-  <!-- MAIN CONTENT -->
-  <main class="main" id="mainContent">
-
+<!-- MAIN -->
+<main class="main">
 <div class="ss-wrapper">
 
-  <!-- PAGE HEADER -->
-  <div class="ss-header">
-    <div class="ss-header-left">
-      <span class="ss-eyebrow">Skills Assessment</span>
-      <h1 class="ss-title">Skills <span class="ss-title-accent">Scoring</span> Sheet</h1>
-    </div>
+  <!-- Header -->
+  <div>
+    <span class="ss-eyebrow">Skills Assessment</span>
+    <h1 class="ss-title">Skills <span class="ss-title-accent">Scoring</span> Sheet</h1>
   </div>
 
-  <!-- SCORING TABLE CARD -->
+  <!-- Card -->
   <div class="measurement-container">
-    <div class="measurement-panel active" id="tab-receptive">
 
-      <!-- LEGEND -->
-      <div class="ss-legend">
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#C9A84C;"></span>
-          <span>Eye Contact</span>
-        </div>
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#3aa06f;"></span>
-          <span>Basic Understanding</span>
-        </div>
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#e87c4e;"></span>
-          <span>Identification</span>
-        </div>
-        <div class="ss-legend-item">
-          <span class="ss-legend-dot" style="background:#7c6ff7;"></span>
-          <span>Advanced Understanding</span>
-        </div>
-      </div>
+    <!-- Legend -->
+    <div class="legend-bar">
+      <span class="legend-chip chip-eye">  <span class="legend-chip-dot"></span>Eye Contact</span>
+      <span class="legend-chip chip-basic"><span class="legend-chip-dot"></span>Basic Understanding</span>
+      <span class="legend-chip chip-ident"><span class="legend-chip-dot"></span>Identification</span>
+      <span class="legend-chip chip-adv">  <span class="legend-chip-dot"></span>Advanced Understanding</span>
+    </div>
 
-      <div class="ss-table-container">
-        <table class="ss-table">
-          <colgroup>
-            <col class="col-subskill" />
-            <col class="col-skill" />
-            <col class="col-criteria" />
-            <col class="col-successful" />
-            <col class="col-score" />
-          </colgroup>
-          <thead>
-            <tr>
-              <th class="col-subskill">Subskill Level</th>
-              <th class="col-skill">Skill</th>
-              <th class="col-criteria">No. of Attempts</th>
-              <th class="col-successful">Successful</th>
-              <th class="col-score">Score</th>
-            </tr>
-          </thead>
-          <tbody id="receptiveBody">
-            <!-- rows injected by JS -->
-          </tbody>
-        </table>
-      </div>
+      <table class="ss-table">
+        <colgroup>
+          <col class="c-sub"/>
+          <col class="c-skl"/>
+          <col class="c-crit"/>
+          <col class="c-succ"/>
+          <col class="c-sc"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="c-sub">Subskill Level</th>
+            <th class="c-skl">Skill</th>
+            <th class="c-crit">No. of Attempts</th>
+            <th class="c-succ" style="text-align:center">Successful</th>
+            <th class="c-sc"   style="text-align:center">Score</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
 
-      <!-- NOTES -->
-      <div class="bcm-notes-section">
-        <label class="bcm-notes-label">Session Notes</label>
-        <textarea class="bcm-notes-input" placeholder="Enter session observations, comments, or follow-up actions..."></textarea>
+
+    <!-- Footer -->
+    <div class="card-footer">
+      <div class="footer-row-actions">
+        <button class="btn-row btn-add" id="btnAddRow">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Add Row
+        </button>
+        <button class="btn-row btn-del" id="btnDelRow">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M6 7v4M8 7v4M3 4l1 8c0 .6.4 1 1 1h4c.6 0 1-.4 1-1l1-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Delete Row
+        </button>
       </div>
     </div>
 
-    <!-- FOOTER -->
-    <div class="bcm-footer-bottom">
-      <button class="bcm-btn-save" id="ssFooterSave">
-        <svg viewBox="0 0 16 16" fill="none">
-          <path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+  <div class="bcm-footer bcm-footer-bottom">
+    <div class="bcm-footer-actions">
+      <button class="btn-save" id="btnSave">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Save &amp; Submit
       </button>
     </div>
   </div>
+  </div>
 
-</div><!-- /ss-wrapper -->
+</div>
+</main>
 
 <script>
 (function () {
 
+  /* ── Tier data ── */
   const TIERS = [
-    { key: 'eye',            label: 'Eye Contact',           cls: 'tier-eye' },
-    { key: 'basic',          label: 'Basic Understanding',   cls: 'tier-basic' },
-    { key: 'identification', label: 'Identification',        cls: 'tier-identification' },
-    { key: 'advanced',       label: 'Advanced Understanding',cls: 'tier-advanced' },
+    { key: 'eye',   label: 'Eye Contact',            color: '#C9A84C' },
+    { key: 'basic', label: 'Basic Understanding',    color: '#3aa06f' },
+    { key: 'ident', label: 'Identification',         color: '#e87c4e' },
+    { key: 'adv',   label: 'Advanced Understanding', color: '#7c6ff7' },
   ];
 
+  /* ── Data ── */
   const DRILLS = [
-    { skill: 'Name Call',                     criteria: '5 Attempts',  max: 5,  color: '#C9A84C', defaultTier: 'eye' },
-    { skill: 'Hello',                          criteria: '5 Attempts',  max: 5,  color: '#C9A84C', defaultTier: 'eye' },
-    { skill: 'Tap',                            criteria: '5 Attempts',  max: 5,  color: '#C9A84C', defaultTier: 'eye' },
-    { skill: 'Come Here',                      criteria: '5 Attempts',  max: 5,  color: '#3aa06f', defaultTier: 'basic' },
-    { skill: 'Sit Down',                       criteria: '5 Attempts',  max: 5,  color: '#3aa06f', defaultTier: 'basic' },
-    { skill: 'Stand Up',                       criteria: '5 Attempts',  max: 5,  color: '#3aa06f', defaultTier: 'basic' },
-    { skill: 'Pointing to Facial Expressions', criteria: '4 Points',    max: 4,  color: '#e87c4e', defaultTier: 'identification' },
-    { skill: 'Pointing to Body Parts',         criteria: '5 Points',    max: 5,  color: '#e87c4e', defaultTier: 'identification' },
-    { skill: 'Directions',                     criteria: '4 Points',    max: 4,  color: '#e87c4e', defaultTier: 'identification' },
-    { skill: 'Wh Questions',                   criteria: '10 Points',   max: 10, color: '#7c6ff7', defaultTier: 'advanced' },
-    { skill: 'Using One Object',               criteria: '4 Points',    max: 4,  color: '#7c6ff7', defaultTier: 'advanced' },
+    { skill: '', attempts: 5, tier: null, succ: '' },
+    { skill: '', attempts: 5, tier: null, succ: '' },
   ];
 
-  const scores            = new Array(DRILLS.length).fill('');
-  const successfulScores  = new Array(DRILLS.length).fill('');
-  const tierSel           = DRILLS.map(d => d.defaultTier);
+  /* ── Helpers ── */
+  function tierByKey(k) { return TIERS.find(t => t.key === k) || null; }
 
-  function pct(val, max) {
-    const n = parseFloat(val);
-    if (isNaN(n) || max === 0) return null;
-    return Math.min(100, Math.round((n / max) * 100));
+  function hexToRgb(hex) {
+    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '180,180,180';
   }
 
+  function recalcPct(idx) {
+    const max   = DRILLS[idx].attempts || 5;
+    const succEl = document.getElementById('succ-'+idx);
+    const v      = succEl ? parseFloat(succEl.value) : NaN;
+    const p      = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v / max) * 100)) : null;
+    const pctEl  = document.getElementById('pct-'+idx);
+    if (pctEl) pctEl.textContent = p !== null ? p + '%' : '\u2014';
+  }
+
+  /* ── Close all dropdowns ── */
+  function closeAll() {
+    document.querySelectorAll('.cs-panel.open').forEach(p => {
+      p.classList.remove('open');
+      const trigger = document.getElementById(p.id.replace('cs-panel','cs-trigger'));
+      if (trigger) trigger.classList.remove('open');
+    });
+  }
+
+  /* ── Apply tier color to skill input ── */
+  function applyTierToRow(idx, tierKey) {
+    const tier  = tierByKey(tierKey);
+    const color = tier ? tier.color : null;
+    const rgb   = color ? hexToRgb(color) : '180,180,180';
+    const input = document.getElementById('skill-input-'+idx);
+    if (input) {
+      input.style.color      = color || '#bbb';
+      input.style.background = color ? 'rgba('+rgb+',0.13)' : 'rgba(180,180,180,0.10)';
+    }
+  }
+
+  /* ── Build one row ── */
   function buildRow(drill, idx) {
+    const tier     = tierByKey(drill.tier);
+    const color    = tier ? tier.color : null;
+    const rgb      = color ? hexToRgb(color) : '180,180,180';
+    const skillBg  = color ? 'rgba('+rgb+',0.13)' : 'rgba(180,180,180,0.10)';
+    const skillTxt = color || '#bbb';
+
     const tr = document.createElement('tr');
 
-    /* ── Subskill cell: dropdown with color ── */
+    /* 1. Subskill dropdown */
     const tdSub = document.createElement('td');
-    const cell = document.createElement('div');
-    cell.className = 'subskill-cell';
-
-    const select = document.createElement('select');
-    select.className = 'subskill-select';
-    select.id = `tier-select-${idx}`;
-    
-    // Default placeholder option
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Choose subskill level';
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    select.appendChild(placeholder);
-
-    // Add tier options with colors
-    const tierColors = {
-      'eye': '#C9A84C',
-      'basic': '#3aa06f',
-      'identification': '#e87c4e',
-      'advanced': '#7c6ff7'
-    };
-
-    TIERS.forEach(tier => {
-      const option = document.createElement('option');
-      option.value = tier.key;
-      option.textContent = tier.label;
-      option.dataset.color = tierColors[tier.key];
-      if (tierSel[idx] === tier.key) option.selected = true;
-      select.appendChild(option);
-    });
-
-    // Create color badge indicator
-    const colorBadge = document.createElement('span');
-    colorBadge.className = 'subskill-color-badge';
-    colorBadge.style.backgroundColor = tierColors[tierSel[idx]] || '#ccc';
-    colorBadge.style.width = '12px';
-    colorBadge.style.height = '12px';
-    colorBadge.style.borderRadius = '50%';
-    colorBadge.style.display = 'inline-block';
-    colorBadge.style.marginRight = '8px';
-    colorBadge.style.verticalAlign = 'middle';
-    colorBadge.style.flexShrink = '0';
-
-    select.addEventListener('change', () => {
-      tierSel[idx] = select.value;
-      colorBadge.style.backgroundColor = tierColors[select.value] || '#ccc';
-    });
-
-    // Wrap select in a container
-    const selectWrapper = document.createElement('div');
-    selectWrapper.style.display = 'flex';
-    selectWrapper.style.alignItems = 'center';
-    selectWrapper.style.gap = '8px';
-    selectWrapper.appendChild(colorBadge);
-    selectWrapper.appendChild(select);
-
-    cell.appendChild(selectWrapper);
-    tdSub.appendChild(cell);
+    tdSub.className = 'c-sub';
+    tdSub.innerHTML =
+      '<div class="custom-select-wrap">'+
+        '<div class="cs-trigger" id="cs-trigger-'+idx+'" data-idx="'+idx+'">'+
+          '<span class="cs-swatch" id="cs-swatch-'+idx+'" style="background:'+(color||'#ddd')+'"></span>'+
+          '<span class="cs-label'+(tier?'':' placeholder')+'" id="cs-label-'+idx+'">'+(tier?tier.label:'Choose subskill…')+'</span>'+
+          '<svg class="cs-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+        '</div>'+
+        '<div class="cs-panel" id="cs-panel-'+idx+'">'+
+          TIERS.map(function(t){
+            return '<div class="cs-option'+(drill.tier===t.key?' selected':'')+'" data-idx="'+idx+'" data-key="'+t.key+'" data-color="'+t.color+'">'+
+              '<span class="cs-opt-bar" style="background:'+t.color+'"></span>'+
+              '<span class="cs-opt-label">'+t.label+'</span>'+
+              '<svg class="cs-opt-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</div>';
     tr.appendChild(tdSub);
 
-    /* ── Skill cell ── */
+    /* 2. Skill input */
     const tdSkill = document.createElement('td');
-    tdSkill.innerHTML = `
-      <div class="skill-cell">
-        <div class="skill-color-bar" style="background:${drill.color};"></div>
-        <span class="skill-name">${drill.skill}</span>
-      </div>`;
+    tdSkill.className = 'c-skl';
+    tdSkill.innerHTML =
+      '<div class="skill-wrap">'+
+        '<input type="text" class="skill-input" id="skill-input-'+idx+'" data-idx="'+idx+'"'+
+          ' placeholder="Enter skill name…" value="'+drill.skill+'"'+
+          ' style="color:'+skillTxt+'; background:'+skillBg+';" />'+
+      '</div>';
     tr.appendChild(tdSkill);
 
-    /* ── Criteria cell ── */
+    /* 3. Attempts static display */
     const tdCrit = document.createElement('td');
-    tdCrit.innerHTML = `
-      <div class="criteria-cell">
-        <span class="criteria-pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 8v4l2 2"/>
-          </svg>
-          ${drill.criteria}
-        </span>
-      </div>`;
+    tdCrit.className = 'c-crit';
+    tdCrit.innerHTML =
+      '<div class="crit-wrap">'+
+        '<span class="attempts-static">'+(drill.attempts||5)+' Attempts</span>'+
+      '</div>';
     tr.appendChild(tdCrit);
 
-    /* ── Successful attempts cell ── */
+    /* 4. Successful */
     const tdSucc = document.createElement('td');
-    tdSucc.className = 'successful-cell';
-    tdSucc.innerHTML = `
-      <div class="score-cell" style="justify-content: center;">
-        <input
-          type="number"
-          class="score-input-inline"
-          id="input-succ-${idx}"
-          data-idx="${idx}"
-          data-max="${drill.max}"
-          placeholder="0"
-          min="0"
-          max="${drill.max}"
-          value="${successfulScores[idx]}"
-        />
-      </div>`;
+    tdSucc.className = 'c-succ';
+    tdSucc.innerHTML =
+      '<div class="score-wrap">'+
+        '<input type="number" class="score-input" id="succ-'+idx+'" data-idx="'+idx+'"'+
+          ' placeholder="0" min="0" value="'+(drill.succ||'')+'" />'+
+      '</div>';
     tr.appendChild(tdSucc);
 
-    /* ── Score cell ── */
+    /* 5. Score % */
     const tdScore = document.createElement('td');
-    const p = pct(successfulScores[idx], drill.max);
-    tdScore.innerHTML = `
-      <div class="score-cell">
-        <span class="score-pct" id="pct-${idx}">${p !== null ? p + '%' : ''}</span>
-      </div>`;
+    tdScore.className = 'c-sc';
+    const max = drill.attempts || 5;
+    const v   = parseFloat(drill.succ);
+    const p   = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v/max)*100)) : null;
+    tdScore.innerHTML =
+      '<div class="score-wrap">'+
+        '<span class="score-pct" id="pct-'+idx+'">'+(p!==null?p+'%':'—')+'</span>'+
+      '</div>';
     tr.appendChild(tdScore);
 
     return tr;
   }
 
+  /* ── Render ── */
   function render() {
-    const body = document.getElementById('receptiveBody');
+    const body = document.getElementById('tableBody');
     body.innerHTML = '';
-    DRILLS.forEach((d, i) => body.appendChild(buildRow(d, i)));
+    DRILLS.forEach(function(d, i) { body.appendChild(buildRow(d, i)); });
 
-    body.querySelectorAll('.score-input-inline').forEach(input => {
-      input.addEventListener('input', function () {
-        const idx = +this.dataset.idx;
-        const max = +this.dataset.max;
-        let v = parseFloat(this.value);
-        if (!isNaN(v) && v > max) { this.value = max; v = max; }
-        
-        // Update percentage when successful attempts input changes
-        if (this.id.startsWith('input-succ-')) {
-          successfulScores[idx] = this.value;
-          const p = pct(this.value, max);
-          document.getElementById('pct-' + idx).textContent = p !== null ? p + '%' : '';
+    /* Dropdown triggers */
+    document.querySelectorAll('.cs-trigger').forEach(function(trigger) {
+      trigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const idx   = +this.dataset.idx;
+        const panel = document.getElementById('cs-panel-'+idx);
+        const isOpen = panel.classList.contains('open');
+        closeAll();
+        if (!isOpen) {
+          panel.classList.add('open');
+          this.classList.add('open');
         }
       });
     });
+
+    /* Option clicks */
+    document.querySelectorAll('.cs-option').forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const idx   = +this.dataset.idx;
+        const key   = this.dataset.key;
+        const color = this.dataset.color;
+
+        DRILLS[idx].tier = key;
+
+        document.getElementById('cs-swatch-'+idx).style.background = color;
+        const lbl = document.getElementById('cs-label-'+idx);
+        lbl.textContent = TIERS.find(function(t){ return t.key===key; }).label;
+        lbl.classList.remove('placeholder');
+
+        document.querySelectorAll('#cs-panel-'+idx+' .cs-option').forEach(function(o){ o.classList.remove('selected'); });
+        this.classList.add('selected');
+
+        applyTierToRow(idx, key);
+
+        document.getElementById('cs-panel-'+idx).classList.remove('open');
+        document.getElementById('cs-trigger-'+idx).classList.remove('open');
+      });
+    });
+
+    /* Skill input */
+    document.querySelectorAll('.skill-input').forEach(function(input) {
+      input.addEventListener('input', function() {
+        DRILLS[+this.dataset.idx].skill = this.value;
+      });
+    });
+
+    /* Successful input */
+    document.querySelectorAll('.score-input').forEach(function(input) {
+      input.addEventListener('input', function() {
+        const idx = +this.dataset.idx;
+        let v = parseFloat(this.value);
+        if (!isNaN(v) && v < 0) { this.value = 0; v = 0; }
+        const max = DRILLS[idx].attempts || 5;
+        if (!isNaN(v) && v > max) { this.value = max; v = max; }
+        DRILLS[idx].succ = this.value;
+        recalcPct(idx);
+      });
+    });
+
+    /* Delete button state */
+    const delBtn = document.getElementById('btnDelRow');
+    if (delBtn) delBtn.disabled = DRILLS.length <= 1;
   }
 
-  /* ── Save ── */
-  document.getElementById('ssFooterSave').addEventListener('click', function () {
-    const btn = this;
-    btn.style.opacity = '.7';
-    btn.textContent = 'Saved ✓';
-    setTimeout(() => {
-      btn.style.opacity = '';
-      btn.innerHTML = `<svg viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Save &amp; Submit`;
-    }, 1800);
+  /* ── Add row ── */
+  document.getElementById('btnAddRow').addEventListener('click', function() {
+    DRILLS.push({ skill: '', attempts: 5, tier: null, succ: '' });
+    render();
+    var scroll = document.querySelector('.table-scroll');
+    if (scroll) scroll.scrollTop = scroll.scrollHeight;
   });
+
+  /* ── Delete last row ── */
+  document.getElementById('btnDelRow').addEventListener('click', function() {
+    if (DRILLS.length <= 1) return;
+    DRILLS.pop();
+    render();
+  });
+
+  /* ── Save ── */
+  document.getElementById('btnSave').addEventListener('click', function() {
+    var self = this;
+    var orig = self.innerHTML;
+    self.style.opacity = '.65';
+    self.innerHTML = '<svg viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Saved ✓';
+    setTimeout(function(){ self.style.opacity=''; self.innerHTML=orig; }, 2000);
+  });
+
+  /* ── Close dropdowns on outside click ── */
+  document.addEventListener('click', closeAll);
 
   render();
 })();
 </script>
-  </main>
 <script src="../js/index.js"></script>
+<script src="../js/table.js"></script>
 </body>
 </html>
