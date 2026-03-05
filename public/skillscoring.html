@@ -62,11 +62,10 @@
 .chip-ident { background: var(--c-ident); border-color: rgba(232,124,78,.4); }
 .chip-adv   { background: var(--c-adv);   border-color: rgba(124,111,247,.4); }
 
-/* ─── Table scroll — extra bottom padding so last-row dropdowns are reachable ── */
+/* ─── Table scroll ── */
 .table-scroll {
   overflow-y: auto; overflow-x: auto;
   min-height: 200px; max-height: 400px;
-  /* FIX: padding-bottom gives room for dropdowns on the last rows */
   padding-bottom: 120px;
 }
 .table-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -97,14 +96,12 @@
 }
 .ss-table th:last-child { border-right: none; }
 
-/* col widths */
 .c-sub  { width: 22%; }
 .c-skl  { width: 24%; }
 .c-crit { width: 16%; }
 .c-succ { width: 13%; }
 .c-sc   { width: 12%; }
 
-/* Body rows */
 .ss-table tbody tr {
   border-bottom: 1px solid var(--border2);
   transition: background .15s;
@@ -120,14 +117,12 @@
 }
 .ss-table td:last-child { border-right: none; }
 
-/* ── Criteria / Attempts cell ── */
 .crit-wrap {
   padding: 0 14px;
   display: flex; align-items: center; justify-content: center;
   height: 100%; min-height: 52px;
 }
 
-/* ── Attempts — clean underline number field ── */
 .attempts-field {
   display: flex; align-items: baseline; gap: 5px;
 }
@@ -144,10 +139,7 @@
   padding: 2px 0 3px;
   transition: border-color .18s, color .18s;
 }
-.attempts-input:focus {
-  border-color: var(--gold);
-  color: #3d2b00;
-}
+.attempts-input:focus { border-color: var(--gold); color: #3d2b00; }
 .attempts-input::-webkit-inner-spin-button,
 .attempts-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 .attempts-unit {
@@ -158,7 +150,6 @@
   white-space: nowrap;
 }
 
-/* ── Score / Successful cell ── */
 .score-wrap {
   padding: 0 14px;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -175,10 +166,7 @@
   padding: 2px 0 3px;
   transition: border-color .18s, color .18s;
 }
-.score-input:focus {
-  border-color: var(--gold);
-  color: #3d2b00;
-}
+.score-input:focus { border-color: var(--gold); color: #3d2b00; }
 .score-input::-webkit-inner-spin-button,
 .score-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
@@ -196,7 +184,6 @@
   padding: 6px 10px;
   user-select: none;
 }
-
 .cs-trigger {
   display: flex; align-items: center; gap: 6px;
   padding: 6px 4px 6px 8px;
@@ -207,14 +194,7 @@
 }
 .cs-trigger:hover { background: rgba(0,0,0,.04); }
 .cs-trigger.open  { background: rgba(201,168,76,.08); }
-
-.cs-swatch {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: background .2s;
-}
-
+.cs-swatch { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; transition: background .2s; }
 .cs-label {
   flex: 1;
   font-family: var(--ff-body); font-size: 12px; font-weight: 500;
@@ -223,19 +203,8 @@
   line-height: 1;
 }
 .cs-label.placeholder { color: #bbb; font-weight: 400; font-size: 11.5px; }
-
-.cs-chevron {
-  width: 11px; height: 11px;
-  flex-shrink: 0;
-  color: #ccc;
-  transition: transform .2s, color .2s;
-}
-.cs-trigger.open .cs-chevron {
-  transform: rotate(180deg);
-  color: var(--gold);
-}
-
-/* Dropdown panel — opens DOWNWARD, z-index above scroll */
+.cs-chevron { width: 11px; height: 11px; flex-shrink: 0; color: #ccc; transition: transform .2s, color .2s; }
+.cs-trigger.open .cs-chevron { transform: rotate(180deg); color: var(--gold); }
 .cs-panel {
   position: absolute;
   top: calc(100% - 6px); left: 12px; right: 12px;
@@ -249,11 +218,7 @@
   pointer-events: none;
   transition: opacity .15s ease, transform .15s ease;
 }
-.cs-panel.open {
-  opacity: 1; transform: translateY(0) scale(1);
-  pointer-events: all;
-}
-
+.cs-panel.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: all; }
 .cs-option {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 14px;
@@ -264,21 +229,9 @@
 .cs-option:last-child { border-bottom: none; }
 .cs-option:hover { background: var(--bg); }
 .cs-option.selected { background: var(--gold-soft); }
-
-.cs-opt-bar {
-  width: 3px; height: 28px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-.cs-opt-label {
-  font-family: var(--ff-body); font-size: 12.5px; font-weight: 500;
-  color: var(--text); flex: 1;
-}
-.cs-opt-check {
-  width: 14px; height: 14px;
-  opacity: 0; color: var(--gold);
-  transition: opacity .15s;
-}
+.cs-opt-bar { width: 3px; height: 28px; border-radius: 2px; flex-shrink: 0; }
+.cs-opt-label { font-family: var(--ff-body); font-size: 12.5px; font-weight: 500; color: var(--text); flex: 1; }
+.cs-opt-check { width: 14px; height: 14px; opacity: 0; color: var(--gold); transition: opacity .15s; }
 .cs-option.selected .cs-opt-check { opacity: 1; }
 
 /* ─────────────────────────────────────────────────
@@ -289,7 +242,6 @@
   height: 100%; min-height: 56px;
   padding: 10px 14px;
 }
-
 .skill-input {
   width: 100%;
   padding: 6px 12px;
@@ -302,10 +254,7 @@
   letter-spacing: .01em;
 }
 .skill-input::placeholder { color: rgba(0,0,0,.25); font-weight: 400; }
-.skill-input:focus {
-  box-shadow: 0 0 0 2px var(--skill-color, #ccc);
-  outline: none;
-}
+.skill-input:focus { box-shadow: 0 0 0 2px var(--skill-color, #ccc); outline: none; }
 
 /* ─── Footer ─────────────────────────────────────── */
 .card-footer {
@@ -313,9 +262,7 @@
   padding: 14px 20px 18px;
   border-top: 1px solid var(--border2);
 }
-.footer-row-actions {
-  display: flex; gap: 8px;
-}
+.footer-row-actions { display: flex; gap: 8px; }
 .btn-row {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 16px;
@@ -328,58 +275,282 @@
 .btn-row svg { width: 13px; height: 13px; }
 .btn-row:active { transform: scale(.97); }
 .btn-row:disabled { opacity: .35; cursor: not-allowed; }
-
-.btn-add {
-  background: #000;
-  color: #ffffff;
-  border-color: rgba(201,168,76,.3);
-}
-.btn-add:hover:not(:disabled) {
-  background: #111;
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(201,168,76,.3);
-  transform: translateY(-1px);
-}
-
+.btn-add { background: #000; color: #ffffff; border-color: rgba(201,168,76,.3); }
+.btn-add:hover:not(:disabled) { background: #111; color: #fff; box-shadow: 0 3px 10px rgba(201,168,76,.3); transform: translateY(-1px); }
 .btn-del {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 15px;
-  background: transparent;
-  color: #d32f2f;
-  font-family: var(--ff-display);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  border: 1px solid #d32f2f;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background .2s, border-color .2s;
+  display: flex; align-items: center; gap: 7px; padding: 7px 15px;
+  background: transparent; color: #d32f2f;
+  font-family: var(--ff-display); font-size: 11px; font-weight: 600;
+  letter-spacing: .08em; border: 1px solid #d32f2f; border-radius: 8px;
+  cursor: pointer; transition: background .2s, border-color .2s;
 }
-.btn-del:hover:not(:disabled) {
-  background: rgba(211,47,47,0.08); border-color: #d32f2f;
-  transform: translateY(-1px);
-}
+.btn-del:hover:not(:disabled) { background: rgba(211,47,47,0.08); border-color: #d32f2f; transform: translateY(-1px); }
+
 .btn-save {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 22px;
-  color: #FAFAF7;
-  background: #000;
+  color: #FAFAF7; background: #000;
   border: none; border-radius: 9px;
   font-family: var(--ff-display); font-size: 13px; font-weight: 700;
-  letter-spacing: .04em;
-  cursor: pointer;
+  letter-spacing: .04em; cursor: pointer;
   transition: background .2s, transform .15s, box-shadow .2s;
   box-shadow: 0 4px 14px rgba(201,168,76,.35);
 }
-.btn-save:hover {
-  background: #111;
-  box-shadow: 0 6px 20px rgba(0,0,0,.2);
-  transform: translateY(-1px);
-}
+.btn-save:hover { background: #111; box-shadow: 0 6px 20px rgba(0,0,0,.2); transform: translateY(-1px); }
 .btn-save:active { transform: translateY(0); }
 .btn-save svg { width: 14px; height: 14px; }
+
+/* ═══════════════════════════════════════════════════
+   SUBSKILL SUMMARY SECTION
+═══════════════════════════════════════════════════ */
+@keyframes summaryFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.summary-section {
+  border-top: 1px solid var(--border2);
+  background: #FDFCFA;
+  padding: 18px 20px 20px;
+  animation: summaryFadeIn .35s ease both;
+}
+
+.summary-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.summary-title {
+  font-family: 'Nevis', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #8a7a5a;
+}
+
+.summary-meta {
+  font-family: var(--ff-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: #bbb;
+  letter-spacing: .03em;
+}
+
+.summary-meta strong {
+  color: #7a6030;
+  font-weight: 700;
+}
+
+/* Grid of tier cards */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) {
+  .summary-grid { grid-template-columns: 1fr; }
+}
+
+/* Individual tier card */
+.tier-card {
+  border-radius: 12px;
+  border: 1.5px solid;
+  padding: 13px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: transform .18s, box-shadow .18s;
+}
+.tier-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+
+/* Inactive state — no drills assigned yet */
+.tier-card.inactive {
+  background: #F7F5F0;
+  border-color: #E8E4DC;
+  opacity: .55;
+}
+
+/* Accent corner glow */
+.tier-card::before {
+  content: '';
+  position: absolute;
+  top: -18px; right: -18px;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  opacity: .12;
+  transition: opacity .2s;
+}
+.tier-card:hover::before { opacity: .2; }
+
+/* Card top row: badge + count pill */
+.tc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 6px;
+  border-radius: 20px;
+  font-family: var(--ff-body);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  color: #fff;
+}
+.tc-badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.6);
+  flex-shrink: 0;
+}
+
+.tc-count-pill {
+  font-family: var(--ff-body);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: .04em;
+  transition: background .2s, color .2s;
+}
+
+/* Card stat: big number + label */
+.tc-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.tc-pct {
+  font-family: var(--ff-display);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+.tc-pct-symbol {
+  font-size: 14px;
+  font-weight: 700;
+  opacity: .7;
+}
+.tc-pct-empty {
+  font-family: var(--ff-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: #ccc;
+  line-height: 1;
+}
+
+/* Fraction subtitle */
+.tc-fraction {
+  font-family: var(--ff-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+
+/* Progress bar */
+.tc-bar-track {
+  height: 4px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.tc-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+  min-width: 0;
+}
+
+/* Drills list — small tags */
+.tc-drills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 18px;
+}
+.tc-drill-tag {
+  font-family: var(--ff-body);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: .02em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tc-drill-tag.unnamed {
+  opacity: .45;
+  font-style: italic;
+}
+
+/* ── Color themes per tier ── */
+/* Eye Contact — gold */
+.tier-card.t-eye {
+  background: linear-gradient(135deg, #FFFDF5 0%, #FDF7E3 100%);
+  border-color: rgba(154,123,44,.25);
+}
+.tier-card.t-eye::before { background: #C9A84C; }
+.tier-card.t-eye .tc-pct          { color: #7a5c1e; }
+.tier-card.t-eye .tc-fraction     { color: #b0966a; }
+.tier-card.t-eye .tc-bar-track    { background: rgba(154,123,44,.15); }
+.tier-card.t-eye .tc-bar-fill     { background: linear-gradient(90deg, #C9A84C, #E8CA7A); }
+.tier-card.t-eye .tc-drill-tag    { background: rgba(201,168,76,.12); color: #7a5c1e; }
+.tier-card.t-eye .tc-count-pill   { background: rgba(201,168,76,.18); color: #7a5c1e; }
+
+/* Basic Understanding — green */
+.tier-card.t-basic {
+  background: linear-gradient(135deg, #F5FDF8 0%, #E8F7EE 100%);
+  border-color: rgba(42,112,80,.2);
+}
+.tier-card.t-basic::before { background: #2A7050; }
+.tier-card.t-basic .tc-pct          { color: #1a5038; }
+.tier-card.t-basic .tc-fraction     { color: #5a9070; }
+.tier-card.t-basic .tc-bar-track    { background: rgba(42,112,80,.12); }
+.tier-card.t-basic .tc-bar-fill     { background: linear-gradient(90deg, #2A7050, #4CAF7A); }
+.tier-card.t-basic .tc-drill-tag    { background: rgba(42,112,80,.10); color: #1a5038; }
+.tier-card.t-basic .tc-count-pill   { background: rgba(42,112,80,.12); color: #1a5038; }
+
+/* Identification — orange */
+.tier-card.t-ident {
+  background: linear-gradient(135deg, #FFF8F5 0%, #FDEEE6 100%);
+  border-color: rgba(184,90,46,.2);
+}
+.tier-card.t-ident::before { background: #B85A2E; }
+.tier-card.t-ident .tc-pct          { color: #8a3a1a; }
+.tier-card.t-ident .tc-fraction     { color: #c07858; }
+.tier-card.t-ident .tc-bar-track    { background: rgba(184,90,46,.12); }
+.tier-card.t-ident .tc-bar-fill     { background: linear-gradient(90deg, #B85A2E, #E8845A); }
+.tier-card.t-ident .tc-drill-tag    { background: rgba(184,90,46,.10); color: #8a3a1a; }
+.tier-card.t-ident .tc-count-pill   { background: rgba(184,90,46,.12); color: #8a3a1a; }
+
+/* Advanced Understanding — purple */
+.tier-card.t-adv {
+  background: linear-gradient(135deg, #F8F7FF 0%, #EDEAFF 100%);
+  border-color: rgba(90,79,176,.2);
+}
+.tier-card.t-adv::before { background: #5A4FB0; }
+.tier-card.t-adv .tc-pct          { color: #3a308a; }
+.tier-card.t-adv .tc-fraction     { color: #7a70b8; }
+.tier-card.t-adv .tc-bar-track    { background: rgba(90,79,176,.12); }
+.tier-card.t-adv .tc-bar-fill     { background: linear-gradient(90deg, #5A4FB0, #8B80D8); }
+.tier-card.t-adv .tc-drill-tag    { background: rgba(90,79,176,.10); color: #3a308a; }
+.tier-card.t-adv .tc-count-pill   { background: rgba(90,79,176,.12); color: #3a308a; }
 </style>
 </head>
 <body>
@@ -467,7 +638,7 @@
       </table>
     </div>
 
-    <!-- Footer -->
+    <!-- Footer: add/delete buttons -->
     <div class="card-footer">
       <div class="footer-row-actions">
         <button class="btn-row btn-add" id="btnAddRow">
@@ -479,6 +650,15 @@
           Delete Row
         </button>
       </div>
+    </div>
+
+    <!-- ══ SUBSKILL SUMMARY ══ -->
+    <div class="summary-section">
+      <div class="summary-header">
+        <span class="summary-title">Subskill Summary</span>
+        <span class="summary-meta" id="summaryMeta">—</span>
+      </div>
+      <div class="summary-grid" id="summaryGrid"></div>
     </div>
 
     <div class="bcm-footer bcm-footer-bottom">
@@ -500,13 +680,12 @@
 
   /* ── Tier data ── */
   const TIERS = [
-    { key: 'eye',   label: 'Eye Contact',            color: '#9A7B2C' },
-    { key: 'basic', label: 'Basic Understanding',    color: '#2A7050' },
-    { key: 'ident', label: 'Identification',         color: '#B85A2E' },
-    { key: 'adv',   label: 'Advanced Understanding', color: '#5A4FB0' },
+    { key: 'eye',   label: 'Eye Contact',            color: '#9A7B2C', cls: 't-eye'   },
+    { key: 'basic', label: 'Basic Understanding',    color: '#2A7050', cls: 't-basic' },
+    { key: 'ident', label: 'Identification',         color: '#B85A2E', cls: 't-ident' },
+    { key: 'adv',   label: 'Advanced Understanding', color: '#5A4FB0', cls: 't-adv'   },
   ];
 
-  /* ── Data — attempts is now editable, default 5 ── */
   const DRILLS = [
     { skill: '', attempts: 5, tier: null, succ: '' },
     { skill: '', attempts: 5, tier: null, succ: '' },
@@ -527,9 +706,9 @@
     const p      = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v / max) * 100)) : null;
     const pctEl  = document.getElementById('pct-'+idx);
     if (pctEl) pctEl.textContent = p !== null ? p + '%' : '\u2014';
+    renderSummary();
   }
 
-  /* ── Close all dropdowns ── */
   function closeAll() {
     document.querySelectorAll('.cs-panel.open').forEach(p => {
       p.classList.remove('open');
@@ -538,7 +717,6 @@
     });
   }
 
-  /* ── Apply tier color to skill input ── */
   function applyTierToRow(idx, tierKey) {
     const tier  = tierByKey(tierKey);
     const color = tier ? tier.color : null;
@@ -550,7 +728,109 @@
     }
   }
 
-  /* ── Build one row ── */
+  /* ═══════════════════════════════════════════════
+     SUMMARY RENDERER
+  ═══════════════════════════════════════════════ */
+  function renderSummary() {
+    const grid     = document.getElementById('summaryGrid');
+    const metaEl   = document.getElementById('summaryMeta');
+    if (!grid) return;
+
+    /* Aggregate per tier */
+    const agg = {};
+    TIERS.forEach(function(t) {
+      agg[t.key] = { count: 0, totalAttempts: 0, totalSucc: 0, drills: [] };
+    });
+
+    let totalSelected = 0;
+    DRILLS.forEach(function(d) {
+      if (!d.tier) return;
+      const a   = agg[d.tier];
+      const att = parseInt(d.attempts) || 0;
+      const suc = parseFloat(d.succ);
+      a.count++;
+      a.totalAttempts += att;
+      if (!isNaN(suc)) a.totalSucc += suc;
+      a.drills.push(d.skill || null);
+      totalSelected++;
+    });
+
+    /* Meta line */
+    const totalRows = DRILLS.length;
+    if (totalSelected === 0) {
+      metaEl.innerHTML = '<strong>0</strong> of ' + totalRows + ' rows assigned';
+    } else {
+      metaEl.innerHTML = '<strong>' + totalSelected + '</strong> of ' + totalRows + ' rows assigned';
+    }
+
+    /* Build cards */
+    grid.innerHTML = '';
+    TIERS.forEach(function(t) {
+      const a   = agg[t.key];
+      const pct = (a.totalAttempts > 0)
+        ? Math.min(100, Math.round((a.totalSucc / a.totalAttempts) * 100))
+        : null;
+      const inactive = a.count === 0;
+
+      const card = document.createElement('div');
+      card.className = 'tier-card ' + t.cls + (inactive ? ' inactive' : '');
+
+      /* Badge */
+      const badgeHTML =
+        '<div class="tc-top">' +
+          '<span class="tc-badge" style="background:' + t.color + '">' +
+            '<span class="tc-badge-dot"></span>' +
+            t.label +
+          '</span>' +
+          '<span class="tc-count-pill">' +
+            (a.count === 0 ? 'None' : a.count + (a.count === 1 ? ' skill' : ' skills')) +
+          '</span>' +
+        '</div>';
+
+      /* Score stat */
+      let statHTML;
+      if (inactive || pct === null) {
+        statHTML =
+          '<div class="tc-stat"><span class="tc-pct-empty">—</span></div>' +
+          '<span class="tc-fraction" style="color:#ccc">No data yet</span>';
+      } else {
+        statHTML =
+          '<div class="tc-stat">' +
+            '<span class="tc-pct">' + pct + '</span>' +
+            '<span class="tc-pct-symbol">%</span>' +
+          '</div>' +
+          '<span class="tc-fraction">' +
+            a.totalSucc + ' / ' + a.totalAttempts + ' attempts' +
+          '</span>';
+      }
+
+      /* Progress bar */
+      const barHTML =
+        '<div class="tc-bar-track">' +
+          '<div class="tc-bar-fill" style="width:' + (pct !== null ? pct : 0) + '%"></div>' +
+        '</div>';
+
+      /* Drill tags */
+      let tagsHTML = '<div class="tc-drills">';
+      if (a.drills.length === 0) {
+        tagsHTML += '<span class="tc-drill-tag unnamed">No drills assigned</span>';
+      } else {
+        a.drills.forEach(function(name) {
+          if (name) {
+            tagsHTML += '<span class="tc-drill-tag">' + name + '</span>';
+          } else {
+            tagsHTML += '<span class="tc-drill-tag unnamed">Unnamed drill</span>';
+          }
+        });
+      }
+      tagsHTML += '</div>';
+
+      card.innerHTML = badgeHTML + statHTML + barHTML + tagsHTML;
+      grid.appendChild(card);
+    });
+  }
+
+  /* ── Build one table row ── */
   function buildRow(drill, idx) {
     const tier     = tierByKey(drill.tier);
     const color    = tier ? tier.color : null;
@@ -593,7 +873,7 @@
       '</div>';
     tr.appendChild(tdSkill);
 
-    /* 3. Attempts — typeable, clean underline style */
+    /* 3. Attempts */
     const tdCrit = document.createElement('td');
     tdCrit.className = 'c-crit';
     tdCrit.innerHTML =
@@ -631,7 +911,7 @@
     return tr;
   }
 
-  /* ── Render ── */
+  /* ── Render table ── */
   function render() {
     const body = document.getElementById('tableBody');
     body.innerHTML = '';
@@ -648,7 +928,6 @@
         if (!isOpen) {
           panel.classList.add('open');
           this.classList.add('open');
-          /* Scroll the table so the dropdown is visible */
           setTimeout(function() {
             var scroll = document.querySelector('.table-scroll');
             var panelEl = document.getElementById('cs-panel-'+idx);
@@ -686,6 +965,8 @@
 
         document.getElementById('cs-panel-'+idx).classList.remove('open');
         document.getElementById('cs-trigger-'+idx).classList.remove('open');
+
+        renderSummary();
       });
     });
 
@@ -693,18 +974,17 @@
     document.querySelectorAll('.skill-input').forEach(function(input) {
       input.addEventListener('input', function() {
         DRILLS[+this.dataset.idx].skill = this.value;
+        renderSummary();
       });
     });
 
-    /* ── ATTEMPTS input — updates max, clamps successful, recalcs % ── */
+    /* Attempts input */
     document.querySelectorAll('.attempts-input').forEach(function(input) {
       input.addEventListener('input', function() {
         const idx = +this.dataset.idx;
         let v = parseInt(this.value);
         if (isNaN(v) || v < 1) v = 1;
         DRILLS[idx].attempts = v;
-
-        /* Clamp successful to new max */
         const succEl = document.getElementById('succ-'+idx);
         if (succEl) {
           let s = parseFloat(succEl.value);
@@ -713,7 +993,6 @@
         }
         recalcPct(idx);
       });
-      /* Prevent negative / zero on blur */
       input.addEventListener('blur', function() {
         const idx = +this.dataset.idx;
         if (!this.value || parseInt(this.value) < 1) {
@@ -737,9 +1016,10 @@
       });
     });
 
-    /* Delete button state */
     const delBtn = document.getElementById('btnDelRow');
     if (delBtn) delBtn.disabled = DRILLS.length <= 1;
+
+    renderSummary();
   }
 
   /* ── Add row ── */
@@ -766,7 +1046,6 @@
     setTimeout(function(){ self.style.opacity=''; self.innerHTML=orig; }, 2000);
   });
 
-  /* ── Close dropdowns on outside click ── */
   document.addEventListener('click', closeAll);
 
   render();
