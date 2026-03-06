@@ -572,6 +572,58 @@
 .tier-card.t-adv .tc-drill-tag    { background: rgba(90,79,176,.10); color: #3a308a; }
 .tier-card.t-adv .tc-count-pill   { background: rgba(90,79,176,.12); color: #3a308a; }
 
+/* Simple Communication — blue (same as Eye Contact) */
+.tier-card.t-simple {
+  background: linear-gradient(135deg, #F5F8FF 0%, #E8EEFF 100%);
+  border-color: rgba(20,71,230,.2);
+}
+.tier-card.t-simple::before { background: #1447e6; }
+.tier-card.t-simple .tc-pct          { color: #1447e6; }
+.tier-card.t-simple .tc-fraction     { color: #6b8dd4; }
+.tier-card.t-simple .tc-bar-track    { background: rgba(20,71,230,.15); }
+.tier-card.t-simple .tc-bar-fill     { background: linear-gradient(90deg, #1447e6, #5B8DEF); }
+.tier-card.t-simple .tc-drill-tag    { background: rgba(20,71,230,.12); color: #1447e6; }
+.tier-card.t-simple .tc-count-pill   { background: rgba(20,71,230,.18); color: #1447e6; }
+
+/* Personal Information — green (same as Basic Understanding) */
+.tier-card.t-info {
+  background: linear-gradient(135deg, #F5FDF8 0%, #E8F7EE 100%);
+  border-color: rgba(0,201,80,.2);
+}
+.tier-card.t-info::before { background: #00c950; }
+.tier-card.t-info .tc-pct          { color: #00c950; }
+.tier-card.t-info .tc-fraction     { color: #5a9070; }
+.tier-card.t-info .tc-bar-track    { background: rgba(0,201,80,.12); }
+.tier-card.t-info .tc-bar-fill     { background: linear-gradient(90deg, #00c950, #4CAF7A); }
+.tier-card.t-info .tc-drill-tag    { background: rgba(0,201,80,.10); color: #00c950; }
+.tier-card.t-info .tc-count-pill   { background: rgba(0,201,80,.12); color: #00c950; }
+
+/* Descriptive Communication — yellow (same as Identification) */
+.tier-card.t-desc {
+  background: linear-gradient(135deg, #FFFEF5 0%, #FFFDE8 100%);
+  border-color: rgba(250,204,21,.25);
+}
+.tier-card.t-desc::before { background: #facc15; }
+.tier-card.t-desc .tc-pct          { color: #a38f10; }
+.tier-card.t-desc .tc-fraction     { color: #b8a545; }
+.tier-card.t-desc .tc-bar-track    { background: rgba(250,204,21,.15); }
+.tier-card.t-desc .tc-bar-fill     { background: linear-gradient(90deg, #facc15, #F7DE5C); }
+.tier-card.t-desc .tc-drill-tag    { background: rgba(250,204,21,.15); color: #a38f10; }
+.tier-card.t-desc .tc-count-pill   { background: rgba(250,204,21,.2); color: #a38f10; }
+
+/* Comprehensive Communication — purple (same as Advanced Understanding) */
+.tier-card.t-comp {
+  background: linear-gradient(135deg, #F8F5FF 0%, #EDE8FF 100%);
+  border-color: rgba(134,25,143,.2);
+}
+.tier-card.t-comp::before { background: #86198f; }
+.tier-card.t-comp .tc-pct          { color: #86198f; }
+.tier-card.t-comp .tc-fraction     { color: #9a5bb8; }
+.tier-card.t-comp .tc-bar-track    { background: rgba(134,25,143,.12); }
+.tier-card.t-comp .tc-bar-fill     { background: linear-gradient(90deg, #86198f, #A855F7); }
+.tier-card.t-comp .tc-drill-tag    { background: rgba(134,25,143,.10); color: #86198f; }
+.tier-card.t-comp .tc-count-pill   { background: rgba(134,25,143,.12); color: #86198f; }
+
 /* Custom tier cards (dynamic from domain selection) */
 .tier-card[class*="t-custom-"] {
   background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
