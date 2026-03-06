@@ -104,8 +104,8 @@
       currentClientId   = id;
       const nameEl      = document.getElementById('clientName');
       currentClientName = nameEl ? (nameEl.value || 'Client #' + id) : 'Client #' + id;
+      // CHANGE 1: Only update the banner — do NOT auto-load data from the database
       updateClientBanner();
-      loadFromDatabase();
     } else {
       updateClientBanner();
     }
@@ -335,10 +335,7 @@
 
       listEl.querySelectorAll('.scm-list-item').forEach(item => {
         item.addEventListener('mousedown', e => {
-          // Prevent input blur so the list stays open
           e.preventDefault();
-          // Lock in selection — suppress the input listener so the programmatic
-          // value assignment below doesn't reset selectedId back to null
           selectedId   = parseInt(item.dataset.id, 10);
           selectedName = item.dataset.name;
           _suppressInput = true;
@@ -351,7 +348,6 @@
       listEl.style.display = 'block';
     }
 
-    // Guard: prevents programmatic input.value = x from resetting selectedId
     let _suppressInput = false;
 
     input.addEventListener('input', () => {
@@ -399,13 +395,13 @@
       }
 
       overlay.remove();
+      // CHANGE 1: Only update the banner with the client name — no data is loaded into the table
       updateClientBanner();
-      loadFromDatabase();   // ← always fires after client is confirmed
     });
   }
 
   // ─────────────────────────────────────────────────────────────
-  // DATABASE — LOAD  (fix: always re-render; show toast on empty)
+  // DATABASE — LOAD
   // ─────────────────────────────────────────────────────────────
   async function loadFromDatabase() {
     if (!currentClientId) return;
@@ -421,13 +417,11 @@
           tier:     r.tier     || null,
           succ:     r.successful !== null ? String(r.successful) : '',
           unit:     r.unit     || 'attempts',
-          // ── FIX: restore manually-saved score if present ──
           score:    r.score    !== undefined && r.score !== null ? String(r.score) : ''
         }));
         render();
         showSkillNotification('Records loaded for "' + currentClientName + '"', 'success');
       } else {
-        // No past records — reset to blank template and inform user
         DRILLS = [
           { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
           { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
@@ -477,7 +471,7 @@
           attempts: d.attempts,
           succ:     d.succ,
           unit:     d.unit,
-          score:    d.score    // ← persist manual score override
+          score:    d.score
         }))
       };
 
@@ -538,15 +532,43 @@
   }
 
   // ─────────────────────────────────────────────────────────────
-  // NOTIFICATION TOAST  (added 'info' type)
+  // NOTIFICATION TOAST
   // ─────────────────────────────────────────────────────────────
-  // SELECT DOMAIN MODAL (shown when clicking placeholder without domain)
-  // ─────────────────────────────────────────────────────────────
-  // Add animation styles
   const style = document.createElement('style');
   style.textContent = `
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    /* CHANGE 2: Subskill level dropdown styles */
+    .subskill-select {
+      width: 100%;
+      padding: 8px 30px 8px 10px;
+      border: 1.5px solid #e8e8e8;
+      border-radius: 8px;
+      background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%23aaa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+      appearance: none;
+      -webkit-appearance: none;
+      font-family: var(--ff-body);
+      font-size: 13px;
+      color: #aaa;
+      cursor: pointer;
+      outline: none;
+      transition: border-color .18s, box-shadow .18s, background-color .18s;
+      box-sizing: border-box;
+    }
+    .subskill-select:focus {
+      border-color: #C9A84C;
+      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
+      background-color: #fff;
+    }
+    .subskill-select:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    .subskill-select option:first-child {
+      color: #aaa;
+      font-style: italic;
+    }
   `;
   document.head.appendChild(style);
 
@@ -557,11 +579,10 @@
     const overlay = document.createElement('div');
     overlay.id = 'selectDomainModal';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;animation:fadeIn .2s ease;padding:16px;';
-    
-    // Check if we're on the skill-scoring page or a subdomain page
+
     const btnChooseDomain = document.getElementById('btnChooseDomain');
     const isSkillScoringPage = !!btnChooseDomain;
-    
+
     overlay.innerHTML = `
       <div style="background:#fff;border-radius:16px;width:360px;max-width:100%;box-shadow:0 24px 60px rgba(0,0,0,.25);overflow:hidden;animation:slideUp .25s cubic-bezier(.4,0,.2,1);">
         <div style="padding:28px 24px 22px;text-align:center;">
@@ -591,7 +612,7 @@
         window.location.href = 'skill-scoring.html';
       }
     });
-    
+
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
   };
 
@@ -642,8 +663,6 @@
     return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '180,180,180';
   }
 
-  // ── FIX: recalcPct now updates the editable score input only if it hasn't
-  //         been manually overridden; manual entry takes precedence.
   function recalcPct(idx) {
     const max    = parseInt(DRILLS[idx].attempts) || 0;
     const succEl = document.getElementById('succ-'+idx);
@@ -686,7 +705,6 @@
   function renderSummary() {
     const grid   = document.getElementById('summaryGrid');
     const metaEl = document.getElementById('summaryMeta');
-    // ── CHANGE 4: summary title always shows "N/A" (label removed)
     const titleEl = document.getElementById('summaryTitle');
     if (titleEl) titleEl.textContent = 'N/A';
 
@@ -701,7 +719,6 @@
       if (!d.tier) return;
       const a   = agg[d.tier];
       const att = parseInt(d.attempts) || 0;
-      // Use manual score override if present, otherwise use succ count
       const suc = parseFloat(d.succ);
       a.count++;
       a.totalAttempts += att;
@@ -725,7 +742,6 @@
       const card = document.createElement('div');
       card.className = 'tier-card ' + t.cls + (inactive ? ' inactive' : '');
 
-      // ── CHANGE 4: badge label replaced with "N/A" text
       const badgeHTML =
         '<div class="tc-top">' +
           '<span class="tc-badge" style="background:'+t.color+'">' +
@@ -775,34 +791,23 @@
     const skillBg = color ? 'rgba('+rgb+',0.13)' : 'rgba(180,180,180,0.10)';
     const skillTx = color || '#bbb';
 
-    // Calculate auto score for display
     const max  = parseInt(drill.attempts) || 0;
     const v    = parseFloat(drill.succ);
     const autoPct = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v/max)*100)) : null;
-    // Use stored manual score if available, otherwise use auto-calculated
     const scoreVal = drill.score !== '' && drill.score !== undefined ? drill.score : (autoPct !== null ? autoPct : '');
 
     const tr = document.createElement('tr');
     tr.dataset.idx = idx;
 
-    // 1. Subskill level — static label, no dropdown
+    // ── CHANGE 2: Subskill Level — now a <select> dropdown ──
+    // It always shows "Select domain first" as the only disabled placeholder option.
+    // When a domain is selected (via the domain modal), this can be populated dynamically.
     const tdSub = document.createElement('td');
     tdSub.className = 'c-sub';
     tdSub.innerHTML =
-      '<div class="subskill-static" id="subskill-placeholder-'+idx+'" style="'+
-        'display:flex;align-items:center;gap:8px;'+
-        'padding:8px 12px;border-radius:8px;'+
-        'background:rgba(180,180,180,0.10);'+
-        'font-family:var(--ff-body);font-size:13px;'+
-        'color:#aaa;font-style:italic;cursor:pointer;user-select:none;'+
-        'transition:background .18s;'+
-      '" onclick="showSelectDomainModal()" onmouseover="this.style.background=\"rgba(180,180,180,0.20)\"" onmouseout="this.style.background=\"rgba(180,180,180,0.10)\"">'+
-        '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:.5">'+
-          '<circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>'+
-          '<path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'+
-        '</svg>'+
-        'Select Skill Domain first'+
-      '</div>';
+      '<select class="subskill-select" id="subskill-select-' + idx + '" data-idx="' + idx + '" disabled>' +
+        '<option value="" selected disabled>Select domain first</option>' +
+      '</select>';
     tr.appendChild(tdSub);
 
     // 2. Drill dropdown
@@ -834,7 +839,7 @@
       '</div>';
     tr.appendChild(tdSkill);
 
-    // 3. Attempts — editable number input (unchanged)
+    // 3. Attempts
     const tdCrit = document.createElement('td');
     tdCrit.className = 'c-crit';
     tdCrit.innerHTML =
@@ -847,7 +852,7 @@
       '</div>';
     tr.appendChild(tdCrit);
 
-    // 4. Successful — editable number input (unchanged)
+    // 4. Successful
     const tdSucc = document.createElement('td');
     tdSucc.className = 'c-succ';
     tdSucc.innerHTML =
@@ -857,7 +862,7 @@
       '</div>';
     tr.appendChild(tdSucc);
 
-    // 5. Score — CHANGE 2: now an editable number input (auto-filled but overridable)
+    // 5. Score
     const tdScore = document.createElement('td');
     tdScore.className = 'c-sc';
     tdScore.innerHTML =
@@ -924,7 +929,6 @@
           if (!isNaN(s) && s > v) { succEl.value = v; DRILLS[idx].succ = v; }
           succEl.max = v;
         }
-        // Clear manual override so score auto-recalculates
         const scoreInput = document.getElementById('score-'+idx);
         if (scoreInput) delete scoreInput.dataset.manualOverride;
         recalcPct(idx);
@@ -955,14 +959,13 @@
         if (!isNaN(v) && v < 0)   { this.value = 0;   v = 0; }
         if (!isNaN(v) && v > max) { this.value = max; v = max; }
         DRILLS[idx].succ = this.value;
-        // Clear manual override so score auto-recalculates from succ/attempts
         const scoreInput = document.getElementById('score-'+idx);
         if (scoreInput) delete scoreInput.dataset.manualOverride;
         recalcPct(idx);
       });
     });
 
-    // Score input — CHANGE 2: manual entry sets override flag, stops auto-recalc overwriting it
+    // Score input — manual entry sets override flag
     document.querySelectorAll('.score-pct-input').forEach(input => {
       input.addEventListener('input', function() {
         const idx = +this.dataset.idx;
