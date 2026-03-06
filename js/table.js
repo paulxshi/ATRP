@@ -980,6 +980,7 @@ document.addEventListener('DOMContentLoaded', function () {
     sessionCount++;
     grid.appendChild(createSessionBlock(sessionCount - 1));
     updateBdmSessionCount();
+    grid.scrollTop = grid.scrollHeight;
   });
 
   document.getElementById('bdmDeleteSession').addEventListener('click', () => {

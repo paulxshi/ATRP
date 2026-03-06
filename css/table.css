@@ -408,6 +408,24 @@
     box-shadow: 0 8px 24px rgba(0,0,0,.08);
     background: rgba(0,0,0,0.025);
   }
+
+  .bcm-table-container::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .bcm-table-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .bcm-table-container::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+
+  .bcm-table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--border);
+    border-radius: 99px;
+  }
   .bcm-table {
     width: 100%;
     border-collapse: collapse;
