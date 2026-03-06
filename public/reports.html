@@ -162,6 +162,10 @@
     .rp-writeup-content h2:first-child { margin-top: 0; }
     .rp-writeup-content p { margin: 0 0 10px; }
 
+    /* Editable bold fields in interpretation */
+    .rp-editable { border-bottom: 1.5px dashed #C9A84C; cursor: text; outline: none; min-width: 4px; display: inline-block; }
+    .rp-editable:focus { background: rgba(201,168,76,.08); border-radius: 3px; border-bottom-color: #e07b2a; }
+
     /* Chart containers */
     .chart-box { border: 2px solid #e07b2a; border-radius: 8px; padding: 18px 18px 12px; margin-bottom: 22px; background: #fff; }
     .chart-observer { text-align: center; font-family: Tahoma, sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 14px; letter-spacing: .05em; }
@@ -266,8 +270,8 @@
         </div>
 
         <div class="rp-data-row" id="rpDataRow">
-          <span class="rp-data-chip chip-bcm"   id="chipBcm">  <span class="rp-chip-dot"></span>BCM — loading…</span>
-          <span class="rp-data-chip chip-bdm"   id="chipBdm">  <span class="rp-chip-dot"></span>BDM — loading…</span>
+          <span class="rp-data-chip chip-bcm"   id="chipBcm">  <span class="rp-chip-dot"></span>Continuous — loading…</span>
+          <span class="rp-data-chip chip-bdm"   id="chipBdm">  <span class="rp-chip-dot"></span>Discontinuous — loading…</span>
           <span class="rp-data-chip chip-skill" id="chipSkill"><span class="rp-chip-dot"></span>Skills — loading…</span>
         </div>
       </div>
@@ -337,10 +341,7 @@
                 <svg viewBox="0 0 16 16" fill="none"><path d="M9 1H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6L9 1z" stroke="currentColor" stroke-width="1.5"/><path d="M9 1v5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 Export DOCX
               </button>
-              <button class="rp-export-btn btn-copy" id="btnCopyText"   disabled>
-                <svg viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 11V3a2 2 0 0 1 2-2h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                Copy Text
-              </button>
+
             </div>
           </div>
 
@@ -405,7 +406,6 @@
     const writeupLoader = document.getElementById('writeupLoader');
     const btnPdf        = document.getElementById('btnExportPdf');
     const btnDocx       = document.getElementById('btnExportDocx');
-    const btnCopy       = document.getElementById('btnCopyText');
 
     // ── Fetch clients ──────────────────────────────────────────
     async function fetchClients() {
@@ -423,7 +423,8 @@
       if (!filtered.length) { searchResults.style.display = 'none'; return; }
       searchResults.innerHTML = filtered.map(c => `
         <div class="rp-result-item" data-id="${c.id}" data-name="${c.full_name}"
-             data-diag="${c.diagnosis||''}" data-age="${c.age||''}">
+             data-diag="${c.diagnosis||''}" data-age="${c.age||''}" data-recorder="${c.recorder||''}"
+             data-nickname="${c.nickname||''}" data-start="${c.report_start_date||''}" data-end="${c.report_end_date||''}">
           <span class="rp-result-dot"></span>
           <span class="rp-result-name">${c.full_name}</span>
           ${c.nickname ? `<span class="rp-result-meta">(${c.nickname})</span>` : ''}
@@ -431,10 +432,10 @@
         </div>`).join('');
       searchResults.querySelectorAll('.rp-result-item').forEach(item => {
         item.addEventListener('mousedown', e => {
-          e.preventDefault();
-          activeClientId   = parseInt(item.dataset.id);
-          searchInput.value= item.dataset.name;
-          activeClientData = { id: activeClientId, full_name: item.dataset.name, diagnosis: item.dataset.diag, age: item.dataset.age };
+        e.preventDefault();
+        activeClientId   = parseInt(item.dataset.id);
+        searchInput.value= item.dataset.name;
+        activeClientData = { id: activeClientId, full_name: item.dataset.name, nickname: item.dataset.nickname||'', diagnosis: item.dataset.diag, age: item.dataset.age, recorder: item.dataset.recorder, report_start_date: item.dataset.start, report_end_date: item.dataset.end };
           searchResults.style.display = 'none';
           loadBtn.disabled = false;
           searchResults.querySelectorAll('.rp-result-item').forEach(i => i.classList.remove('active'));
@@ -485,7 +486,7 @@
       writeupEmpty.style.display = 'flex';
       writeupContent.classList.remove('visible');
       writeupLoader.classList.remove('visible');
-      btnPdf.disabled = btnDocx.disabled = btnCopy.disabled = true;
+      btnPdf.disabled = btnDocx.disabled = true;
       destroyCharts();
 
       const [bcmResult, bdmResult, skillResult] = await Promise.allSettled([
@@ -497,16 +498,16 @@
       if (bcmResult.status === 'fulfilled' && bcmResult.value.success) {
         const behaviors = bcmResult.value.behaviors || [];
         bcmBadge.textContent = behaviors.length + ' behavior' + (behaviors.length !== 1 ? 's' : '');
-        updateChip(chipBcm, behaviors.length > 0, 'BCM', bcmBadge.textContent);
+        updateChip(chipBcm, behaviors.length > 0, 'Continuous', bcmBadge.textContent);
         bcmBody.innerHTML = behaviors.length > 0 ? renderBcmTable(behaviors, bcmResult.value.notes||'') : noDataHTML('No BCM behaviors recorded yet');
-      } else { bcmBadge.textContent = 'Error'; updateChip(chipBcm, false, 'BCM', 'Error'); bcmBody.innerHTML = noDataHTML('Could not load BCM data'); }
+      } else { bcmBadge.textContent = 'Error'; updateChip(chipBcm, false, 'Continuous', 'Error'); bcmBody.innerHTML = noDataHTML('Could not load BCM data'); }
 
       if (bdmResult.status === 'fulfilled' && bdmResult.value.success) {
         const sessions = bdmResult.value.sessions || [];
         bdmBadge.textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
-        updateChip(chipBdm, sessions.length > 0, 'BDM', bdmBadge.textContent);
+        updateChip(chipBdm, sessions.length > 0, 'Discontinuous', bdmBadge.textContent);
         bdmBody.innerHTML = sessions.length > 0 ? renderBdmTable(sessions, bdmResult.value.notes||'') : noDataHTML('No BDM sessions recorded yet');
-      } else { bdmBadge.textContent = 'Error'; updateChip(chipBdm, false, 'BDM', 'Error'); bdmBody.innerHTML = noDataHTML('Could not load BDM data'); }
+      } else { bdmBadge.textContent = 'Error'; updateChip(chipBdm, false, 'Discontinuous', 'Error'); bdmBody.innerHTML = noDataHTML('Could not load BDM data'); }
 
       if (skillResult.status === 'fulfilled' && skillResult.value.success) {
         const rows = skillResult.value.rows || [];
@@ -564,7 +565,7 @@
           <td><span style="font-size:14px;font-weight:800;color:${color};">${pct!==null?pct+'%':'—'}</span>${bar}</td>
         </tr>`;
       }).join('');
-      return `<table class="rp-inner-table"><thead><tr><th>Tier</th><th>Skill / Drill</th><th>Attempts</th><th>Score</th></tr></thead><tbody>${body}</tbody></table>`;
+      return `<table class="rp-inner-table"><thead><tr><th>Subskill</th><th>Skill / Drill</th><th>Attempts</th><th>Score</th></tr></thead><tbody>${body}</tbody></table>`;
     }
 
     // ══════════════════════════════════════════════════════════
@@ -603,9 +604,9 @@
       const sessions  = (bdm.status==='fulfilled'  && bdm.value?.success)  ? (bdm.value.sessions||[])   : [];
       const skills    = (skill.status==='fulfilled' && skill.value?.success)? (skill.value.rows||[])      : [];
 
+      const firstDate = client.report_start_date || '(First Recording Session)';
+      const lastDate  = client.report_end_date   || '(Last Recording Session)';
       const dates     = sessions.map(s=>s.session_date).filter(Boolean).sort();
-      const firstDate = dates[0] || '(First Recording Session)';
-      const lastDate  = dates[dates.length-1] || '(Last Recording Session)';
       const duration  = dates.length ? dates.length+' session'+(dates.length!==1?'s':'') : '(Duration)';
 
       const behaviorNames = behaviors.length ? behaviors.map(b=>b.behavior||'(Behavior)').join('; ') : '(Behavior 1)';
@@ -615,7 +616,7 @@
         const bName=b.behavior||`Behavior ${i+1}`;
         const func=Object.entries(b.functions||{}).filter(([,v])=>v).map(([k])=>k).join('/')||'unknown';
         const trend=getTrendLabel(b.sessions||{});
-        return `<strong>${bName}</strong> is a/an <em>${func}</em>-based behavior. This means that the reason why ${pronoun()} does the behavior is to (${func} function explanation), specifically whenever ${pronoun()} ${b.antecedent||'(antecedent)'}. As seen in the graph above, the pattern of the behavior is <strong>${trend}</strong> over time. ${getTrendConsequence(trend)}`;
+        return `<strong contenteditable="true" class="rp-editable">${bName}</strong> is a/an <strong contenteditable="true" class="rp-editable">${func}</strong>-based behavior. This means that the reason why ${pronoun()} does the behavior is to <strong contenteditable="true" class="rp-editable">(${func} function explanation)</strong>, specifically whenever ${pronoun()} ${b.antecedent||'(antecedent)'}. As seen in the graph above, the pattern of the behavior is <strong contenteditable="true" class="rp-editable">${trend}</strong> over time. ${getTrendConsequence(trend)}`;
       });
 
       const bdmParas = sessions.map((s,i) => {
@@ -624,18 +625,21 @@
         const label=getOccurrenceLabel(pct);
         const bName=behaviors[i]?.behavior||`Behavior ${i+1}`;
         const func=Object.entries(behaviors[i]?.functions||{}).filter(([,v])=>v).map(([k])=>k).join('/')||'unknown';
-        return `<strong>${bName}</strong> is a/an <em>${func}</em>-based behavior. This means that the reason why ${pronoun()} does the behavior is to (${func} function explanation), specifically whenever ${pronoun()} ${behaviors[i]?.antecedent||'(antecedent)'}. As seen in the graph above, the occurrence of the behavior is <strong>${label} (${pct}%)</strong> over time. ${getOccurrenceConsequence(label)}`;
+        return `<strong contenteditable="true" class="rp-editable">${bName}</strong> is a/an <strong contenteditable="true" class="rp-editable">${func}</strong>-based behavior. This means that the reason why ${pronoun()} does the behavior is to <strong contenteditable="true" class="rp-editable">(${func} function explanation)</strong>, specifically whenever ${pronoun()} ${behaviors[i]?.antecedent||'(antecedent)'}. As seen in the graph above, the occurrence of the behavior is <strong contenteditable="true" class="rp-editable">${label} (${pct}%)</strong> over time. ${getOccurrenceConsequence(label)}`;
       });
 
+      const nick = client.nickname || client.full_name.split(' ')[0];
       const skillParas = skills.map((s,i) => {
         const sName=s.skill||`Skill ${i+1}`;
         const att=parseInt(s.attempts)||0, succ=parseFloat(s.successful)||0;
         const pct=att>0?Math.round(Math.min(100,(succ/att)*100)):0;
         const level=getSkillLevel(pct);
-        return `<strong>${sName}</strong> is an adaptive skill that ${pronoun()} should develop. As seen in the graph above, ${client.full_name}&#x2019;s ${sName} is <strong>${level} (mean ${pct}%)</strong>. ${getSkillConsequence(level)}`;
+        return `<strong contenteditable="true" class="rp-editable">${sName}</strong> is an adaptive skill that ${pronoun()} should develop. As seen in the graph above, ${nick}&#x2019;s ${sName} is <strong contenteditable="true" class="rp-editable">${level} (mean ${pct}%)</strong>. ${getSkillConsequence(level)}`;
       });
 
-      return { name:client.full_name, diagnosis:client.diagnosis||'—', age:client.age||'—',
+      const nickname = client.nickname || client.full_name.split(' ')[0];
+      return { name:client.full_name, nickname, diagnosis:client.diagnosis||'—', age:client.age||'—',
+               recorder:client.recorder||'(Recorder Name)',
                duration, firstDate, lastDate, behaviorNames, skillNames,
                behaviors, sessions, skills, bcmParas, bdmParas, skillParas,
                hasBcm:behaviors.length>0, hasBdm:sessions.length>0, hasSkills:skills.length>0 };
@@ -677,57 +681,41 @@
             plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:24 } }, tooltip:{ mode:'index', intersect:false } },
             scales: {
               x: { grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11} } },
-              y: { beginAtZero:true, grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11} } }
+              y: { beginAtZero:true, suggestedMax: undefined, grace:'15%', grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11} } }
             }
           }
         });
       }
 
-      // ── Type II (BDM % + Skill mean flat lines) ────────────────
+      // ── Type II (Skill drills — per-drill percentage) ──────────
       const canvasII = document.getElementById('chartTypeII');
-      if (canvasII && d.hasBdm) {
-        const labels = d.sessions.map((s,i) => `Session ${s.session_number||i+1}`);
+      if (canvasII && d.hasSkills) {
+        const labels = d.skills.map((s,i) => s.skill || `Drill ${i+1}`);
 
-        // Behavior datasets: % of intervals positive per session
-        const behaviorDS = d.behaviors.map((b,i) => {
-          const maxFreq = Math.max(...Object.values(b.sessions||{}).map(Number).filter(n=>!isNaN(n)), 1);
-          return {
-            label:           b.behavior || `Behavior ${i+1}`,
-            data:            d.sessions.map((s,si) => {
-              const sNum = s.session_number || si+1;
-              const freq = b.sessions?.[sNum] ?? b.sessions?.[String(sNum)];
-              return freq !== undefined ? Math.round((Number(freq)/maxFreq)*100) : null;
-            }),
-            borderColor:     COLORS[i % COLORS.length],
-            backgroundColor: COLORS[i % COLORS.length] + '22',
-            borderWidth:2.5, pointRadius:4, pointHoverRadius:6, tension:0.35, fill:false, spanGaps:true
-          };
-        });
-
-        // Skill datasets: flat line at mean score %
-        const skillDS = d.skills.map((s,i) => {
-          const att=parseInt(s.attempts)||0, succ=parseFloat(s.successful)||0;
-          const pct=att>0?Math.round(Math.min(100,(succ/att)*100)):0;
-          const colorIdx = (d.behaviors.length + i) % COLORS.length;
-          return {
-            label:           s.skill || `Skill ${i+1}`,
-            data:            labels.map(() => pct),
-            borderColor:     COLORS[colorIdx],
-            backgroundColor: COLORS[colorIdx] + '22',
-            borderWidth:2, pointRadius:3, tension:0, fill:false,
-            borderDash: [5,4]   // dashed so skills are visually distinct from behaviors
-          };
+        const drillData = d.skills.map(s => {
+          const att = parseInt(s.attempts) || 0;
+          const succ = parseFloat(s.successful) || 0;
+          return att > 0 ? Math.round(Math.min(100, (succ / att) * 100)) : 0;
         });
 
         chartTypeII = new Chart(canvasII.getContext('2d'), {
           type: 'line',
-          data: { labels, datasets: [...behaviorDS, ...skillDS] },
+          data: {
+            labels,
+            datasets: [{
+              label: 'Score (%)',
+              data: drillData,
+              borderColor: COLORS[0],
+              backgroundColor: COLORS[0] + '22',
+              borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6, tension: 0, fill: false
+            }]
+          },
           options: {
             responsive: true, maintainAspectRatio: true, aspectRatio: 3.2,
             plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:24 } }, tooltip:{ mode:'index', intersect:false } },
             scales: {
               x: { grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11} } },
-              y: { beginAtZero:true, max:100, grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11}, callback: v => v+'%' } }
+              y: { beginAtZero:true, suggestedMax:110, grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11}, callback: v => v+'%' } }
             }
           }
         });
@@ -739,45 +727,61 @@
       const section = (title, content) => `<h2>${title}</h2>${content}`;
 
       const infoTable = `
-        <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px;">
+        <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px;table-layout:fixed;">
+          <colgroup>
+            <col style="width:18%">
+            <col style="width:32%">
+            <col style="width:22%">
+            <col style="width:28%">
+          </colgroup>
           <tr>
-            <td style="border:1px solid #ddd;padding:7px 12px;width:30%;font-weight:700;">Name:</td>
-            <td style="border:1px solid #ddd;padding:7px 12px;">${d.name}</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Name:</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;word-break:break-word;">${d.name}</td>
             <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Baseline Report Period:</td>
-            <td style="border:1px solid #ddd;padding:7px 12px;">${d.firstDate} — ${d.lastDate}</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;word-break:break-word;">${d.firstDate} — ${d.lastDate}</td>
           </tr>
           <tr>
             <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Age:</td>
             <td style="border:1px solid #ddd;padding:7px 12px;">${d.age}</td>
             <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Recorder/s:</td>
-            <td style="border:1px solid #ddd;padding:7px 12px;">(Recorder Name)</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;">${d.recorder}</td>
           </tr>
           <tr>
             <td colspan="4" style="border:1px solid #ddd;padding:7px 12px;"><strong>Diagnosis:</strong> ${d.diagnosis}</td>
           </tr>
         </table>`;
 
-      const behaviorItems = d.behaviors.length
-        ? d.behaviors.map((b,i)=>`<p style="margin:2px 0;">Behavior ${i+1}: ${b.behavior||'(Behavior)'}</p>`).join('')
-        : '<p style="margin:2px 0;">Behavior 1: (Behavior)</p>';
-      const skillItems = d.skills.length
-        ? d.skills.map((s,i)=>`<p style="margin:2px 0;">Skill ${i+1}: ${s.skill||'(Skill)'}</p>`).join('')
-        : '<p style="margin:2px 0;">Skill 1: (Skill)</p>';
-      const areasMeasured = `<p><strong>DATA</strong></p>${behaviorItems}${skillItems}`;
+      const maxPairs = Math.max(d.behaviors.length, d.skills.length, 1);
+      const pairedRows = Array.from({length: maxPairs}, (_,i) => {
+        const bLabel = d.behaviors[i] ? `Behavior ${i+1}: ${d.behaviors[i].behavior||'(Behavior)'}` : '';
+        const sLabel = d.skills[i]    ? `Skill ${i+1}: ${d.skills[i].skill||'(Skill)'}`              : '';
+        return `<tr>
+          <td style="padding:2px 8px 2px 0;vertical-align:top;white-space:nowrap;">${bLabel ? `• ${bLabel}` : ''}</td>
+          <td style="padding:2px 0 2px 8px;vertical-align:top;white-space:nowrap;">${sLabel ? `• ${sLabel}` : ''}</td>
+        </tr>`;
+      }).join('');
+      const areasMeasured = `<p><strong>DATA</strong></p>
+        <table style="border-collapse:collapse;font-size:13px;width:100%;">
+          <thead><tr>
+            <th style="text-align:left;padding:2px 8px 4px 0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a7a5a;">Behavior</th>
+            <th style="text-align:left;padding:2px 0 4px 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a7a5a;">Skill</th>
+          </tr></thead>
+          <tbody>${pairedRows}</tbody>
+        </table>`;
 
       // ── Chart placeholder divs — canvases with real IDs ────────
       // Charts are drawn INTO these after innerHTML is set
       const chartTypeIHTML = d.hasBcm ? `
         <p class="chart-type-label">Type I: Frequency (Continuous)</p>
         <div class="chart-box">
-          <div class="chart-observer">OBSERVER:<span class="chart-observer-line"></span></div>
+          <div class="chart-observer">OBSERVER:<span class="chart-observer-line">&nbsp;${d.recorder}</span></div>
           <canvas id="chartTypeI" style="width:100%;max-height:260px;"></canvas>
         </div>` : '';
 
-      const chartTypeIIHTML = d.hasBdm ? `
+      const chartTypeIIHTML = d.hasSkills ? `
         <p class="chart-type-label">Type II: Percentage (Discontinuous)</p>
         <div class="chart-box">
-          <div class="chart-observer">OBSERVER:<span class="chart-observer-line"></span></div>
+          <div class="chart-observer">OBSERVER:<span class="chart-observer-line">&nbsp;${d.recorder}</span></div>
           <canvas id="chartTypeII" style="width:100%;max-height:260px;"></canvas>
         </div>` : '';
 
@@ -786,9 +790,9 @@
         : '<p style="color:#bbb;font-style:italic;font-size:12px;">No graph data available yet.</p>';
 
       const introText = `
-        <p>The behavior/s in the graph above were observed from <strong>${d.name}</strong>. This/These were measured within <strong>${d.duration}</strong> from <strong>${d.firstDate}</strong> to <strong>${d.lastDate}</strong>.</p>
-        <p>The following are the <strong>problem behaviors</strong> observed from ${d.name}: ${d.behaviorNames}.</p>
-        <p>The following are the <strong>adaptive skills</strong> that ${d.name} needs to develop: ${d.skillNames}.</p>`;
+        <p>The behavior/s in the graph above were observed from <strong contenteditable="true" class="rp-editable">${d.nickname}</strong>. This/These were measured within <strong contenteditable="true" class="rp-editable">${d.duration}</strong> from <strong contenteditable="true" class="rp-editable">${d.firstDate}</strong> to <strong contenteditable="true" class="rp-editable">${d.lastDate}</strong>.</p>
+        <p>The following are the <strong contenteditable="true" class="rp-editable">problem behaviors</strong> observed from ${d.nickname}: ${d.behaviorNames}.</p>
+        <p>The following are the <strong contenteditable="true" class="rp-editable">adaptive skills</strong> that ${d.nickname} needs to develop: ${d.skillNames}.</p>`;
 
       let behaviorContent = '';
       if (d.bcmParas.length) { behaviorContent += '<p><strong>Behavior Template – Type I (Continuous)</strong></p>'; d.bcmParas.forEach(p=>{behaviorContent+=`<p>${p}</p>`;}); }
@@ -799,7 +803,7 @@
         ? d.skillParas.map(p=>`<p>${p}</p>`).join('')
         : '<p style="color:#aaa;font-style:italic;">No skill data recorded yet.</p>';
 
-      const closing = `<p>This report represents the baseline data of <strong>${d.name}</strong>&#x2019;s behaviors. The therapy program will now proceed with the implementation of intervention plan wherein problem behaviors will be reduced while appropriate behaviors will be rewarded. After the intervention plan, the therapy program will measure the same set of behaviors again. The second set of data will be compared to the baseline set of data.</p>`;
+      const closing = `<p>This report represents the baseline data of <strong contenteditable="true" class="rp-editable">${d.nickname}</strong>&#x2019;s behaviors. The therapy program will now proceed with the implementation of intervention plan wherein problem behaviors will be reduced while appropriate behaviors will be rewarded. After the intervention plan, the therapy program will measure the same set of behaviors again. The second set of data will be compared to the baseline set of data.</p>`;
 
       const sigBlock = `
         <div style="margin-top:32px;display:flex;justify-content:space-between;font-size:12.5px;">
@@ -815,7 +819,7 @@
           </div>
         </div>
         <p style="margin-top:24px;font-size:11.5px;font-style:italic;color:#888;">
-          Thank you for entrusting ${d.name}&#x2019;s development to us. If you have concerns or inquiries regarding this progress report, undersigned below may be reached by email at
+          Thank you for entrusting <strong contenteditable="true" class="rp-editable">${d.nickname}</strong>&#x2019;s development to us. If you have concerns or inquiries regarding this progress report, undersigned below may be reached by email at
           <a href="mailto:wellness@psi-services.net" style="color:#C9A84C;">wellness@psi-services.net</a>
         </p>`;
 
@@ -834,12 +838,16 @@
       const lines = [
         'BASELINE REPORT','',
         `Name: ${d.name}   |   Baseline Report Period: ${d.firstDate} – ${d.lastDate}`,
-        `Age: ${d.age}     |   Recorder/s: (Recorder Name)`,
+        `Age: ${d.age}     |   Recorder/s: ${d.recorder}`,
         `Diagnosis: ${d.diagnosis}`, '',
         'AREAS MEASURED:', 'DATA'
       ];
-      d.behaviors.forEach((b,i) => lines.push(`Behavior ${i+1}: ${b.behavior||'(Behavior)'}`));
-      d.skills.forEach((s,i)    => lines.push(`Skill ${i+1}: ${s.skill||'(Skill)'}`));
+      const maxP = Math.max(d.behaviors.length, d.skills.length, 1);
+      for(let i=0;i<maxP;i++){
+        const bPart = d.behaviors[i] ? `• Behavior ${i+1}: ${d.behaviors[i].behavior||'(Behavior)'}` : '';
+        const sPart = d.skills[i]    ? `• Skill ${i+1}: ${d.skills[i].skill||'(Skill)'}`              : '';
+        lines.push(bPart && sPart ? `${bPart.padEnd(45)} ${sPart}` : bPart || sPart);
+      }
       lines.push('','INTERPRETATION:','');
       lines.push(`The behavior/s in the graph above were observed from ${d.name}. This/These were measured within ${d.duration} from ${d.firstDate} to ${d.lastDate}.`);
       lines.push(`The following are the problem behaviors observed from ${d.name}: ${d.behaviorNames}.`);
@@ -869,20 +877,10 @@
       // Use requestAnimationFrame to ensure the DOM has painted
       requestAnimationFrame(() => drawCharts(data));
 
-      btnPdf.disabled = btnDocx.disabled = btnCopy.disabled = false;
+      btnPdf.disabled = btnDocx.disabled = false;
       writeupContent._plainText   = renderWriteupPlainText(data);
       writeupContent._writeupData = data;
     }
-
-    // ── Export: Copy ───────────────────────────────────────────
-    btnCopy.addEventListener('click', () => {
-      const text = writeupContent._plainText || writeupContent.innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        const orig = btnCopy.innerHTML;
-        btnCopy.innerHTML = `<svg viewBox="0 0 16 16" fill="none" width="13" height="13"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
-        setTimeout(() => { btnCopy.innerHTML = orig; }, 2000);
-      });
-    });
 
     // ── Export: PDF ────────────────────────────────────────────
     btnPdf.addEventListener('click', () => {
@@ -911,15 +909,14 @@
           const c1 = document.getElementById('chartTypeI');
           if(c1 && d.hasBcm){
             const nums=[...new Set(d.behaviors.flatMap(b=>Object.keys(b.sessions||{}).map(Number)))].sort((a,z)=>a-z);
-            new Chart(c1,{type:'line',data:{labels:nums.map(n=>'Session '+n),datasets:d.behaviors.map((b,i)=>({label:b.behavior||'Behavior '+(i+1),data:nums.map(n=>b.sessions?.[n]??b.sessions?.[String(n)]??null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',borderWidth:2.5,pointRadius:4,tension:0.35,fill:false,spanGaps:true}))},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:'#f0f0f0'}},y:{beginAtZero:true,grid:{color:'#f0f0f0'}}}}});
+            new Chart(c1,{type:'line',data:{labels:nums.map(n=>'Session '+n),datasets:d.behaviors.map((b,i)=>({label:b.behavior||'Behavior '+(i+1),data:nums.map(n=>b.sessions?.[n]??b.sessions?.[String(n)]??null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',borderWidth:2.5,pointRadius:4,tension:0.35,fill:false,spanGaps:true}))},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:'#f0f0f0'}},y:{beginAtZero:true,grace:'15%',grid:{color:'#f0f0f0'}}}}});
           }
-          // Type II
+          // Type II — per-drill percentage
           const c2 = document.getElementById('chartTypeII');
-          if(c2 && d.hasBdm){
-            const labels=d.sessions.map((s,i)=>'Session '+(s.session_number||i+1));
-            const bDS=d.behaviors.map((b,i)=>{const mx=Math.max(...Object.values(b.sessions||{}).map(Number).filter(n=>!isNaN(n)),1);return{label:b.behavior||'Behavior '+(i+1),data:d.sessions.map((s,si)=>{const sn=s.session_number||si+1;const fr=b.sessions?.[sn]??b.sessions?.[String(sn)];return fr!==undefined?Math.round((Number(fr)/mx)*100):null;}),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',borderWidth:2.5,pointRadius:4,tension:0.35,fill:false,spanGaps:true};});
-            const sDS=d.skills.map((s,i)=>{const att=parseInt(s.attempts)||0,succ=parseFloat(s.successful)||0,pct=att>0?Math.round(Math.min(100,(succ/att)*100)):0,ci=(d.behaviors.length+i)%COLORS.length;return{label:s.skill||'Skill '+(i+1),data:labels.map(()=>pct),borderColor:COLORS[ci],backgroundColor:COLORS[ci]+'22',borderWidth:2,pointRadius:3,tension:0,fill:false,borderDash:[5,4]};});
-            new Chart(c2,{type:'line',data:{labels,datasets:[...bDS,...sDS]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:'#f0f0f0'}},y:{beginAtZero:true,max:100,grid:{color:'#f0f0f0'},ticks:{callback:v=>v+'%'}}}}});
+          if(c2 && d.hasSkills){
+            const labels=d.skills.map((s,i)=>s.skill||'Drill '+(i+1));
+            const drillData=d.skills.map(s=>{const att=parseInt(s.attempts)||0,succ=parseFloat(s.successful)||0;return att>0?Math.round(Math.min(100,(succ/att)*100)):0;});
+            new Chart(c2,{type:'line',data:{labels,datasets:[{label:'Score (%)',data:drillData,borderColor:COLORS[0],backgroundColor:COLORS[0]+'22',borderWidth:2.5,pointRadius:4,tension:0,fill:false}]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:'#f0f0f0'}},y:{beginAtZero:true,suggestedMax:110,grid:{color:'#f0f0f0'},ticks:{callback:v=>v+'%'}}}}});
           }
           setTimeout(()=>window.print(),800);
         })();
@@ -928,9 +925,49 @@
       win.document.close();
     });
 
-    // ── Export: DOCX ───────────────────────────────────────────
+    // ── Export: DOCX (Word-compatible HTML .doc) ───────────────
     btnDocx.addEventListener('click', () => {
-      showToast('For DOCX: use "Export PDF" → print → Save as PDF, or ask your admin to enable server-side DOCX generation.', 'info');
+      const d = writeupContent._writeupData;
+      if (!d) { showToast('No data to export.', 'error'); return; }
+
+      const html = `
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>Baseline Report – ${d.name}</title>
+  <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom></w:WordDocument></xml><![endif]-->
+  <style>
+    body { font-family: Tahoma, Arial, sans-serif; font-size: 13px; margin: 72pt; color: #222; line-height: 1.7; }
+    h1 { font-size: 18px; font-weight: 800; color: #ED7D31; letter-spacing: .06em; text-align: center; margin-bottom: 16px; }
+    h2 { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #1a1a1a; border-bottom: 1.5px solid #C9A84C; padding-bottom: 5px; margin: 22px 0 8px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+    td, th { border: 1px solid #ddd; padding: 6px 10px; }
+    p { margin: 6px 0; }
+    .chart-box { border: 2px solid #e07b2a; border-radius: 6px; padding: 16px; margin-bottom: 20px; }
+    .chart-observer { text-align: center; font-size: 13px; font-weight: 700; margin-bottom: 12px; border-bottom: 2px solid #222; padding-bottom: 4px; }
+    .chart-type-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #555; margin: 16px 0 6px; }
+    .sig-block { margin-top: 32px; display: flex; justify-content: space-between; font-size: 12.5px; }
+  </style>
+</head>
+<body>
+${writeupContent.innerHTML
+  .replace(/<canvas[^>]*><\/canvas>/gi, '<p style="font-style:italic;color:#aaa;">[Chart – see PDF export for graphs]</p>')
+}
+</body>
+</html>`;
+
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `Baseline_Report_${d.name.replace(/\s+/g,'_')}.doc`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+      showToast('DOCX downloaded. Open with Microsoft Word.', 'success');
     });
 
     // ── Helpers ────────────────────────────────────────────────
