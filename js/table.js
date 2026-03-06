@@ -1,16 +1,3 @@
-/**
- * ATRP — index.js
- * BCM (Continuous Measurement) logic + Client management.
- * BDM functions live in table.js but read window.ATRP_CLIENT_ID set here.
- *
- * Key design:
- *  • Data is ALWAYS stored against the client whose name is currently in #clientName.
- *  • On Save: if no client ID is known yet, we POST to api_clients.php which either
- *    creates a new client OR returns the existing one (duplicate guard lives in PHP).
- *  • On name selection from dropdown: load that client's full info + BCM + BDM data.
- *  • Nickname is a first-class field saved with the client record.
- */
-
 (function () {
   'use strict';
 
@@ -630,6 +617,8 @@
       tbody.appendChild(createRow());
       rows++;
       rowCountEl.textContent = rows + ' behavior' + (rows !== 1 ? 's' : '') + ' tracked';
+      const container = document.querySelector('.bcm-table-container');
+      if (container) container.scrollTop = container.scrollHeight;
     });
 
   document.getElementById('bcmDeleteRow')
