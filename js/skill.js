@@ -8,6 +8,40 @@
     { key: 'adv',   label: 'Advanced Understanding', color: '#86198f', cls: 't-adv'   },
   ];
 
+  // Drill options for each subskill
+  const DRILL_OPTIONS = {
+    // Receptive Communication subskills
+    'Eye Contact': ['Look at Speaker', 'Follow Gaze', 'Look at Object', 'Respond to Name'],
+    'Basic Understanding': ['Respond to Instructions', 'Understand Gestures', 'Identify Objects', 'Match Pictures'],
+    'Identification': ['Point to Pictures', 'Select Correct Item', 'Match to Sample', 'Sort by Category'],
+    'Advanced Understanding': ['Follow Multi-step', 'Understand Sentences', 'Answer Wh-Questions', 'Sequence Events'],
+    // Expressive Communication subskills
+    'Simple Communication': ['Request Items', 'Request Activities', 'Indicate Preferences', 'Name Objects'],
+    'Personal Information': ['Say Name', 'Say Age', 'Say Address', 'Say Phone Number'],
+    'Descriptive Communication': ['Label Objects', 'Describe Actions', 'Use Adjectives', 'Describe Colors'],
+    'Comprehensive Communication': ['Tell Stories', 'Explain Procedures', 'Answer Questions', 'Retell Events'],
+    // Personal Care subskills
+    'Preschool Age': ['Wash Hands', 'Brush Teeth', 'Dress Self', 'Use Toilet'],
+    'Elementary Age': ['Prepare Snacks', 'Brush Hair', 'Tie Shoes', 'Organize Belongings'],
+    'Pre-adolescent Age': ['Manage Hygiene', 'Plan Meals', 'Follow Routines', 'Independent Living Skills']
+  };
+
+  // Helper function to get active tiers based on selected domain
+  function getActiveTiers() {
+    const customSubskills = window.ATRP_CURRENT_SUBSKILLS;
+    if (customSubskills && customSubskills.length > 0) {
+      return customSubskills.map((s, idx) => {
+        return {
+          key: 'subskill-' + idx,
+          label: s.name,
+          color: s.color || '#999',
+          cls: 't-custom-' + idx
+        };
+      });
+    }
+    return TIERS;
+  }
+
   let DRILLS = [
     { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
     { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
@@ -690,8 +724,11 @@
     const metaEl = document.getElementById('summaryMeta');
     if (!grid) return;
 
+    // Use dynamic subskills if available, otherwise fall back to TIERS
+    const activeTiers = getActiveTiers();
+
     const agg = {};
-    TIERS.forEach(t => { agg[t.key] = { count:0, totalAttempts:0, totalSucc:0, drills:[] }; });
+    activeTiers.forEach(t => { agg[t.key] = { count:0, totalAttempts:0, totalSucc:0, drills:[] }; });
 
     let totalSelected = 0;
     DRILLS.forEach(d => {
@@ -711,7 +748,7 @@
       : '<strong>' + totalSelected + '</strong> of ' + DRILLS.length + ' rows assigned';
 
     grid.innerHTML = '';
-    TIERS.forEach(t => {
+    activeTiers.forEach(t => {
       const a       = agg[t.key];
       const pct     = a.totalAttempts > 0
         ? Math.min(100, Math.round((a.totalSucc / a.totalAttempts) * 100))
@@ -719,7 +756,11 @@
       const inactive = a.count === 0;
 
       const card = document.createElement('div');
-      card.className = 'tier-card ' + t.cls + (inactive ? ' inactive' : '');
+      // Use custom color class if available, otherwise use tier class
+      const cardClass = t.cls && t.cls.startsWith('t-custom')
+        ? 'tier-card ' + t.cls + (inactive ? ' inactive' : '')
+        : 'tier-card ' + t.cls + (inactive ? ' inactive' : '');
+      card.className = cardClass;
 
       const badgeHTML =
         '<div class="tc-top">' +
@@ -784,7 +825,7 @@
           '<svg class="cs-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
         '</div>'+
         '<div class="cs-panel" id="cs-panel-'+idx+'">'+
-          TIERS.map(t =>
+          getActiveTiers().map(t =>
             '<div class="cs-option'+(drill.tier===t.key?' selected':'')+'" data-idx="'+idx+'" data-key="'+t.key+'" data-color="'+t.color+'">'+
               '<span class="cs-opt-bar" style="background:'+t.color+'"></span>'+
               '<span class="cs-opt-label">'+t.label+'</span>'+
@@ -795,15 +836,32 @@
       '</div>';
     tr.appendChild(tdSub);
 
-    // 2. Skill input
+    // 2. Skill dropdown
+    const tierLabel = tier ? tier.label : null;
+    const drillOptions = tierLabel && DRILL_OPTIONS[tierLabel] ? DRILL_OPTIONS[tierLabel] : [];
+    const selectedDrill = drill.skill || '';
     const tdSkill = document.createElement('td');
     tdSkill.className = 'c-skl';
     tdSkill.innerHTML =
-      '<div class="skill-wrap">'+
-        '<input type="text" class="skill-input" id="skill-input-'+idx+'" data-idx="'+idx+'"'+
-          ' placeholder="Enter skill name…" value="'+drill.skill+'"'+
-          ' autocomplete="off"'+
-          ' style="color:'+skillTx+'; background:'+skillBg+';" />'+
+      '<div class="custom-select-wrap skill-dropdown-wrap">'+
+        '<div class="cs-trigger drill-trigger" id="drill-trigger-'+idx+'" data-idx="'+idx+'">'+
+          '<span class="cs-label'+(selectedDrill?'':' placeholder')+'" id="drill-label-'+idx+'">'+(selectedDrill || 'Select drill…')+'</span>'+
+          '<svg class="cs-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+        '</div>'+
+        '<div class="cs-panel drill-panel" id="drill-panel-'+idx+'">'+
+          (drillOptions.length > 0
+            ? drillOptions.map(d =>
+                '<div class="cs-option'+(selectedDrill === d ?' selected':'')+'" data-idx="'+idx+'" data-drill="'+d+'">'+
+                  '<span class="cs-opt-bar" style="background:'+(tier ? tier.color : '#ddd')+'"></span>'+
+                  '<span class="cs-opt-label">'+d+'</span>'+
+                  '<svg class="cs-opt-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+                '</div>'
+              ).join('')
+            : '<div class="cs-option" data-idx="'+idx+'" data-drill="">'+
+                '<span class="cs-opt-label" style="color:#aaa;font-style:italic">Select subskill first</span>'+
+              '</div>'
+          )+
+        '</div>'+
       '</div>';
     tr.appendChild(tdSkill);
 
@@ -903,10 +961,34 @@
       });
     });
 
-    // Skill input
-    document.querySelectorAll('.skill-input').forEach(input => {
-      input.addEventListener('input', function() {
-        DRILLS[+this.dataset.idx].skill = this.value;
+    // Skill dropdown - trigger click
+    document.querySelectorAll('.drill-trigger').forEach(trigger => {
+      trigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const idx = +this.dataset.idx;
+        const panel = document.getElementById('drill-panel-'+idx);
+        const isOpen = panel.classList.contains('open');
+        closeAll();
+        if (!isOpen) {
+          panel.classList.add('open');
+          this.classList.add('open');
+        }
+      });
+    });
+
+    // Skill dropdown - option click
+    document.querySelectorAll('.drill-panel .cs-option').forEach(opt => {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const idx = +this.dataset.idx;
+        const drill = this.dataset.drill;
+        DRILLS[idx].skill = drill;
+        document.getElementById('drill-label-'+idx).textContent = drill || 'Select drill…';
+        document.getElementById('drill-label-'+idx).classList.toggle('placeholder', !drill);
+        document.querySelectorAll('#drill-panel-'+idx+' .cs-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('drill-panel-'+idx).classList.remove('open');
+        document.getElementById('drill-trigger-'+idx).classList.remove('open');
         renderSummary();
       });
     });
