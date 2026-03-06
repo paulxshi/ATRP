@@ -1,6 +1,59 @@
 (function () {
   'use strict';
 
+  // Sub-domain map - shared across all skill scoring pages
+  window.ATRP_SUB_DOMAINS = {
+    'Communication': ['Receptive', 'Expressive'],
+    'Daily Living':  ['Personal', 'Domestic', 'Community'],
+    'Socialization': ['Interpersonal Relationship', 'Play and Leisure', 'Coping Skills']
+  };
+
+  // Subskills legend map with colors
+  window.ATRP_SUBSKILLS = {
+    'Communication': {
+      'Receptive': [
+        { name: 'Eye Contact', color: '#1447e6' },
+        { name: 'Basic Understanding', color: '#00c950' },
+        { name: 'Identification', color: '#facc15' },
+        { name: 'Advanced Understanding', color: '#86198f' }
+      ],
+      'Expressive': [
+        { name: 'Simple Communication', color: '#1447e6' },
+        { name: 'Personal Information', color: '#00c950' },
+        { name: 'Descriptive Communication', color: '#facc15' },
+        { name: 'Comprehensive Communication', color: '#86198f' }
+      ]
+    },
+    'Daily Living': {
+      'Personal': [
+        { name: 'Preschool Age', color: '#1447e6' },
+        { name: 'Elementary Age', color: '#00c950' },
+        { name: 'Pre-adolescent Age', color: '#facc15' }
+      ],
+      'Domestic':    [{ name: '(to follow)', color: '#999' }],
+      'Community':   [{ name: '(to follow)', color: '#999' }]
+    },
+    'Socialization': {
+      'default': [{ name: '(to follow)', color: '#999' }]
+    }
+  };
+
+  // Summary title map
+  window.ATRP_SUMMARY_TITLES = {
+    'Communication': {
+      'Receptive': 'Receptive Communication Summary',
+      'Expressive': 'Expressive Communication Summary'
+    },
+    'Daily Living': {
+      'Personal': 'Personal Care Summary',
+      'Domestic': 'Domestic Skills Summary',
+      'Community': 'Community Skills Summary'
+    },
+    'Socialization': {
+      'default': 'Socialization Summary'
+    }
+  };
+
   const TIERS = [
     { key: 'eye',   label: 'Eye Contact',            color: '#1447e6', cls: 't-eye'   },
     { key: 'basic', label: 'Basic Understanding',    color: '#00c950', cls: 't-basic' },

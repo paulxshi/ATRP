@@ -67,10 +67,10 @@
   <div class="measurement-container">
 
     <!-- Table Title Bar (title + button in one row, always visible) -->
-    <div class="domain-header-row" id="domainHeaderRow">
+    <div class="domain-header-row" id="domainHeaderRow" style="display:flex">
       <div class="table-title-left">
         <span class="table-title-eyebrow">Skill Domain</span>
-        <h2 class="table-title-text" id="tableTitleText"></h2>
+        <h2 class="table-title-text" id="tableTitleText"><span class="table-title-accent">Receptive Communication</span></h2>
       </div>
       <button class="btn-choose-domain" id="btnChooseDomain">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
@@ -157,9 +157,12 @@
       </div>
     </div>
 
-    <!-- Legend (dynamic based on selected domain) -->
+    <!-- Legend (pre-populated for Receptive Communication) -->
     <div class="legend-bar" id="subskillLegend">
-      <span class="legend-placeholder">Select a skill domain to see subskills</span>
+      <span class="legend-chip-static" style="background:#1447e6;border-color:#1447e6;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Eye Contact</span>
+      <span class="legend-chip-static" style="background:#00c950;border-color:#00c950;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Basic Understanding</span>
+      <span class="legend-chip-static" style="background:#facc15;border-color:#facc15;color:#000"><span class="legend-bullet" style="background:#000"></span>Identification</span>
+      <span class="legend-chip-static" style="background:#86198f;border-color:#86198f;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Advanced Understanding</span>
     </div>
 
     <div class="table-scroll">
@@ -223,77 +226,22 @@
 <script src="../js/index.js"></script>
 <script src="../js/skill.js"></script>
 <script>
+// Set subskills for Receptive Communication
+window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.Communication?.Receptive || null;
+
+// Skill Domain Modal functionality
 (function () {
-  // Sub-domain map
-  const SUB_DOMAINS = {
-    'Communication': ['Receptive', 'Expressive'],
-    'Daily Living':  ['Personal', 'Domestic', 'Community'],
-    'Socialization': ['Interpersonal Relationship', 'Play and Leisure', 'Coping Skills']
-  };
-
-  // Subskills legend map with colors
-  const SUBSKILLS = {
-    'Communication': {
-      'Receptive': [
-        { name: 'Eye Contact', color: '#1447e6' },
-        { name: 'Basic Understanding', color: '#00c950' },
-        { name: 'Identification', color: '#facc15' },
-        { name: 'Advanced Understanding', color: '#86198f' }
-      ],
-      'Expressive': [
-        { name: 'Simple Communication', color: '#1447e6' },
-        { name: 'Personal Information', color: '#00c950' },
-        { name: 'Descriptive Communication', color: '#facc15' },
-        { name: 'Comprehensive Communication', color: '#86198f' }
-      ]
-    },
-    'Daily Living': {
-      'Personal': [
-        { name: 'Preschool Age', color: '#1447e6' },
-        { name: 'Elementary Age', color: '#00c950' },
-        { name: 'Pre-adolescent Age', color: '#facc15' }
-      ],
-      'Domestic':    [{ name: '(to follow)', color: '#999' }],
-      'Community':   [{ name: '(to follow)', color: '#999' }]
-    },
-    'Socialization': {
-      'default': [{ name: '(to follow)', color: '#999' }]
-    }
-  };
-
-  // Summary title map
-  const SUMMARY_TITLES = {
-    'Communication': {
-      'Receptive': 'Receptive Communication Summary',
-      'Expressive': 'Expressive Communication Summary'
-    },
-    'Daily Living': {
-      'Personal': 'Personal Care Summary',
-      'Domestic': 'Domestic Skills Summary',
-      'Community': 'Community Skills Summary'
-    },
-    'Socialization': {
-      'default': 'Socialization Summary'
-    }
-  };
-
   let pendingDomain    = null;
   let pendingSubDomain = null;
 
-  // Global variable for skill.js to access current subskills
-  window.ATRP_CURRENT_SUBSKILLS = null;
-
   const modal         = document.getElementById('skillDomainModal');
-  const legendEl     = document.getElementById('subskillLegend');
-  const summaryTitleEl = document.getElementById('summaryTitle');
-  const titleEl     = document.getElementById('tableTitleText');
-  const step1       = document.getElementById('sdmStep1');
-  const step2       = document.getElementById('sdmStep2');
-  const subOptions  = document.getElementById('sdmSubOptions');
-  const crumbEl     = document.getElementById('sdmDomainCrumb');
-  const sdmTitle    = document.getElementById('sdmTitle');
-  const sdmSub      = document.getElementById('sdmSub');
-  const confirmBtn  = document.getElementById('sdmConfirm');
+  const step1         = document.getElementById('sdmStep1');
+  const step2         = document.getElementById('sdmStep2');
+  const subOptions    = document.getElementById('sdmSubOptions');
+  const crumbEl       = document.getElementById('sdmDomainCrumb');
+  const sdmTitle      = document.getElementById('sdmTitle');
+  const sdmSub        = document.getElementById('sdmSub');
+  const confirmBtn    = document.getElementById('sdmConfirm');
 
   function resetModal() {
     pendingDomain    = null;
@@ -325,13 +273,17 @@
       pendingDomain    = opt.dataset.domain;
       pendingSubDomain = null;
 
+      // Get subdomains from skill.js
+      const subdomains = window.ATRP_SUB_DOMAINS && window.ATRP_SUB_DOMAINS[pendingDomain] 
+        ? window.ATRP_SUB_DOMAINS[pendingDomain] 
+        : [];
+
       // Build step 2
       crumbEl.textContent = pendingDomain;
       sdmTitle.textContent = pendingDomain;
       sdmSub.textContent   = 'Now choose a sub-domain.';
 
-      const subs = SUB_DOMAINS[pendingDomain] || [];
-      subOptions.innerHTML = subs.map(s =>
+      subOptions.innerHTML = subdomains.map(s =>
         '<button class="sdm-option sdm-sub-opt" data-sub="' + s + '">' +
           '<span class="sdm-opt-icon">' +
             '<svg width="18" height="18" viewBox="0 0 18 18" fill="none">' +
@@ -377,11 +329,11 @@
     modal.style.display = 'none';
   });
 
-  // Confirm — set title to "SubDomain Domain" with last word accented
+  // Confirm — navigate to respective page based on subdomain selection
   document.getElementById('sdmConfirm').addEventListener('click', () => {
     if (!pendingDomain || !pendingSubDomain) return;
     
-    // Navigate to respective page based on subdomain (Communication domain only)
+    // Navigate to respective page based on subdomain
     if (pendingDomain === 'Communication') {
       if (pendingSubDomain === 'Receptive') {
         window.location.href = 'receptive.html';
@@ -392,46 +344,7 @@
       }
     }
     
-    const label = pendingSubDomain + ' ' + pendingDomain;
-    const parts = label.split(' ');
-    const last  = parts.pop();
-    const rest  = parts.join(' ');
-    titleEl.innerHTML = (rest ? rest + ' ' : '') +
-      '<span class="table-title-accent">' + last + '</span>';
-    document.getElementById('domainHeaderRow').style.display = 'flex';
-
-    // Update summary title based on domain/sub-domain
-    let summaryTitle = 'Subskill Summary Score';
-    if (SUMMARY_TITLES[pendingDomain]) {
-      if (SUMMARY_TITLES[pendingDomain][pendingSubDomain]) {
-        summaryTitle = SUMMARY_TITLES[pendingDomain][pendingSubDomain];
-      } else if (SUMMARY_TITLES[pendingDomain]['default']) {
-        summaryTitle = SUMMARY_TITLES[pendingDomain]['default'];
-      }
-    }
-    summaryTitleEl.textContent = summaryTitle;
-
-    // Update legend based on domain/sub-domain
-    let subskills = [];
-    if (SUBSKILLS[pendingDomain]) {
-      if (SUBSKILLS[pendingDomain][pendingSubDomain]) {
-        subskills = SUBSKILLS[pendingDomain][pendingSubDomain];
-      } else if (SUBSKILLS[pendingDomain]['default']) {
-        subskills = SUBSKILLS[pendingDomain]['default'];
-      }
-    }
-    if (subskills.length > 0) {
-      legendEl.innerHTML = subskills.map(s => {
-        const name = typeof s === 'string' ? s : s.name;
-        const color = typeof s === 'string' ? '#999' : s.color;
-        const textColor = color === '#facc15' ? '#000' : '#fff';
-        return '<span class="legend-chip-static" style="background:' + color + ';border-color:' + color + ';color:' + textColor + '"><span class="legend-bullet" style="background:' + textColor + '"></span>' + name + '</span>';
-      }).join('');
-    }
-
-    // Set global variable for skill.js to access
-    window.ATRP_CURRENT_SUBSKILLS = subskills;
-
+    // For other domains, just close modal (show placeholder)
     modal.style.display = 'none';
   });
 })();
