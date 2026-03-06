@@ -7,15 +7,15 @@
   const TIERS = [
     { key: 'simple', label: 'Simple Communication',       color: '#1447e6', cls: 't-simple' },
     { key: 'info',   label: 'Personal Information',       color: '#00c950', cls: 't-info'   },
-    { key: 'desc',   label: 'Descriptive Communication',  color: '#facc15', cls: 't-desc'   },
-    { key: 'comp',   label: 'Comprehensive Communication',color: '#86198f', cls: 't-comp'   },
+    { key: 'desc',   label: 'Descriptive',  color: '#facc15', cls: 't-desc'   },
+    { key: 'comp',   label: 'Comprehensive',color: '#86198f', cls: 't-comp'   },
   ];
 
   const DRILL_OPTIONS = {
     'Simple Communication':        ['Naming Objects', 'Nod or Headshakes'],
     'Personal Information':        ['Name', 'Age', 'Birthday', 'Address'],
-    'Descriptive Communication':   ['Label Objects', 'Describe Actions', 'Use Adjectives', 'Describe Colors'],
-    'Comprehensive Communication': ['Complete Sentence', 'Basic Comprehension'],
+    'Descriptive':   ['Label Objects', 'Describe Actions', 'Use Adjectives', 'Describe Colors'],
+    'Comprehensive': ['Complete Sentence', 'Basic Comprehension'],
   };
 
   // Expose globals so skill-scoring.html domain modal can read them
