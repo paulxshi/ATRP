@@ -540,6 +540,64 @@
   // ─────────────────────────────────────────────────────────────
   // NOTIFICATION TOAST  (added 'info' type)
   // ─────────────────────────────────────────────────────────────
+  // SELECT DOMAIN MODAL (shown when clicking placeholder without domain)
+  // ─────────────────────────────────────────────────────────────
+  // Add animation styles
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  `;
+  document.head.appendChild(style);
+
+  window.showSelectDomainModal = function() {
+    const existing = document.getElementById('selectDomainModal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'selectDomainModal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;animation:fadeIn .2s ease;padding:16px;';
+    
+    // Check if we're on the skill-scoring page or a subdomain page
+    const btnChooseDomain = document.getElementById('btnChooseDomain');
+    const isSkillScoringPage = !!btnChooseDomain;
+    
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;width:360px;max-width:100%;box-shadow:0 24px 60px rgba(0,0,0,.25);overflow:hidden;animation:slideUp .25s cubic-bezier(.4,0,.2,1);">
+        <div style="padding:28px 24px 22px;text-align:center;">
+          <div style="width:56px;height:56px;margin:0 auto 16px;background:rgba(201,168,76,.12);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#C9A84C" stroke-width="2"/>
+              <path d="M12 8v4M12 15v.5" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div style="font-family:var(--ff-display, sans-serif);font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:6px;">Select Skill Domain</div>
+          <div style="font-family:var(--ff-body, sans-serif);font-size:13px;color:#888;line-height:1.4;">Please select a skill domain first before scoring.</div>
+        </div>
+        <div style="padding:0 20px 20px;display:flex;gap:10px;justify-content:center;">
+          <button id="sdmGoToSelector" style="flex:1;padding:11px 20px;border:none;border-radius:10px;background:#C9A84C;font-family:var(--ff-body, sans-serif);font-size:13px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.02em;transition:background .18s,transform .12s;box-shadow:0 3px 10px rgba(201,168,76,.3);">Go to Selector</button>
+          <button id="sdmCloseModal" style="flex:1;padding:11px 20px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fff;font-family:var(--ff-body, sans-serif);font-size:13px;font-weight:600;color:#666;cursor:pointer;transition:border-color .18s,color .18s;">Cancel</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById('sdmCloseModal').addEventListener('click', () => overlay.remove());
+    document.getElementById('sdmGoToSelector').addEventListener('click', () => {
+      overlay.remove();
+      if (isSkillScoringPage) {
+        btnChooseDomain.click();
+      } else {
+        window.location.href = 'skill-scoring.html';
+      }
+    });
+    
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // TOAST NOTIFICATIONS
+  // ─────────────────────────────────────────────────────────────
   function showSkillNotification(message, type) {
     const existing = document.querySelector('.skill-toast');
     if (existing) existing.remove();
@@ -731,13 +789,14 @@
     const tdSub = document.createElement('td');
     tdSub.className = 'c-sub';
     tdSub.innerHTML =
-      '<div class="subskill-static" style="'+
+      '<div class="subskill-static" id="subskill-placeholder-'+idx+'" style="'+
         'display:flex;align-items:center;gap:8px;'+
         'padding:8px 12px;border-radius:8px;'+
         'background:rgba(180,180,180,0.10);'+
         'font-family:var(--ff-body);font-size:13px;'+
-        'color:#aaa;font-style:italic;cursor:default;user-select:none;'+
-      '">'+
+        'color:#aaa;font-style:italic;cursor:pointer;user-select:none;'+
+        'transition:background .18s;'+
+      '" onclick="showSelectDomainModal()" onmouseover="this.style.background=\"rgba(180,180,180,0.20)\"" onmouseout="this.style.background=\"rgba(180,180,180,0.10)\"">'+
         '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:.5">'+
           '<circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>'+
           '<path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'+
