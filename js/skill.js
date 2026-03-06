@@ -539,35 +539,16 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-    /* CHANGE 2: Subskill level dropdown styles */
-    .subskill-select {
-      width: 100%;
-      padding: 8px 30px 8px 10px;
-      border: 1.5px solid #e8e8e8;
-      border-radius: 8px;
-      background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%23aaa' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
-      appearance: none;
-      -webkit-appearance: none;
-      font-family: var(--ff-body);
-      font-size: 13px;
-      color: #aaa;
-      cursor: pointer;
-      outline: none;
-      transition: border-color .18s, box-shadow .18s, background-color .18s;
-      box-sizing: border-box;
-    }
-    .subskill-select:focus {
-      border-color: #C9A84C;
-      box-shadow: 0 0 0 3px rgba(201,168,76,.12);
-      background-color: #fff;
-    }
-    .subskill-select:disabled {
-      opacity: .55;
-      cursor: not-allowed;
-    }
-    .subskill-select option:first-child {
-      color: #aaa;
-      font-style: italic;
+    /* Readonly styling for Attempts and Score cells */
+    .attempts-input[readonly],
+    .attempts-unit[readonly],
+    .score-pct-input[readonly] {
+      background: #f5f5f5;
+      color: #888;
+      cursor: default;
+      pointer-events: none;
+      border-color: transparent;
+      box-shadow: none;
     }
   `;
   document.head.appendChild(style);
@@ -670,10 +651,10 @@
     const p      = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v / max) * 100)) : null;
 
     const scoreInput = document.getElementById('score-'+idx);
-    if (scoreInput && !scoreInput.dataset.manualOverride) {
-      scoreInput.value         = p !== null ? p : '';
-      scoreInput.placeholder   = p !== null ? '' : '—';
-      DRILLS[idx].score        = p !== null ? String(p) : '';
+    if (scoreInput) {
+      scoreInput.value       = p !== null ? p : '';
+      scoreInput.placeholder = p !== null ? '' : '—';
+      DRILLS[idx].score      = p !== null ? String(p) : '';
     }
     renderSummary();
   }
@@ -799,15 +780,39 @@
     const tr = document.createElement('tr');
     tr.dataset.idx = idx;
 
-    // ── CHANGE 2: Subskill Level — now a <select> dropdown ──
-    // It always shows "Select domain first" as the only disabled placeholder option.
-    // When a domain is selected (via the domain modal), this can be populated dynamically.
+    // Subskill Level — custom dropdown matching Drills style
+    const selectedSub = drill.tier || '';
+    const activeTiersNow = getActiveTiers();
+    const subOptions = activeTiersNow.length > 0 && activeTiersNow[0].key !== 'eye'
+      ? activeTiersNow
+      : [];
+    const subLabel = selectedSub
+      ? (activeTiersNow.find(t => t.key === selectedSub) || {}).label || selectedSub
+      : '';
+
     const tdSub = document.createElement('td');
     tdSub.className = 'c-sub';
     tdSub.innerHTML =
-      '<select class="subskill-select" id="subskill-select-' + idx + '" data-idx="' + idx + '" disabled>' +
-        '<option value="" selected disabled>Select domain first</option>' +
-      '</select>';
+      '<div class="custom-select-wrap subskill-dropdown-wrap">' +
+        '<div class="cs-trigger sub-trigger" id="sub-trigger-' + idx + '" data-idx="' + idx + '">' +
+          '<span class="cs-label' + (subLabel ? '' : ' placeholder') + '" id="sub-label-' + idx + '">' + (subLabel || 'Select domain first') + '</span>' +
+          '<svg class="cs-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</div>' +
+        '<div class="cs-panel sub-panel" id="sub-panel-' + idx + '">' +
+          (subOptions.length > 0
+            ? subOptions.map(t =>
+                '<div class="cs-option' + (selectedSub === t.key ? ' selected' : '') + '" data-idx="' + idx + '" data-tier="' + t.key + '">' +
+                  '<span class="cs-opt-bar" style="background:' + t.color + '"></span>' +
+                  '<span class="cs-opt-label">' + t.label + '</span>' +
+                  '<svg class="cs-opt-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                '</div>'
+              ).join('')
+            : '<div class="cs-option cs-option-disabled" data-idx="' + idx + '" data-tier="">' +
+                '<span class="cs-opt-label" style="color:#aaa;font-style:italic">Select domain first</span>' +
+              '</div>'
+          ) +
+        '</div>' +
+      '</div>';
     tr.appendChild(tdSub);
 
     // 2. Drill dropdown
@@ -839,15 +844,15 @@
       '</div>';
     tr.appendChild(tdSkill);
 
-    // 3. Attempts
+    // 3. Attempts — readonly, value set programmatically
     const tdCrit = document.createElement('td');
     tdCrit.className = 'c-crit';
     tdCrit.innerHTML =
       '<div class="crit-wrap">'+
         '<div class="attempts-field">'+
           '<input type="number" class="attempts-input" id="attempts-'+idx+'" data-idx="'+idx+'"'+
-            ' min="0" value="'+(drill.attempts||0)+'" placeholder="0" />'+
-          '<input type="text" class="attempts-unit" id="unit-'+idx+'" data-idx="'+idx+'" value="'+(drill.unit||'attempts')+'" autocomplete="off" />'+
+            ' min="0" value="'+(drill.attempts||0)+'" placeholder="0" readonly tabindex="-1" />'+
+          '<input type="text" class="attempts-unit" id="unit-'+idx+'" data-idx="'+idx+'" value="'+(drill.unit||'attempts')+'" autocomplete="off" readonly tabindex="-1" />'+
         '</div>'+
       '</div>';
     tr.appendChild(tdCrit);
@@ -862,13 +867,13 @@
       '</div>';
     tr.appendChild(tdSucc);
 
-    // 5. Score
+    // 5. Score — readonly, auto-calculated from successful/attempts
     const tdScore = document.createElement('td');
     tdScore.className = 'c-sc';
     tdScore.innerHTML =
       '<div class="score-wrap">'+
         '<input type="number" class="score-pct-input" id="score-'+idx+'" data-idx="'+idx+'"'+
-          ' placeholder="—" min="0" max="100" style="text-align:center;width:70px;" value="'+(scoreVal)+'" />'+
+          ' placeholder="—" min="0" max="100" style="text-align:center;width:70px;" value="'+(scoreVal)+'" readonly tabindex="-1" />'+
         '<span style="font-size:12px;color:#888;margin-left:2px;">%</span>'+
       '</div>';
     tr.appendChild(tdScore);
@@ -883,6 +888,47 @@
     const body = document.getElementById('tableBody');
     body.innerHTML = '';
     DRILLS.forEach((d, i) => body.appendChild(buildRow(d, i)));
+
+    // Subskill (tier) dropdown triggers
+    document.querySelectorAll('.sub-trigger').forEach(trigger => {
+      trigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const idx   = +this.dataset.idx;
+        const panel = document.getElementById('sub-panel-'+idx);
+        if (!panel) return;
+        // Don't open if only placeholder option present
+        const hasRealOptions = panel.querySelector('.cs-option:not(.cs-option-disabled)');
+        if (!hasRealOptions) {
+          window.showSelectDomainModal && window.showSelectDomainModal();
+          return;
+        }
+        const isOpen = panel.classList.contains('open');
+        closeAll();
+        if (!isOpen) {
+          panel.classList.add('open');
+          this.classList.add('open');
+        }
+      });
+    });
+
+    // Subskill option clicks
+    document.querySelectorAll('.sub-panel .cs-option:not(.cs-option-disabled)').forEach(opt => {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const idx     = +this.dataset.idx;
+        const tierKey = this.dataset.tier;
+        DRILLS[idx].tier = tierKey;
+        const tier    = getActiveTiers().find(t => t.key === tierKey);
+        const label   = tier ? tier.label : tierKey;
+        document.getElementById('sub-label-'+idx).textContent = label;
+        document.getElementById('sub-label-'+idx).classList.remove('placeholder');
+        document.querySelectorAll('#sub-panel-'+idx+' .cs-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('sub-panel-'+idx).classList.remove('open');
+        document.getElementById('sub-trigger-'+idx).classList.remove('open');
+        renderSummary();
+      });
+    });
 
     // Drill dropdown triggers
     document.querySelectorAll('.drill-trigger').forEach(trigger => {
@@ -965,30 +1011,7 @@
       });
     });
 
-    // Score input — manual entry sets override flag
-    document.querySelectorAll('.score-pct-input').forEach(input => {
-      input.addEventListener('input', function() {
-        const idx = +this.dataset.idx;
-        let v = parseFloat(this.value);
-        if (!isNaN(v)) {
-          if (v < 0)   { this.value = 0;   v = 0; }
-          if (v > 100) { this.value = 100; v = 100; }
-          DRILLS[idx].score = String(v);
-          this.dataset.manualOverride = '1';
-        } else {
-          DRILLS[idx].score = '';
-          delete this.dataset.manualOverride;
-        }
-        renderSummary();
-      });
-      // Double-click to clear override and re-sync from attempts/succ
-      input.addEventListener('dblclick', function() {
-        const idx = +this.dataset.idx;
-        delete this.dataset.manualOverride;
-        DRILLS[idx].score = '';
-        recalcPct(idx);
-      });
-    });
+    // Score is readonly — auto-calculated by recalcPct(), no input listener needed
 
     const delBtn = document.getElementById('btnDelRow');
     if (delBtn) delBtn.disabled = DRILLS.length <= 1;
