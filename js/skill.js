@@ -63,45 +63,39 @@
 
   // Drill options for each subskill
   const DRILL_OPTIONS = {
-    // Receptive Communication subskills
     'Eye Contact': ['Look at Speaker', 'Follow Gaze', 'Look at Object', 'Respond to Name'],
     'Basic Understanding': ['Respond to Instructions', 'Understand Gestures', 'Identify Objects', 'Match Pictures'],
     'Identification': ['Point to Pictures', 'Select Correct Item', 'Match to Sample', 'Sort by Category'],
     'Advanced Understanding': ['Follow Multi-step', 'Understand Sentences', 'Answer Wh-Questions', 'Sequence Events'],
-    // Expressive Communication subskills
     'Simple Communication': ['Request Items', 'Request Activities', 'Indicate Preferences', 'Name Objects'],
     'Personal Information': ['Say Name', 'Say Age', 'Say Address', 'Say Phone Number'],
     'Descriptive Communication': ['Label Objects', 'Describe Actions', 'Use Adjectives', 'Describe Colors'],
     'Comprehensive Communication': ['Tell Stories', 'Explain Procedures', 'Answer Questions', 'Retell Events'],
-    // Personal Care subskills
     'Preschool Age': ['Wash Hands', 'Brush Teeth', 'Dress Self', 'Use Toilet'],
     'Elementary Age': ['Prepare Snacks', 'Brush Hair', 'Tie Shoes', 'Organize Belongings'],
     'Pre-adolescent Age': ['Manage Hygiene', 'Plan Meals', 'Follow Routines', 'Independent Living Skills']
   };
 
-  // Helper function to get active tiers based on selected domain
   function getActiveTiers() {
     const customSubskills = window.ATRP_CURRENT_SUBSKILLS;
     if (customSubskills && customSubskills.length > 0) {
-      return customSubskills.map((s, idx) => {
-        return {
-          key: 'subskill-' + idx,
-          label: s.name,
-          color: s.color || '#999',
-          cls: 't-custom-' + idx
-        };
-      });
+      return customSubskills.map((s, idx) => ({
+        key: 'subskill-' + idx,
+        label: s.name,
+        color: s.color || '#999',
+        cls: 't-custom-' + idx
+      }));
     }
     return TIERS;
   }
 
   let DRILLS = [
-    { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
-    { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
+    { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
+    { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
   ];
 
-  let currentClientId   = null;   // resolved client ID
-  let currentClientName = '';     // display name
+  let currentClientId   = null;
+  let currentClientName = '';
   let isSaving          = false;
 
   function resolveClient() {
@@ -113,13 +107,10 @@
       updateClientBanner();
       loadFromDatabase();
     } else {
-      // No client from index.js — just show the banner with Select Client button.
-      // Do NOT auto-open the modal; wait for the user to click the button.
       updateClientBanner();
     }
   }
 
-  // Poll briefly for ATRP_CLIENT_ID set by index.js, then settle
   let _pollCount = 0;
   function pollForClient() {
     if (window.ATRP_CLIENT_ID) {
@@ -128,89 +119,58 @@
       _pollCount++;
       setTimeout(pollForClient, 150);
     } else {
-      updateClientBanner(); // just render the "no client" banner state
+      updateClientBanner();
     }
   }
 
   // ─────────────────────────────────────────────────────────────
-  // CLIENT BANNER  — polished card shown above the skill table
+  // CLIENT BANNER
   // ─────────────────────────────────────────────────────────────
   function updateClientBanner() {
-    // Inject styles once
     if (!document.getElementById('_skillBannerStyles')) {
       const s = document.createElement('style');
       s.id = '_skillBannerStyles';
       s.textContent = `
         #skillClientBanner {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+          display: flex; align-items: center; justify-content: space-between;
           padding: 14px 22px;
           background: linear-gradient(135deg, #fdfaf4 0%, #faf7ed 100%);
           border-bottom: 1.5px solid rgba(201,168,76,.18);
-          font-family: var(--ff-body);
-          gap: 12px;
+          font-family: var(--ff-body); gap: 12px;
         }
-        .scb-left {
-          display: flex; align-items: center; gap: 12px;
-        }
+        .scb-left { display: flex; align-items: center; gap: 12px; }
         .scb-avatar {
           width: 36px; height: 36px; border-radius: 50%;
           background: linear-gradient(135deg, #C9A84C, #e8ca7a);
           display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(201,168,76,.35);
+          flex-shrink: 0; box-shadow: 0 2px 8px rgba(201,168,76,.35);
         }
         .scb-avatar svg { width: 18px; height: 18px; }
         .scb-info { display: flex; flex-direction: column; gap: 1px; }
-        .scb-eyebrow {
-          font-size: 9.5px; font-weight: 700; letter-spacing: .16em;
-          text-transform: uppercase; color: #C9A84C;
-        }
-        .scb-name {
-          font-size: 14px; font-weight: 700; color: #1a1a1a; line-height: 1.2;
-        }
-        .scb-empty-text {
-          font-size: 13px; font-weight: 500; color: #aaa;
-        }
+        .scb-eyebrow { font-size: 9.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #C9A84C; }
+        .scb-name { font-size: 14px; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
+        .scb-empty-text { font-size: 13px; font-weight: 500; color: #aaa; }
         .scb-change-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          padding: 7px 16px;
-          background: transparent;
-          border: 1.5px solid rgba(201,168,76,.4);
-          border-radius: 8px;
+          padding: 7px 16px; background: transparent;
+          border: 1.5px solid rgba(201,168,76,.4); border-radius: 8px;
           font-family: var(--ff-body); font-size: 12px; font-weight: 600;
-          color: #7a5c1e;
-          cursor: pointer;
+          color: #7a5c1e; cursor: pointer;
           transition: background .18s, border-color .18s, transform .12s, box-shadow .18s;
-          white-space: nowrap;
-          flex-shrink: 0;
+          white-space: nowrap; flex-shrink: 0;
         }
-        .scb-change-btn:hover {
-          background: rgba(201,168,76,.10);
-          border-color: #C9A84C;
-          box-shadow: 0 2px 8px rgba(201,168,76,.2);
-          transform: translateY(-1px);
-        }
+        .scb-change-btn:hover { background: rgba(201,168,76,.10); border-color: #C9A84C; box-shadow: 0 2px 8px rgba(201,168,76,.2); transform: translateY(-1px); }
         .scb-select-btn {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 9px 20px;
-          background: #1a1a1a;
+          padding: 9px 20px; background: #1a1a1a;
           border: none; border-radius: 9px;
           font-family: var(--ff-body); font-size: 12.5px; font-weight: 700;
-          color: #fff;
-          cursor: pointer;
+          color: #fff; cursor: pointer; letter-spacing: .02em;
           transition: background .18s, transform .12s, box-shadow .18s;
-          white-space: nowrap;
-          flex-shrink: 0;
+          white-space: nowrap; flex-shrink: 0;
           box-shadow: 0 3px 12px rgba(0,0,0,.18);
-          letter-spacing: .02em;
         }
-        .scb-select-btn:hover {
-          background: #333;
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(0,0,0,.22);
-        }
+        .scb-select-btn:hover { background: #333; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.22); }
         .scb-select-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
       `;
       document.head.appendChild(s);
@@ -245,8 +205,7 @@
           Change Client
         </button>
       `;
-      document.getElementById('skillChangeClient')
-        ?.addEventListener('click', showClientPicker);
+      document.getElementById('skillChangeClient')?.addEventListener('click', showClientPicker);
     } else {
       banner.innerHTML = `
         <div class="scb-left">
@@ -263,156 +222,50 @@
           Select Client
         </button>
       `;
-      document.getElementById('skillSelectClient')
-        ?.addEventListener('click', showClientPicker);
+      document.getElementById('skillSelectClient')?.addEventListener('click', showClientPicker);
     }
   }
 
   // ─────────────────────────────────────────────────────────────
-  // CLIENT PICKER MODAL  — only opens on explicit button click
+  // CLIENT PICKER MODAL
   // ─────────────────────────────────────────────────────────────
   function showClientPicker() {
     const existing = document.getElementById('skillClientModal');
     if (existing) existing.remove();
 
-    // Inject modal styles once
     if (!document.getElementById('_skillModalStyles')) {
       const s = document.createElement('style');
       s.id = '_skillModalStyles';
       s.textContent = `
-        #skillClientModal {
-          position: fixed; inset: 0;
-          background: rgba(0,0,0,.5);
-          display: flex; align-items: center; justify-content: center;
-          z-index: 9999;
-          animation: scmFadeIn .2s ease;
-          padding: 16px;
-        }
-        @keyframes scmFadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes scmSlideUp {
-          from { opacity: 0; transform: translateY(20px) scale(.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .scm-card {
-          background: #fff;
-          border-radius: 18px;
-          width: 440px; max-width: 100%;
-          box-shadow: 0 32px 80px rgba(0,0,0,.28);
-          overflow: hidden;
-          animation: scmSlideUp .25s cubic-bezier(.4,0,.2,1);
-        }
-        .scm-header {
-          padding: 24px 26px 20px;
-          border-bottom: 1px solid #f0f0f0;
-          background: linear-gradient(135deg, #fdfaf4, #faf5e8);
-        }
-        .scm-eyebrow {
-          font-family: 'Nevis', sans-serif;
-          font-size: 9.5px; font-weight: 800;
-          letter-spacing: .2em; text-transform: uppercase;
-          color: #C9A84C; display: block; margin-bottom: 8px;
-        }
-        .scm-title {
-          font-size: 20px; font-weight: 800; color: #1a1a1a;
-          font-family: var(--ff-display); line-height: 1.1;
-          margin-bottom: 4px;
-        }
-        .scm-sub {
-          font-size: 12.5px; color: #aaa;
-          font-family: var(--ff-body);
-        }
-        .scm-body { padding: 22px 26px 24px; }
-        .scm-search-wrap {
-          position: relative; margin-bottom: 6px;
-        }
-        .scm-search-icon {
-          position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
-          color: #ccc; pointer-events: none;
-          display: flex; align-items: center;
-        }
-        .scm-input {
-          width: 100%;
-          padding: 11px 14px 11px 38px;
-          border: 1.5px solid #e8e8e8;
-          border-radius: 10px;
-          font-family: var(--ff-body); font-size: 13.5px;
-          outline: none; box-sizing: border-box;
-          color: #1a1a1a;
-          transition: border-color .18s, box-shadow .18s;
-          background: #fafafa;
-        }
-        .scm-input:focus {
-          border-color: #C9A84C;
-          box-shadow: 0 0 0 3px rgba(201,168,76,.12);
-          background: #fff;
-        }
-        .scm-list {
-          max-height: 200px; overflow-y: auto;
-          border: 1.5px solid #f0f0f0;
-          border-radius: 10px;
-          margin-top: 8px;
-          display: none;
-        }
-        .scm-list::-webkit-scrollbar { width: 4px; }
-        .scm-list::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 4px; }
-        .scm-list-item {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 14px;
-          cursor: pointer;
-          border-bottom: 1px solid #f7f7f7;
-          transition: background .12s;
-        }
-        .scm-list-item:last-child { border-bottom: none; }
-        .scm-list-item:hover { background: #faf8f2; }
-        .scm-list-item.selected { background: rgba(201,168,76,.08); }
-        .scm-item-dot {
-          width: 7px; height: 7px; border-radius: 50%;
-          background: #C9A84C; flex-shrink: 0;
-        }
-        .scm-item-name {
-          font-family: var(--ff-body); font-size: 13px;
-          font-weight: 600; color: #1a1a1a; flex: 1;
-        }
-        .scm-item-nick {
-          font-family: var(--ff-body); font-size: 11.5px;
-          color: #aaa;
-        }
-        .scm-empty {
-          padding: 18px 14px;
-          text-align: center;
-          font-family: var(--ff-body); font-size: 12.5px;
-          color: #bbb; font-style: italic;
-        }
-        .scm-footer {
-          display: flex; gap: 10px; justify-content: flex-end;
-          padding-top: 18px;
-          border-top: 1px solid #f5f5f5; margin-top: 18px;
-        }
-        .scm-btn-cancel {
-          padding: 9px 20px;
-          border: 1.5px solid #e0e0e0; border-radius: 9px;
-          background: #fff; font-family: var(--ff-body);
-          font-size: 13px; color: #888; cursor: pointer;
-          transition: border-color .18s, color .18s;
-        }
-        .scm-btn-cancel:hover { border-color: #ccc; color: #555; }
-        .scm-btn-confirm {
-          padding: 9px 22px;
-          border: none; border-radius: 9px;
-          background: #1a1a1a; font-family: var(--ff-body);
-          font-size: 13px; font-weight: 700; color: #fff;
-          cursor: pointer; letter-spacing: .02em;
-          transition: background .18s, transform .12s, box-shadow .18s;
-          box-shadow: 0 3px 10px rgba(0,0,0,.18);
-        }
-        .scm-btn-confirm:hover {
-          background: #333;
-          transform: translateY(-1px);
-          box-shadow: 0 5px 16px rgba(0,0,0,.22);
-        }
+        #skillClientModal { position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;animation:scmFadeIn .2s ease;padding:16px; }
+        @keyframes scmFadeIn { from{opacity:0} to{opacity:1} }
+        @keyframes scmSlideUp { from{opacity:0;transform:translateY(20px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+        .scm-card { background:#fff;border-radius:18px;width:440px;max-width:100%;box-shadow:0 32px 80px rgba(0,0,0,.28);overflow:hidden;animation:scmSlideUp .25s cubic-bezier(.4,0,.2,1); }
+        .scm-header { padding:24px 26px 20px;border-bottom:1px solid #f0f0f0;background:linear-gradient(135deg,#fdfaf4,#faf5e8); }
+        .scm-eyebrow { font-family:'Nevis',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#C9A84C;display:block;margin-bottom:8px; }
+        .scm-title { font-size:20px;font-weight:800;color:#1a1a1a;font-family:var(--ff-display);line-height:1.1;margin-bottom:4px; }
+        .scm-sub { font-size:12.5px;color:#aaa;font-family:var(--ff-body); }
+        .scm-body { padding:22px 26px 24px; }
+        .scm-search-wrap { position:relative;margin-bottom:6px; }
+        .scm-search-icon { position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#ccc;pointer-events:none;display:flex;align-items:center; }
+        .scm-input { width:100%;padding:11px 14px 11px 38px;border:1.5px solid #e8e8e8;border-radius:10px;font-family:var(--ff-body);font-size:13.5px;outline:none;box-sizing:border-box;color:#1a1a1a;transition:border-color .18s,box-shadow .18s;background:#fafafa; }
+        .scm-input:focus { border-color:#C9A84C;box-shadow:0 0 0 3px rgba(201,168,76,.12);background:#fff; }
+        .scm-list { max-height:200px;overflow-y:auto;border:1.5px solid #f0f0f0;border-radius:10px;margin-top:8px;display:none; }
+        .scm-list::-webkit-scrollbar { width:4px; }
+        .scm-list::-webkit-scrollbar-thumb { background:#e0e0e0;border-radius:4px; }
+        .scm-list-item { display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #f7f7f7;transition:background .12s; }
+        .scm-list-item:last-child { border-bottom:none; }
+        .scm-list-item:hover { background:#faf8f2; }
+        .scm-list-item.selected { background:rgba(201,168,76,.08); }
+        .scm-item-dot { width:7px;height:7px;border-radius:50%;background:#C9A84C;flex-shrink:0; }
+        .scm-item-name { font-family:var(--ff-body);font-size:13px;font-weight:600;color:#1a1a1a;flex:1; }
+        .scm-item-nick { font-family:var(--ff-body);font-size:11.5px;color:#aaa; }
+        .scm-empty { padding:18px 14px;text-align:center;font-family:var(--ff-body);font-size:12.5px;color:#bbb;font-style:italic; }
+        .scm-footer { display:flex;gap:10px;justify-content:flex-end;padding-top:18px;border-top:1px solid #f5f5f5;margin-top:18px; }
+        .scm-btn-cancel { padding:9px 20px;border:1.5px solid #e0e0e0;border-radius:9px;background:#fff;font-family:var(--ff-body);font-size:13px;color:#888;cursor:pointer;transition:border-color .18s,color .18s; }
+        .scm-btn-cancel:hover { border-color:#ccc;color:#555; }
+        .scm-btn-confirm { padding:9px 22px;border:none;border-radius:9px;background:#1a1a1a;font-family:var(--ff-body);font-size:13px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.02em;transition:background .18s,transform .12s,box-shadow .18s;box-shadow:0 3px 10px rgba(0,0,0,.18); }
+        .scm-btn-confirm:hover { background:#333;transform:translateY(-1px);box-shadow:0 5px 16px rgba(0,0,0,.22); }
       `;
       document.head.appendChild(s);
     }
@@ -434,8 +287,7 @@
                 <path d="M11 11l3 3" stroke="#ccc" stroke-width="1.6" stroke-linecap="round"/>
               </svg>
             </span>
-            <input id="scmInput" class="scm-input" type="text"
-              placeholder="Type client name…" autocomplete="off" />
+            <input id="scmInput" class="scm-input" type="text" placeholder="Type client name…" autocomplete="off" />
           </div>
           <div class="scm-list" id="scmList"></div>
           <div class="scm-footer">
@@ -453,18 +305,11 @@
     let selectedName = '';
     let allClients   = [];
 
-    // Close on overlay backdrop click
-    overlay.addEventListener('click', e => {
-      if (e.target === overlay) overlay.remove();
-    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
-    // Load clients
-    fetch('../php/api_clients.php')
+    fetch('../php/api_clients.php', { credentials: 'include' })
       .then(r => r.json())
-      .then(result => {
-        allClients = result.clients || [];
-        renderList('');
-      })
+      .then(result => { allClients = result.clients || []; renderList(''); })
       .catch(() => {});
 
     function renderList(term) {
@@ -481,8 +326,7 @@
       }
 
       listEl.innerHTML = filtered.map(c => `
-        <div class="scm-list-item ${selectedId === c.id ? 'selected' : ''}"
-             data-id="${c.id}" data-name="${c.full_name}">
+        <div class="scm-list-item ${selectedId === c.id ? 'selected' : ''}" data-id="${c.id}" data-name="${c.full_name}">
           <span class="scm-item-dot"></span>
           <span class="scm-item-name">${c.full_name}</span>
           ${c.nickname ? `<span class="scm-item-nick">(${c.nickname})</span>` : ''}
@@ -491,26 +335,32 @@
 
       listEl.querySelectorAll('.scm-list-item').forEach(item => {
         item.addEventListener('mousedown', e => {
+          // Prevent input blur so the list stays open
           e.preventDefault();
-          selectedId   = parseInt(item.dataset.id);
+          // Lock in selection — suppress the input listener so the programmatic
+          // value assignment below doesn't reset selectedId back to null
+          selectedId   = parseInt(item.dataset.id, 10);
           selectedName = item.dataset.name;
-          input.value  = selectedName;
+          _suppressInput = true;
+          input.value = selectedName;
+          _suppressInput = false;
           listEl.querySelectorAll('.scm-list-item').forEach(i => i.classList.remove('selected'));
           item.classList.add('selected');
         });
       });
-
       listEl.style.display = 'block';
     }
 
+    // Guard: prevents programmatic input.value = x from resetting selectedId
+    let _suppressInput = false;
+
     input.addEventListener('input', () => {
-      selectedId = null; selectedName = '';
+      if (_suppressInput) return;
+      selectedId   = null;
+      selectedName = '';
       renderList(input.value);
     });
-
     input.addEventListener('focus', () => renderList(input.value));
-
-    // Auto-focus
     setTimeout(() => input.focus(), 60);
 
     document.getElementById('scmCancel').addEventListener('click', () => overlay.remove());
@@ -530,9 +380,8 @@
       } else {
         try {
           const res    = await fetch('../php/api_clients.php', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ full_name: name })
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ full_name: name })
           });
           const result = await res.json();
           if (result.success && result.id) {
@@ -551,18 +400,18 @@
 
       overlay.remove();
       updateClientBanner();
-      loadFromDatabase();
+      loadFromDatabase();   // ← always fires after client is confirmed
     });
   }
 
   // ─────────────────────────────────────────────────────────────
-  // DATABASE  — LOAD
+  // DATABASE — LOAD  (fix: always re-render; show toast on empty)
   // ─────────────────────────────────────────────────────────────
   async function loadFromDatabase() {
     if (!currentClientId) return;
 
     try {
-      const res    = await fetch('../php/api_skills.php?client_id=' + currentClientId);
+      const res    = await fetch('../php/api_skills.php?client_id=' + currentClientId, { credentials: 'include' });
       const result = await res.json();
 
       if (result.success && result.rows && result.rows.length > 0) {
@@ -571,20 +420,30 @@
           attempts: parseInt(r.attempts) || 0,
           tier:     r.tier     || null,
           succ:     r.successful !== null ? String(r.successful) : '',
-          unit:     r.unit     || 'attempts'
+          unit:     r.unit     || 'attempts',
+          // ── FIX: restore manually-saved score if present ──
+          score:    r.score    !== undefined && r.score !== null ? String(r.score) : ''
         }));
         render();
-        showSkillNotification('Skill data loaded', 'success');
+        showSkillNotification('Records loaded for "' + currentClientName + '"', 'success');
+      } else {
+        // No past records — reset to blank template and inform user
+        DRILLS = [
+          { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
+          { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
+        ];
+        render();
+        showSkillNotification('No past records found for "' + currentClientName + '"', 'info');
       }
-      // If no rows: keep the default blank template
 
     } catch (e) {
       console.error('Skill load error:', e);
+      showSkillNotification('Failed to load records — check connection', 'error');
     }
   }
 
   // ─────────────────────────────────────────────────────────────
-  // DATABASE  — SAVE (draft or submit)
+  // DATABASE — SAVE
   // ─────────────────────────────────────────────────────────────
   async function saveToDatabase(submitted = false) {
     if (isSaving) return;
@@ -601,10 +460,8 @@
       btn.style.opacity = '.65';
       btn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 14 14">
-          <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="2" fill="none"
-            stroke-dasharray="20">
-            <animateTransform attributeName="transform" type="rotate"
-              from="0 7 7" to="360 7 7" dur="1s" repeatCount="indefinite"/>
+          <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="20">
+            <animateTransform attributeName="transform" type="rotate" from="0 7 7" to="360 7 7" dur="1s" repeatCount="indefinite"/>
           </circle>
         </svg> ${submitted ? 'Submitting…' : 'Saving…'}`;
     }
@@ -619,24 +476,20 @@
           skill:    d.skill,
           attempts: d.attempts,
           succ:     d.succ,
-          unit:     d.unit
+          unit:     d.unit,
+          score:    d.score    // ← persist manual score override
         }))
       };
 
       const res    = await fetch('../php/api_skills.php', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(payload)
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
       const result = await res.json();
 
       if (result.success) {
         if (submitted) {
-          showSkillNotification(
-            `"${currentClientName}" submitted successfully! Ready for next client.`,
-            'success'
-          );
-          // ── Reset everything for the next client ──────────────
+          showSkillNotification(`"${currentClientName}" submitted successfully! Ready for next client.`, 'success');
           setTimeout(resetForNextClient, 1200);
         } else {
           showSkillNotification(`Draft saved for "${currentClientName}"`, 'success');
@@ -654,57 +507,51 @@
         btn.style.opacity = '';
         btn.innerHTML = `
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg> Save &amp; Submit`;
       }
     }
   }
 
   // ─────────────────────────────────────────────────────────────
-  // RESET — clears everything after a successful submit
+  // RESET
   // ─────────────────────────────────────────────────────────────
   function resetForNextClient() {
-    // Clear client state
     currentClientId   = null;
     currentClientName = '';
     window.ATRP_CLIENT_ID = null;
 
-    // Also clear the info-container fields if on the same page
     ['clientName','clientNickname','clientAge','clientDiagnosis',
      'clientRecorder','reportStartDate','reportEndDate'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
 
-    // Reset drill rows to blank template
     DRILLS = [
-      { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
-      { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
+      { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
+      { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' },
     ];
 
     render();
     updateClientBanner();
-
-    // Prompt to pick the next client
     showClientPicker();
   }
 
   // ─────────────────────────────────────────────────────────────
-  // NOTIFICATION TOAST
+  // NOTIFICATION TOAST  (added 'info' type)
   // ─────────────────────────────────────────────────────────────
   function showSkillNotification(message, type) {
     const existing = document.querySelector('.skill-toast');
     if (existing) existing.remove();
 
+    const bgMap = { success: '#10b981', error: '#ef4444', info: '#6366f1' };
     const toast = document.createElement('div');
     toast.className = 'skill-toast';
     toast.style.cssText = `
       position:fixed;top:80px;right:20px;
       padding:12px 20px;border-radius:8px;
       font-family:var(--ff-body);font-size:13px;font-weight:500;
-      z-index:9999;
-      background:${type === 'success' ? '#10b981' : '#ef4444'};
+      z-index:9999;background:${bgMap[type] || bgMap.info};
       color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);
       max-width:340px;animation:slideIn .3s ease;
     `;
@@ -716,7 +563,6 @@
     }, 3500);
   }
 
-  // Ensure keyframes exist (index.js injects these but skill page may load standalone)
   if (!document.getElementById('skillToastStyles')) {
     const s = document.createElement('style');
     s.id = 'skillToastStyles';
@@ -729,7 +575,7 @@
   }
 
   // ─────────────────────────────────────────────────────────────
-  // TABLE HELPERS  (unchanged from original, preserved exactly)
+  // TABLE HELPERS
   // ─────────────────────────────────────────────────────────────
   function tierByKey(k) { return TIERS.find(t => t.key === k) || null; }
 
@@ -738,13 +584,20 @@
     return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '180,180,180';
   }
 
+  // ── FIX: recalcPct now updates the editable score input only if it hasn't
+  //         been manually overridden; manual entry takes precedence.
   function recalcPct(idx) {
     const max    = parseInt(DRILLS[idx].attempts) || 0;
     const succEl = document.getElementById('succ-'+idx);
     const v      = succEl ? parseFloat(succEl.value) : NaN;
     const p      = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v / max) * 100)) : null;
-    const pctEl  = document.getElementById('pct-'+idx);
-    if (pctEl) pctEl.textContent = p !== null ? p + '%' : '—';
+
+    const scoreInput = document.getElementById('score-'+idx);
+    if (scoreInput && !scoreInput.dataset.manualOverride) {
+      scoreInput.value         = p !== null ? p : '';
+      scoreInput.placeholder   = p !== null ? '' : '—';
+      DRILLS[idx].score        = p !== null ? String(p) : '';
+    }
     renderSummary();
   }
 
@@ -775,11 +628,13 @@
   function renderSummary() {
     const grid   = document.getElementById('summaryGrid');
     const metaEl = document.getElementById('summaryMeta');
+    // ── CHANGE 4: summary title always shows "N/A" (label removed)
+    const titleEl = document.getElementById('summaryTitle');
+    if (titleEl) titleEl.textContent = 'N/A';
+
     if (!grid) return;
 
-    // Use dynamic subskills if available, otherwise fall back to TIERS
     const activeTiers = getActiveTiers();
-
     const agg = {};
     activeTiers.forEach(t => { agg[t.key] = { count:0, totalAttempts:0, totalSucc:0, drills:[] }; });
 
@@ -788,6 +643,7 @@
       if (!d.tier) return;
       const a   = agg[d.tier];
       const att = parseInt(d.attempts) || 0;
+      // Use manual score override if present, otherwise use succ count
       const suc = parseFloat(d.succ);
       a.count++;
       a.totalAttempts += att;
@@ -809,16 +665,13 @@
       const inactive = a.count === 0;
 
       const card = document.createElement('div');
-      // Use custom color class if available, otherwise use tier class
-      const cardClass = t.cls && t.cls.startsWith('t-custom')
-        ? 'tier-card ' + t.cls + (inactive ? ' inactive' : '')
-        : 'tier-card ' + t.cls + (inactive ? ' inactive' : '');
-      card.className = cardClass;
+      card.className = 'tier-card ' + t.cls + (inactive ? ' inactive' : '');
 
+      // ── CHANGE 4: badge label replaced with "N/A" text
       const badgeHTML =
         '<div class="tc-top">' +
           '<span class="tc-badge" style="background:'+t.color+'">' +
-            '<span class="tc-badge-dot"></span>' + t.label +
+            '<span class="tc-badge-dot"></span>N/A' +
           '</span>' +
           '<span class="tc-count-pill">' +
             (a.count === 0 ? 'None' : a.count + (a.count === 1 ? ' skill' : ' skills')) +
@@ -864,33 +717,37 @@
     const skillBg = color ? 'rgba('+rgb+',0.13)' : 'rgba(180,180,180,0.10)';
     const skillTx = color || '#bbb';
 
+    // Calculate auto score for display
+    const max  = parseInt(drill.attempts) || 0;
+    const v    = parseFloat(drill.succ);
+    const autoPct = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v/max)*100)) : null;
+    // Use stored manual score if available, otherwise use auto-calculated
+    const scoreVal = drill.score !== '' && drill.score !== undefined ? drill.score : (autoPct !== null ? autoPct : '');
+
     const tr = document.createElement('tr');
     tr.dataset.idx = idx;
 
-    // 1. Subskill dropdown
+    // 1. Subskill level — static label, no dropdown
     const tdSub = document.createElement('td');
     tdSub.className = 'c-sub';
     tdSub.innerHTML =
-      '<div class="custom-select-wrap">'+
-        '<div class="cs-trigger" id="cs-trigger-'+idx+'" data-idx="'+idx+'">'+
-          '<span class="cs-swatch" id="cs-swatch-'+idx+'" style="background:'+(color||'#ddd')+'"></span>'+
-          '<span class="cs-label'+(tier?'':' placeholder')+'" id="cs-label-'+idx+'">'+(tier?tier.label:'Choose subskill…')+'</span>'+
-          '<svg class="cs-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-        '</div>'+
-        '<div class="cs-panel" id="cs-panel-'+idx+'">'+
-          getActiveTiers().map(t =>
-            '<div class="cs-option'+(drill.tier===t.key?' selected':'')+'" data-idx="'+idx+'" data-key="'+t.key+'" data-color="'+t.color+'">'+
-              '<span class="cs-opt-bar" style="background:'+t.color+'"></span>'+
-              '<span class="cs-opt-label">'+t.label+'</span>'+
-              '<svg class="cs-opt-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-            '</div>'
-          ).join('')+
-        '</div>'+
+      '<div class="subskill-static" style="'+
+        'display:flex;align-items:center;gap:8px;'+
+        'padding:8px 12px;border-radius:8px;'+
+        'background:rgba(180,180,180,0.10);'+
+        'font-family:var(--ff-body);font-size:13px;'+
+        'color:#aaa;font-style:italic;cursor:default;user-select:none;'+
+      '">'+
+        '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:.5">'+
+          '<circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>'+
+          '<path d="M8 5v4M8 11v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'+
+        '</svg>'+
+        'Select Skill Domain first'+
       '</div>';
     tr.appendChild(tdSub);
 
-    // 2. Skill dropdown
-    const tierLabel = tier ? tier.label : null;
+    // 2. Drill dropdown
+    const tierLabel    = tier ? tier.label : null;
     const drillOptions = tierLabel && DRILL_OPTIONS[tierLabel] ? DRILL_OPTIONS[tierLabel] : [];
     const selectedDrill = drill.skill || '';
     const tdSkill = document.createElement('td');
@@ -918,7 +775,7 @@
       '</div>';
     tr.appendChild(tdSkill);
 
-    // 3. Attempts
+    // 3. Attempts — editable number input (unchanged)
     const tdCrit = document.createElement('td');
     tdCrit.className = 'c-crit';
     tdCrit.innerHTML =
@@ -931,7 +788,7 @@
       '</div>';
     tr.appendChild(tdCrit);
 
-    // 4. Successful
+    // 4. Successful — editable number input (unchanged)
     const tdSucc = document.createElement('td');
     tdSucc.className = 'c-succ';
     tdSucc.innerHTML =
@@ -941,15 +798,14 @@
       '</div>';
     tr.appendChild(tdSucc);
 
-    // 5. Score %
-    const max = parseInt(drill.attempts) || 0;
-    const v   = parseFloat(drill.succ);
-    const p   = (!isNaN(v) && max > 0) ? Math.min(100, Math.round((v/max)*100)) : null;
+    // 5. Score — CHANGE 2: now an editable number input (auto-filled but overridable)
     const tdScore = document.createElement('td');
     tdScore.className = 'c-sc';
     tdScore.innerHTML =
       '<div class="score-wrap">'+
-        '<span class="score-pct" id="pct-'+idx+'">'+(p!==null?p+'%':'—')+'</span>'+
+        '<input type="number" class="score-pct-input" id="score-'+idx+'" data-idx="'+idx+'"'+
+          ' placeholder="—" min="0" max="100" style="text-align:center;width:70px;" value="'+(scoreVal)+'" />'+
+        '<span style="font-size:12px;color:#888;margin-left:2px;">%</span>'+
       '</div>';
     tr.appendChild(tdScore);
 
@@ -964,61 +820,11 @@
     body.innerHTML = '';
     DRILLS.forEach((d, i) => body.appendChild(buildRow(d, i)));
 
-    // Dropdown triggers
-    document.querySelectorAll('.cs-trigger').forEach(trigger => {
-      trigger.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const idx    = +this.dataset.idx;
-        const panel  = document.getElementById('cs-panel-'+idx);
-        const isOpen = panel.classList.contains('open');
-        closeAll();
-        if (!isOpen) {
-          panel.classList.add('open');
-          this.classList.add('open');
-          setTimeout(() => {
-            const scroll   = document.querySelector('.table-scroll');
-            const panelEl  = document.getElementById('cs-panel-'+idx);
-            if (scroll && panelEl) {
-              const sr = scroll.getBoundingClientRect();
-              const pr = panelEl.getBoundingClientRect();
-              if (pr.bottom > sr.bottom) scroll.scrollTop += (pr.bottom - sr.bottom + 16);
-            }
-          }, 20);
-        }
-      });
-    });
-
-    // Option clicks
-    document.querySelectorAll('.cs-option').forEach(opt => {
-      opt.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const idx   = +this.dataset.idx;
-        const key   = this.dataset.key;
-        const color = this.dataset.color;
-
-        DRILLS[idx].tier = key;
-
-        document.getElementById('cs-swatch-'+idx).style.background = color;
-        const lbl = document.getElementById('cs-label-'+idx);
-        lbl.textContent = TIERS.find(t => t.key === key).label;
-        lbl.classList.remove('placeholder');
-
-        document.querySelectorAll('#cs-panel-'+idx+' .cs-option')
-          .forEach(o => o.classList.remove('selected'));
-        this.classList.add('selected');
-
-        applyTierToRow(idx, key);
-        document.getElementById('cs-panel-'+idx).classList.remove('open');
-        document.getElementById('cs-trigger-'+idx).classList.remove('open');
-        renderSummary();
-      });
-    });
-
-    // Skill dropdown - trigger click
+    // Drill dropdown triggers
     document.querySelectorAll('.drill-trigger').forEach(trigger => {
       trigger.addEventListener('click', function(e) {
         e.stopPropagation();
-        const idx = +this.dataset.idx;
+        const idx   = +this.dataset.idx;
         const panel = document.getElementById('drill-panel-'+idx);
         const isOpen = panel.classList.contains('open');
         closeAll();
@@ -1029,11 +835,11 @@
       });
     });
 
-    // Skill dropdown - option click
+    // Drill option clicks
     document.querySelectorAll('.drill-panel .cs-option').forEach(opt => {
       opt.addEventListener('click', function(e) {
         e.stopPropagation();
-        const idx = +this.dataset.idx;
+        const idx   = +this.dataset.idx;
         const drill = this.dataset.drill;
         DRILLS[idx].skill = drill;
         document.getElementById('drill-label-'+idx).textContent = drill || 'Select drill…';
@@ -1046,7 +852,7 @@
       });
     });
 
-    // Attempts
+    // Attempts input
     document.querySelectorAll('.attempts-input').forEach(input => {
       input.addEventListener('input', function() {
         const idx = +this.dataset.idx;
@@ -1059,6 +865,9 @@
           if (!isNaN(s) && s > v) { succEl.value = v; DRILLS[idx].succ = v; }
           succEl.max = v;
         }
+        // Clear manual override so score auto-recalculates
+        const scoreInput = document.getElementById('score-'+idx);
+        if (scoreInput) delete scoreInput.dataset.manualOverride;
         recalcPct(idx);
       });
       input.addEventListener('blur', function() {
@@ -1078,7 +887,7 @@
       });
     });
 
-    // Successful
+    // Successful input
     document.querySelectorAll('.score-input').forEach(input => {
       input.addEventListener('input', function() {
         const idx = +this.dataset.idx;
@@ -1087,6 +896,34 @@
         if (!isNaN(v) && v < 0)   { this.value = 0;   v = 0; }
         if (!isNaN(v) && v > max) { this.value = max; v = max; }
         DRILLS[idx].succ = this.value;
+        // Clear manual override so score auto-recalculates from succ/attempts
+        const scoreInput = document.getElementById('score-'+idx);
+        if (scoreInput) delete scoreInput.dataset.manualOverride;
+        recalcPct(idx);
+      });
+    });
+
+    // Score input — CHANGE 2: manual entry sets override flag, stops auto-recalc overwriting it
+    document.querySelectorAll('.score-pct-input').forEach(input => {
+      input.addEventListener('input', function() {
+        const idx = +this.dataset.idx;
+        let v = parseFloat(this.value);
+        if (!isNaN(v)) {
+          if (v < 0)   { this.value = 0;   v = 0; }
+          if (v > 100) { this.value = 100; v = 100; }
+          DRILLS[idx].score = String(v);
+          this.dataset.manualOverride = '1';
+        } else {
+          DRILLS[idx].score = '';
+          delete this.dataset.manualOverride;
+        }
+        renderSummary();
+      });
+      // Double-click to clear override and re-sync from attempts/succ
+      input.addEventListener('dblclick', function() {
+        const idx = +this.dataset.idx;
+        delete this.dataset.manualOverride;
+        DRILLS[idx].score = '';
         recalcPct(idx);
       });
     });
@@ -1101,7 +938,7 @@
   // BUTTON WIRING
   // ─────────────────────────────────────────────────────────────
   document.getElementById('btnAddRow').addEventListener('click', () => {
-    DRILLS.push({ skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' });
+    DRILLS.push({ skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts', score: '' });
     render();
     const scroll = document.querySelector('.table-scroll');
     if (scroll) scroll.scrollTop = scroll.scrollHeight;
@@ -1113,9 +950,8 @@
     render();
   });
 
-  // Save & Submit → finalise session, then reset for next client
   document.getElementById('btnSave').addEventListener('click', () => {
-    saveToDatabase(true);   // submitted = true
+    saveToDatabase(true);
   });
 
   document.addEventListener('click', closeAll);
