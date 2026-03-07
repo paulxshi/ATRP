@@ -142,6 +142,17 @@
     .wu-editor ol   { padding-left:1.5em; margin:0 0 1em; }
     .wu-editor li   { margin-bottom:.3em; }
 
+    /* Uneditable placeholder text */
+    .wu-editor .uneditable {
+      background:rgba(201,168,76,.08);
+      border-radius:3px;
+      padding:0 2px;
+      cursor:not-allowed;
+    }
+    .wu-editor .uneditable:hover {
+      background:rgba(201,168,76,.15);
+    }
+
     /* Fraction spans inside the template */
     .wu-frac {
       display:inline-block;
