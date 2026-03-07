@@ -342,9 +342,30 @@ window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.Communication?.Receptive 
         window.location.href = 'expressive.html';
         return;
       }
+    } else if (pendingDomain === 'Daily Living') {
+      if (pendingSubDomain === 'Personal') {
+        window.location.href = '../daily-living/personal.html';
+        return;
+      } else if (pendingSubDomain === 'Domestic') {
+        window.location.href = '../daily-living/domestic.html';
+        return;
+      } else if (pendingSubDomain === 'Community') {
+        window.location.href = '../daily-living/community.html';
+        return;
+      }
+    } else if (pendingDomain === 'Socialization') {
+      if (pendingSubDomain === 'Interpersonal Relationship') {
+        window.location.href = '../socialization/interpersonal.html';
+        return;
+      } else if (pendingSubDomain === 'Play and Leisure') {
+        window.location.href = '../socialization/liesure.html';
+        return;
+      } else if (pendingSubDomain === 'Coping Skills') {
+        window.location.href = '../socialization/coping.html';
+        return;
+      }
     }
     
-    // For other domains, just close modal (show placeholder)
     modal.style.display = 'none';
   });
 })();
