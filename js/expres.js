@@ -5,20 +5,76 @@
   // EXPRESSIVE COMMUNICATION — subskills & drills
   // ─────────────────────────────────────────────────────────────
   const TIERS = [
-    { key: 'simple', label: 'Simple Communication',       color: '#1447e6', cls: 't-simple' },
-    { key: 'info',   label: 'Personal Information',       color: '#00c950', cls: 't-info'   },
-    { key: 'desc',   label: 'Descriptive',  color: '#facc15', cls: 't-desc'   },
-    { key: 'comp',   label: 'Comprehensive',color: '#86198f', cls: 't-comp'   },
+    { key: 'simple', label: 'Simple Communication', color: '#1447e6', cls: 't-simple' },
+    { key: 'info',   label: 'Personal Information', color: '#00c950', cls: 't-info'   },
+    { key: 'desc',   label: 'Descriptive',          color: '#facc15', cls: 't-desc'   },
+    { key: 'comp',   label: 'Comprehensive',        color: '#86198f', cls: 't-comp'   },
   ];
 
   const DRILL_OPTIONS = {
-    'Simple Communication':        ['Naming Objects', 'Nod or Headshakes'],
-    'Personal Information':        ['Name', 'Age', 'Birthday', 'Address'],
-    'Descriptive':   ['Label Objects', 'Describe Actions', 'Use Adjectives', 'Describe Colors'],
-    'Comprehensive': ['Complete Sentence', 'Basic Comprehension'],
+    'Simple Communication': ['Naming Objects', 'Nod or Headshakes'],
+    'Personal Information': ['Name', 'Age', 'Birthday', 'Address'],
+    'Descriptive':          ['Label Objects', 'Describe Actions', 'Use Adjectives', 'Describe Colors'],
+    'Comprehensive':        ['Complete Sentence', 'Basic Comprehension'],
   };
 
-  // Expose globals so skill-scoring.html domain modal can read them
+  // Auto-attempts per drill
+  const DRILL_ATTEMPTS = {
+    // Simple Communication
+    'Naming Objects':   3,
+    'Nod or Headshakes': 7,
+    // Personal Information
+    'Name':     3,
+    'Age':      1,
+    'Birthday': 3,
+    'Address':  4,
+    // Descriptive
+    'Label Objects':    3,   // "Who owns the object" maps here
+    'Describe Actions': 4,   // "naming actions"
+    'Use Adjectives':   5,
+    'Describe Colors':  5,
+    // Comprehensive
+    'Complete Sentence':   7,
+    'Basic Comprehension': 4,
+  };
+
+  // Unit label — all expressive drills use "points"
+  const DRILL_UNITS = {
+    'Naming Objects':      'points',
+    'Nod or Headshakes':   'points',
+    'Name':                'points',
+    'Age':                 'point',
+    'Birthday':            'points',
+    'Address':             'points',
+    'Label Objects':       'points',
+    'Describe Actions':    'points',
+    'Use Adjectives':      'points',
+    'Describe Colors':     'points',
+    'Complete Sentence':   'points',
+    'Basic Comprehension': 'points',
+  };
+
+  function getAttempts(drillName) { return DRILL_ATTEMPTS[drillName] ?? 5; }
+  function getUnit(drillName)     { return DRILL_UNITS[drillName]    || 'attempts'; }
+
+  /**
+   * applyDrillAttempts(idx, drillName)
+   * Writes the correct count + unit into the DOM and DRILLS state,
+   * then recalculates the score percentage.
+   */
+  function applyDrillAttempts(idx, drillName) {
+    const count = getAttempts(drillName);
+    const unit  = getUnit(drillName);
+    DRILLS[idx].attempts = count;
+    DRILLS[idx].unit     = unit;
+    const attEl  = document.getElementById('attempts-' + idx);
+    const unitEl = document.getElementById('unit-' + idx);
+    if (attEl)  attEl.value  = count;
+    if (unitEl) unitEl.value = unit;
+    recalcPct(idx);
+  }
+
+  // Expose globals
   window.ATRP_SUB_DOMAINS = window.ATRP_SUB_DOMAINS || {
     'Communication': ['Receptive', 'Expressive'],
     'Daily Living':  ['Personal', 'Domestic', 'Community'],
@@ -36,6 +92,40 @@
   let currentClientId   = null;
   let currentClientName = '';
   let isSaving          = false;
+
+  // ─────────────────────────────────────────────────────────────
+  // BADGE HELPER
+  // ─────────────────────────────────────────────────────────────
+  function hexToRgb(hex) {
+    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '180,180,180';
+  }
+
+  function luminance(hex) {
+    const rgb = hexToRgb(hex).split(',').map(Number);
+    const [r, g, b] = rgb.map(v => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+
+  function makeBadgeHTML(label, color) {
+    const rgb       = hexToRgb(color);
+    const lum       = luminance(color);
+    const textColor = lum > 0.35 ? '#5a4500' : color;
+    const bg        = 'rgba(' + rgb + ', 0.12)';
+    const border    = 'rgba(' + rgb + ', 0.35)';
+    return (
+      '<span class="cs-badge-label" style="' +
+        'color:' + textColor + ';' +
+        'background:' + bg + ';' +
+        'border-color:' + border + ';">' +
+        '<span class="cs-badge-dot" style="background:' + color + '"></span>' +
+        label +
+      '</span>'
+    );
+  }
 
   // ─────────────────────────────────────────────────────────────
   // CLIENT RESOLUTION
@@ -357,11 +447,6 @@
   // ─────────────────────────────────────────────────────────────
   function tierByKey(k) { return TIERS.find(t => t.key === k) || null; }
 
-  function hexToRgb(hex) {
-    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return r ? parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16) : '180,180,180';
-  }
-
   function recalcPct(idx) {
     const max = parseInt(DRILLS[idx].attempts) || 0;
     const v   = parseFloat(document.getElementById('succ-'+idx)?.value);
@@ -387,16 +472,29 @@
     const drillOptions = tier && DRILL_OPTIONS[tier.label] ? DRILL_OPTIONS[tier.label] : [];
     const tierColor    = tier ? tier.color : '#ddd';
 
-    DRILLS[idx].skill = '';
-    const drillLabel = document.getElementById('drill-label-'+idx);
-    if (drillLabel) { drillLabel.textContent = 'Select drill…'; drillLabel.classList.add('placeholder'); }
+    // Reset drill, attempts, and unit
+    DRILLS[idx].skill    = '';
+    DRILLS[idx].attempts = 0;
+    DRILLS[idx].unit     = 'attempts';
+
+    const drillLabelWrap = document.getElementById('drill-label-'+idx);
+    if (drillLabelWrap) {
+      drillLabelWrap.innerHTML  = '';
+      drillLabelWrap.textContent = 'Select drill…';
+      drillLabelWrap.classList.add('placeholder');
+    }
+    const attEl  = document.getElementById('attempts-' + idx);
+    const unitEl = document.getElementById('unit-' + idx);
+    if (attEl)  attEl.value  = 0;
+    if (unitEl) unitEl.value = 'attempts';
+    recalcPct(idx);
 
     const panel = document.getElementById('drill-panel-'+idx);
     if (!panel) return;
 
     panel.innerHTML = drillOptions.length > 0
       ? drillOptions.map(d =>
-          '<div class="cs-option" data-idx="'+idx+'" data-drill="'+d+'">'+
+          '<div class="cs-option" data-idx="'+idx+'" data-drill="'+d+'" data-color="'+tierColor+'">' +
             '<span class="cs-opt-bar" style="background:'+tierColor+'"></span>'+
             '<span class="cs-opt-label">'+d+'</span>'+
             '<svg class="cs-opt-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
@@ -407,11 +505,19 @@
     panel.querySelectorAll('.cs-option:not(.cs-option-disabled)').forEach(opt => {
       opt.addEventListener('click', function(e) {
         e.stopPropagation();
-        const i = +this.dataset.idx;
+        const i     = +this.dataset.idx;
         const drill = this.dataset.drill;
+        const col   = this.dataset.color || tierColor;
         DRILLS[i].skill = drill;
-        document.getElementById('drill-label-'+i).textContent = drill;
-        document.getElementById('drill-label-'+i).classList.remove('placeholder');
+
+        // Badge on drill trigger
+        const lblEl = document.getElementById('drill-label-'+i);
+        lblEl.innerHTML = makeBadgeHTML(drill, col);
+        lblEl.classList.remove('placeholder');
+
+        // Auto-fill attempts + unit
+        applyDrillAttempts(i, drill);
+
         panel.querySelectorAll('.cs-option').forEach(o => o.classList.remove('selected'));
         this.classList.add('selected');
         panel.classList.remove('open');
@@ -461,7 +567,7 @@
         '</div>'+
         (inactive || pct === null
           ? '<div class="tc-stat"><span class="tc-pct-empty">—</span></div><span class="tc-fraction" style="color:#ccc">No data yet</span>'
-          : '<div class="tc-stat"><span class="tc-pct">'+pct+'</span><span class="tc-pct-symbol">%</span></div><span class="tc-fraction">'+a.totalSucc+' / '+a.totalAttempts+' attempts</span>'
+          : '<div class="tc-stat"><span class="tc-pct">'+pct+'</span><span class="tc-pct-symbol">%</span></div><span class="tc-fraction">'+a.totalSucc+' / '+a.totalAttempts+' pts</span>'
         )+
         '<div class="tc-bar-track"><div class="tc-bar-fill" style="width:'+(pct||0)+'%;background:'+t.color+'"></div></div>'+
         '<div class="tc-drills">'+
@@ -484,14 +590,18 @@
     const tr = document.createElement('tr');
     tr.dataset.idx = idx;
 
+    // ── Subskill trigger label ──
+    const subLabelHTML = tier
+      ? makeBadgeHTML(tier.label, color)
+      : '<span class="cs-label placeholder">Select subskill…</span>';
+
     // 1. Subskill Level
     const tdSub = document.createElement('td');
     tdSub.className = 'c-sub';
     tdSub.innerHTML =
       '<div class="custom-select-wrap">'+
         '<div class="cs-trigger" id="cs-trigger-'+idx+'" data-idx="'+idx+'">'+
-          '<span class="cs-swatch" id="cs-swatch-'+idx+'" style="background:'+(color||'#ddd')+'"></span>'+
-          '<span class="cs-label'+(tier?'':' placeholder')+'" id="cs-label-'+idx+'">'+(tier?tier.label:'Select subskill…')+'</span>'+
+          '<span class="cs-label-wrap" id="cs-label-wrap-'+idx+'">'+subLabelHTML+'</span>'+
           '<svg class="cs-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
         '</div>'+
         '<div class="cs-panel" id="cs-panel-'+idx+'">'+
@@ -506,21 +616,26 @@
       '</div>';
     tr.appendChild(tdSub);
 
+    // ── Drill trigger label ──
+    const drillOptions   = tier && DRILL_OPTIONS[tier.label] ? DRILL_OPTIONS[tier.label] : [];
+    const selectedDrill  = drill.skill || '';
+    const drillLabelHTML = (selectedDrill && color)
+      ? makeBadgeHTML(selectedDrill, color)
+      : '<span class="cs-label placeholder">Select drill…</span>';
+
     // 2. Drills
-    const drillOptions  = tier && DRILL_OPTIONS[tier.label] ? DRILL_OPTIONS[tier.label] : [];
-    const selectedDrill = drill.skill || '';
     const tdSkill = document.createElement('td');
     tdSkill.className = 'c-skl';
     tdSkill.innerHTML =
       '<div class="custom-select-wrap skill-dropdown-wrap">'+
         '<div class="cs-trigger drill-trigger" id="drill-trigger-'+idx+'" data-idx="'+idx+'">'+
-          '<span class="cs-label'+(selectedDrill?'':' placeholder')+'" id="drill-label-'+idx+'">'+(selectedDrill||'Select drill…')+'</span>'+
+          '<span class="cs-label-wrap" id="drill-label-'+idx+'">'+drillLabelHTML+'</span>'+
           '<svg class="cs-chevron" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
         '</div>'+
         '<div class="cs-panel drill-panel" id="drill-panel-'+idx+'">'+
           (drillOptions.length > 0
             ? drillOptions.map(d =>
-                '<div class="cs-option'+(selectedDrill===d?' selected':'')+'" data-idx="'+idx+'" data-drill="'+d+'">'+
+                '<div class="cs-option'+(selectedDrill===d?' selected':'')+'" data-idx="'+idx+'" data-drill="'+d+'" data-color="'+(color||'#ddd')+'">'+
                   '<span class="cs-opt-bar" style="background:'+(color||'#ddd')+'"></span>'+
                   '<span class="cs-opt-label">'+d+'</span>'+
                   '<svg class="cs-opt-check" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
@@ -532,7 +647,7 @@
       '</div>';
     tr.appendChild(tdSkill);
 
-    // 3. Attempts — readonly
+    // 3. Attempts — readonly, auto-filled
     const tdCrit = document.createElement('td');
     tdCrit.className = 'c-crit';
     tdCrit.innerHTML =
@@ -551,7 +666,7 @@
       '</div>';
     tr.appendChild(tdSucc);
 
-    // 5. Score — readonly, auto-calculated
+    // 5. Score — auto-calculated
     const max = parseInt(drill.attempts) || 0;
     const sv  = parseFloat(drill.succ);
     const p   = (!isNaN(sv) && max > 0) ? Math.min(100, Math.round((sv/max)*100)) : null;
@@ -571,7 +686,7 @@
     body.innerHTML = '';
     DRILLS.forEach((d, i) => body.appendChild(buildRow(d, i)));
 
-    // Subskill triggers
+    // ── Subskill triggers ──
     document.querySelectorAll('.cs-trigger:not(.drill-trigger)').forEach(trigger => {
       trigger.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -583,7 +698,7 @@
       });
     });
 
-    // Subskill option clicks
+    // ── Subskill option clicks ──
     document.querySelectorAll('.cs-panel:not(.drill-panel) .cs-option').forEach(opt => {
       opt.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -591,10 +706,11 @@
         const key   = this.dataset.key;
         const color = this.dataset.color;
         DRILLS[idx].tier = key;
-        document.getElementById('cs-swatch-'+idx).style.background = color;
-        const lbl = document.getElementById('cs-label-'+idx);
-        lbl.textContent = tierByKey(key).label;
-        lbl.classList.remove('placeholder');
+
+        // Badge on subskill trigger
+        const wrapEl = document.getElementById('cs-label-wrap-'+idx);
+        wrapEl.innerHTML = makeBadgeHTML(tierByKey(key).label, color);
+
         document.querySelectorAll('#cs-panel-'+idx+' .cs-option').forEach(o => o.classList.remove('selected'));
         this.classList.add('selected');
         document.getElementById('cs-panel-'+idx).classList.remove('open');
@@ -604,7 +720,7 @@
       });
     });
 
-    // Drill triggers
+    // ── Drill triggers ──
     document.querySelectorAll('.drill-trigger').forEach(trigger => {
       trigger.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -616,15 +732,22 @@
       });
     });
 
-    // Drill option clicks (initial render)
+    // ── Drill option clicks (initial render) ──
     document.querySelectorAll('.drill-panel .cs-option:not(.cs-option-disabled)').forEach(opt => {
       opt.addEventListener('click', function(e) {
         e.stopPropagation();
         const idx   = +this.dataset.idx;
         const drill = this.dataset.drill;
+        const color = this.dataset.color;
         DRILLS[idx].skill = drill;
-        document.getElementById('drill-label-'+idx).textContent = drill;
-        document.getElementById('drill-label-'+idx).classList.remove('placeholder');
+
+        // Badge on drill trigger
+        const lblWrap = document.getElementById('drill-label-'+idx);
+        lblWrap.innerHTML = makeBadgeHTML(drill, color);
+
+        // Auto-fill attempts + unit
+        applyDrillAttempts(idx, drill);
+
         document.querySelectorAll('#drill-panel-'+idx+' .cs-option').forEach(o => o.classList.remove('selected'));
         this.classList.add('selected');
         document.getElementById('drill-panel-'+idx).classList.remove('open');
@@ -633,7 +756,7 @@
       });
     });
 
-    // Successful input
+    // ── Successful input ──
     document.querySelectorAll('.score-input').forEach(input => {
       input.addEventListener('input', function() {
         const idx = +this.dataset.idx;
