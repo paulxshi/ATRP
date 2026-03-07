@@ -46,7 +46,7 @@
     return DRILL_ATTEMPTS[drillName] ?? 5;
   }
   function getUnit(drillName) {
-    return DRILL_UNITS[drillName] || 'attempts';
+    return DRILL_UNITS[drillName] || 'criteria';
   }
 
   /**
@@ -80,8 +80,8 @@
   // STATE
   // ─────────────────────────────────────────────────────────────
   let DRILLS = [
-    { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
-    { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
+    { skill: '', attempts: 0, tier: null, succ: '', unit: 'criteria' },
+    { skill: '', attempts: 0, tier: null, succ: '', unit: 'criteria' },
   ];
 
   let currentClientId   = null;
@@ -390,7 +390,7 @@
         DRILLS = result.rows.map(r => ({
           skill: r.skill || '', attempts: parseInt(r.attempts) || 0,
           tier: r.tier || null, succ: r.successful !== null ? String(r.successful) : '',
-          unit: r.unit || 'attempts'
+          unit: r.unit || 'criteria'
         }));
         render();
         showToast('Skill data loaded', 'success');
@@ -426,8 +426,8 @@
   function resetForNextClient() {
     currentClientId = null; currentClientName = ''; window.ATRP_CLIENT_ID = null;
     DRILLS = [
-      { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
-      { skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' },
+      { skill: '', attempts: 0, tier: null, succ: '', unit: 'criteria' },
+      { skill: '', attempts: 0, tier: null, succ: '', unit: 'criteria' },
     ];
     render(); updateClientBanner(); showClientPicker();
   }
@@ -486,7 +486,7 @@
     // Clear selected drill and reset its label to placeholder
     DRILLS[idx].skill    = '';
     DRILLS[idx].attempts = 0;
-    DRILLS[idx].unit     = 'attempts';
+    DRILLS[idx].unit     = 'criteria';
     const drillTriggerLabel = document.getElementById('drill-label-'+idx);
     if (drillTriggerLabel) {
       drillTriggerLabel.innerHTML = '';           // clear any badge
@@ -496,7 +496,7 @@
     const attEl  = document.getElementById('attempts-' + idx);
     const unitEl = document.getElementById('unit-' + idx);
     if (attEl)  attEl.value  = 0;
-    if (unitEl) unitEl.value = 'attempts';
+    if (unitEl) unitEl.value = 'criteria';
     recalcPct(idx);
 
     const panel = document.getElementById('drill-panel-'+idx);
@@ -664,7 +664,7 @@
     tdCrit.innerHTML =
       '<div class="crit-wrap"><div class="attempts-field">'+
         '<input type="number" class="attempts-input" id="attempts-'+idx+'" data-idx="'+idx+'" min="0" value="'+(drill.attempts||0)+'" placeholder="0" readonly tabindex="-1"/>'+
-        '<input type="text" class="attempts-unit" id="unit-'+idx+'" data-idx="'+idx+'" value="'+(drill.unit||'attempts')+'" autocomplete="off" readonly tabindex="-1"/>'+
+        '<input type="text" class="attempts-unit" id="unit-'+idx+'" data-idx="'+idx+'" value="'+(drill.unit||'criteria')+'" autocomplete="off" readonly tabindex="-1"/>'+
       '</div></div>';
     tr.appendChild(tdCrit);
 
@@ -789,7 +789,7 @@
   // BUTTON WIRING
   // ─────────────────────────────────────────────────────────────
   document.getElementById('btnAddRow').addEventListener('click', () => {
-    DRILLS.push({ skill: '', attempts: 0, tier: null, succ: '', unit: 'attempts' });
+    DRILLS.push({ skill: '', attempts: 0, tier: null, succ: '', unit: 'criteria' });
     render();
     const scroll = document.querySelector('.table-scroll');
     if (scroll) scroll.scrollTop = scroll.scrollHeight;
