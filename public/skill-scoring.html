@@ -331,18 +331,18 @@
     // Navigate to respective page based on subdomain (Communication domain only)
     if (pendingDomain === 'Communication') {
       if (pendingSubDomain === 'Receptive') {
-        window.location.href = 'receptive.html';
+        window.location.href = 'communication/receptive.html';
         return;
       } else if (pendingSubDomain === 'Expressive') {
-        window.location.href = 'expressive.html';
+        window.location.href = 'communication/expressive.html';
         return;
       }
     }
     
-    // For other domains, just close modal (show placeholder)
     modal.style.display = 'none';
   });
 })();
+
 </script>
 </body>
 </html>
