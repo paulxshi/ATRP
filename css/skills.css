@@ -666,6 +666,7 @@
   margin: 0;
 }
 .table-title-accent { color: var(--gold); }
+.table-title-accents { color: #000 }
 
 .btn-choose-domain {
   display: inline-flex; align-items: center; gap: 7px;
