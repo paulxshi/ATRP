@@ -250,11 +250,7 @@
 .cs-opt-check { width: 14px; height: 14px; opacity: 0; color: var(--gold); transition: opacity .15s; }
 .cs-option.selected .cs-opt-check { opacity: 1; }
 
-/* ─────────────────────────────────────────────────
-   SELECTED BADGE LABEL  ← NEW
-   Replaces the plain cs-label text when a value
-   has been chosen from either dropdown column.
-───────────────────────────────────────────────── */
+
 .cs-badge-label {
   display: inline-flex;
   align-items: center;

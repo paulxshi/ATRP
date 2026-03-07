@@ -18,6 +18,57 @@
     'Advanced Understanding': ['Directions', 'Wh Questions', 'Using One Object'],
   };
 
+  // Auto-attempts per drill. Any drill not listed here defaults to 5.
+  const DRILL_ATTEMPTS = {
+    // Eye Contact — all 5
+    'Name Call': 5, 'Hello': 5, 'Tap': 5,
+    // Basic Understanding — all 5
+    'Come Here': 5, 'Sit Down': 5, 'Stand Up': 5,
+    // Identification
+    'Pointing to Facial Expression': 4,
+    'Pointing to Body Parts':        5,
+    // Advanced Understanding
+    'Directions':       4,
+    'Wh Questions':     10,
+    'Using One Object': 4,
+  };
+
+  // Unit label — most drills say "attempts"; Identification uses "points"
+  const DRILL_UNITS = {
+    'Pointing to Facial Expression': 'points',
+    'Pointing to Body Parts':        'points',
+    'Directions':                    'points',
+    'Wh Questions':                  'points',
+    'Using One Object':              'points',
+  };
+
+  function getAttempts(drillName) {
+    return DRILL_ATTEMPTS[drillName] ?? 5;
+  }
+  function getUnit(drillName) {
+    return DRILL_UNITS[drillName] || 'attempts';
+  }
+
+  /**
+   * applyDrillAttempts(idx, drillName)
+   * Writes the correct attempt count + unit label into the row,
+   * updates DRILLS state, and recalculates the score percentage.
+   */
+  function applyDrillAttempts(idx, drillName) {
+    const count = getAttempts(drillName);
+    const unit  = getUnit(drillName);
+
+    DRILLS[idx].attempts = count;
+    DRILLS[idx].unit     = unit;
+
+    const attEl  = document.getElementById('attempts-' + idx);
+    const unitEl = document.getElementById('unit-' + idx);
+    if (attEl)  attEl.value  = count;
+    if (unitEl) unitEl.value = unit;
+
+    recalcPct(idx);
+  }
+
   // Expose globals
   window.ATRP_SUB_DOMAINS = window.ATRP_SUB_DOMAINS || {
     'Communication': ['Receptive', 'Expressive'],
@@ -433,13 +484,20 @@
     const tierColor    = tier ? tier.color : '#ddd';
 
     // Clear selected drill and reset its label to placeholder
-    DRILLS[idx].skill = '';
+    DRILLS[idx].skill    = '';
+    DRILLS[idx].attempts = 0;
+    DRILLS[idx].unit     = 'attempts';
     const drillTriggerLabel = document.getElementById('drill-label-'+idx);
     if (drillTriggerLabel) {
       drillTriggerLabel.innerHTML = '';           // clear any badge
       drillTriggerLabel.textContent = 'Select drill…';
       drillTriggerLabel.classList.add('placeholder');
     }
+    const attEl  = document.getElementById('attempts-' + idx);
+    const unitEl = document.getElementById('unit-' + idx);
+    if (attEl)  attEl.value  = 0;
+    if (unitEl) unitEl.value = 'attempts';
+    recalcPct(idx);
 
     const panel = document.getElementById('drill-panel-'+idx);
     if (!panel) return;
@@ -466,6 +524,9 @@
         const lblEl = document.getElementById('drill-label-'+i);
         lblEl.innerHTML = makeBadgeHTML(drill, col);
         lblEl.classList.remove('placeholder');
+
+        // ── Auto-fill attempts + unit ──
+        applyDrillAttempts(i, drill);
 
         panel.querySelectorAll('.cs-option').forEach(o => o.classList.remove('selected'));
         this.classList.add('selected');
@@ -694,6 +755,9 @@
         // ── Apply badge to drill trigger label ──
         const lblWrap = document.getElementById('drill-label-'+idx);
         lblWrap.innerHTML = makeBadgeHTML(drill, color);
+
+        // ── Auto-fill attempts + unit ──
+        applyDrillAttempts(idx, drill);
 
         document.querySelectorAll('#drill-panel-'+idx+' .cs-option').forEach(o => o.classList.remove('selected'));
         this.classList.add('selected');
