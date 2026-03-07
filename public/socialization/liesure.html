@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ATRP Dashboard</title>
+  <title>ATRP — Play and Leisure</title>
   <link rel="icon" type="image/png" href="../imgs/psi.png">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=Nevis&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -70,7 +70,7 @@
     <div class="domain-header-row" id="domainHeaderRow" style="display:flex">
       <div class="table-title-left">
         <span class="table-title-eyebrow">Skill Domain</span>
-        <h2 class="table-title-text" id="tableTitleText"><span class="table-title-accent">Receptive Communication</span></h2>
+        <h2 class="table-title-text" id="tableTitleText"><span class="table-title-accent">Play and Leisure</span></h2>
       </div>
       <button class="btn-choose-domain" id="btnChooseDomain">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
@@ -110,7 +110,7 @@
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
                   <rect x="11" y="3" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
-                  <rect x="3" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                  <rect x="3" y="11" width="6" height="6" rx" stroke="currentColor" stroke-width="1.8="1.5"/>
                   <rect x="11" y="11" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
                 </svg>
               </span>
@@ -157,12 +157,9 @@
       </div>
     </div>
 
-    <!-- Legend (pre-populated for Receptive Communication) -->
+    <!-- Legend (pre-populated for Play and Leisure) -->
     <div class="legend-bar" id="subskillLegend">
-      <span class="legend-chip-static" style="background:#1447e6;border-color:#1447e6;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Eye Contact</span>
-      <span class="legend-chip-static" style="background:#00c950;border-color:#00c950;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Basic Understanding</span>
-      <span class="legend-chip-static" style="background:#facc15;border-color:#facc15;color:#000"><span class="legend-bullet" style="background:#000"></span>Identification</span>
-      <span class="legend-chip-static" style="background:#86198f;border-color:#86198f;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Advanced Understanding</span>
+      <span class="legend-chip-static" style="background:#999;border-color:#999;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Coming Soon</span>
     </div>
 
     <div class="table-scroll">
@@ -204,7 +201,7 @@
     <!-- ══ SUBSKILL SUMMARY ══ -->
     <div class="summary-section">
       <div class="summary-header">
-        <span class="summary-title" id="summaryTitle">Receptive Communication Summary</span>
+        <span class="summary-title" id="summaryTitle">Play and Leisure Summary</span>
         <span class="summary-meta" id="summaryMeta">—</span>
       </div>
       <div class="summary-grid" id="summaryGrid"></div>
@@ -214,7 +211,7 @@
       <div class="bcm-footer-actions">
         <button class="btn-save" id="btnSave">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11.5 7.5l-4 4-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Save &amp; Submit
+          Save & Submit
         </button>
       </div>
     </div>
@@ -224,10 +221,10 @@
 </div>
 </main>
 <script src="../js/index.js"></script>
-<script src="../js/recep.js"></script>
+<script src="../js/skill.js"></script>
 <script>
-// Set subskills for Receptive Communication
-window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.Communication?.Receptive || null;
+// Set subskills for Play and Leisure (Socialization)
+window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.Socialization?.default || null;
 
 // Skill Domain Modal functionality
 (function () {
@@ -336,10 +333,32 @@ window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.Communication?.Receptive 
     // Navigate to respective page based on subdomain
     if (pendingDomain === 'Communication') {
       if (pendingSubDomain === 'Receptive') {
-        window.location.href = 'receptive.html';
+        window.location.href = '../communication/receptive.html';
         return;
       } else if (pendingSubDomain === 'Expressive') {
-        window.location.href = 'expressive.html';
+        window.location.href = '../communication/expressive.html';
+        return;
+      }
+    } else if (pendingDomain === 'Daily Living') {
+      if (pendingSubDomain === 'Personal') {
+        window.location.href = '../daily-living/personal.html';
+        return;
+      } else if (pendingSubDomain === 'Domestic') {
+        window.location.href = '../daily-living/domestic.html';
+        return;
+      } else if (pendingSubDomain === 'Community') {
+        window.location.href = '../daily-living/community.html';
+        return;
+      }
+    } else if (pendingDomain === 'Socialization') {
+      if (pendingSubDomain === 'Interpersonal Relationship') {
+        window.location.href = '../socialization/interpersonal.html';
+        return;
+      } else if (pendingSubDomain === 'Play and Leisure') {
+        window.location.href = '../socialization/liesure.html';
+        return;
+      } else if (pendingSubDomain === 'Coping Skills') {
+        window.location.href = '../socialization/coping.html';
         return;
       }
     }
