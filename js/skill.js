@@ -4,7 +4,7 @@
   // Sub-domain map - shared across all skill scoring pages
   window.ATRP_SUB_DOMAINS = {
     'Communication': ['Receptive', 'Expressive'],
-    'Daily Living':  ['Personal', 'Domestic', 'Community'],
+    'Daily Living':  ['Personal Care', 'Domestic', 'Community'],
     'Socialization': ['Interpersonal Relationship', 'Play and Leisure', 'Coping Skills']
   };
 
@@ -25,7 +25,7 @@
       ]
     },
     'Daily Living': {
-      'Personal': [
+      'Personal Care': [
         { name: 'Preschool Age', color: '#1447e6' },
         { name: 'Elementary Age', color: '#00c950' },
         { name: 'Pre-adolescent Age', color: '#facc15' }
@@ -45,7 +45,7 @@
       'Expressive': 'Expressive Communication Summary'
     },
     'Daily Living': {
-      'Personal': 'Personal Care Summary',
+      'Personal Care': 'Personal Care Summary',
       'Domestic': 'Domestic Skills Summary',
       'Community': 'Community Skills Summary'
     },

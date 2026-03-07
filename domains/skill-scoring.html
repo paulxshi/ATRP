@@ -280,7 +280,7 @@
         // Fallback data in case skill.js hasn't loaded
         const fallbackData = {
           'Communication': ['Receptive', 'Expressive'],
-          'Daily Living': ['Personal', 'Domestic', 'Community'],
+          'Daily Living': ['Personal Care', 'Domestic', 'Community'],
           'Socialization': ['Interpersonal Relationship', 'Play and Leisure', 'Coping Skills']
         };
         subdomains = fallbackData[pendingDomain] || [];
@@ -352,7 +352,7 @@
         return;
       }
     } else if (pendingDomain === 'Daily Living') {
-      if (pendingSubDomain === 'Personal') {
+      if (pendingSubDomain === 'Personal Care') {
         window.location.href = 'daily-living/personal.html';
         return;
       } else if (pendingSubDomain === 'Domestic') {
@@ -367,7 +367,7 @@
         window.location.href = 'socialization/interpersonal.html';
         return;
       } else if (pendingSubDomain === 'Play and Leisure') {
-        window.location.href = 'socialization/liesure.html';
+        window.location.href = 'socialization/leisure.html';
         return;
       } else if (pendingSubDomain === 'Coping Skills') {
         window.location.href = 'socialization/coping.html';

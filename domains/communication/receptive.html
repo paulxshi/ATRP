@@ -281,7 +281,7 @@ window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.Communication?.Receptive 
         // Fallback data in case skill.js hasn't loaded
         const fallbackData = {
           'Communication': ['Receptive', 'Expressive'],
-          'Daily Living': ['Personal', 'Domestic', 'Community'],
+          'Daily Living': ['Personal Care', 'Domestic', 'Community'],
           'Socialization': ['Interpersonal Relationship', 'Play and Leisure', 'Coping Skills']
         };
         subdomains = fallbackData[pendingDomain] || [];
@@ -352,7 +352,7 @@ window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.Communication?.Receptive 
         return;
       }
     } else if (pendingDomain === 'Daily Living') {
-      if (pendingSubDomain === 'Personal') {
+      if (pendingSubDomain === 'Personal Care') {
         window.location.href = '../daily-living/personal.html';
         return;
       } else if (pendingSubDomain === 'Domestic') {

@@ -84,7 +84,7 @@
 
     <!-- Skill Domain Modal -->
     <div id="skillDomainModal" class="sdm-overlay" style="display:none">
-      <div class="sdm_card">
+      <div class="sdm-card">
         <div class="sdm-header">
           <span class="sdm-eyebrow" id="sdmEyebrow">Skill Scoring Sheet</span>
           <div class="sdm-title" id="sdmTitle">Choose Skill Domain</div>
@@ -157,7 +157,7 @@
       </div>
     </div>
 
-    <!-- Legend (pre-populated for Community Skills) -->
+    <!-- Legend (pre-populated for Domestic Skills) -->
     <div class="legend-bar" id="subskillLegend">
       <span class="legend-chip-static" style="background:#999;border-color:#999;color:#fff"><span class="legend-bullet" style="background:#fff"></span>Coming Soon</span>
     </div>
@@ -201,7 +201,7 @@
     <!-- ══ SUBSKILL SUMMARY ══ -->
     <div class="summary-section">
       <div class="summary-header">
-        <span class="summary-title" id="summaryTitle">Community Skills Summary</span>
+        <span class="summary-title" id="summaryTitle">Domestic Skills Summary</span>
         <span class="summary-meta" id="summaryMeta">—</span>
       </div>
       <div class="summary-grid" id="summaryGrid"></div>
@@ -220,11 +220,11 @@
 
 </div>
 </main>
-<script src="../../js/index.js"></script>
-<script src="../../js/skill.js"></script>
+<script src="../js/index.js"></script>
+<script src="../js/skill.js"></script>
 <script>
-// Set subskills for Community Skills (Daily Living)
-window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.DailyLiving?.Community || null;
+// Set subskills for Domestic Skills (Daily Living)
+window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.DailyLiving?.Domestic || null;
 
 // Skill Domain Modal functionality
 (function () {
@@ -278,7 +278,7 @@ window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.DailyLiving?.Community ||
         // Fallback data in case skill.js hasn't loaded
         const fallbackData = {
           'Communication': ['Receptive', 'Expressive'],
-          'Daily Living': ['Personal', 'Domestic', 'Community'],
+          'Daily Living': ['Personal Care', 'Domestic', 'Community'],
           'Socialization': ['Interpersonal Relationship', 'Play and Leisure', 'Coping Skills']
         };
         subdomains = fallbackData[pendingDomain] || [];
@@ -349,7 +349,7 @@ window.ATRP_CURRENT_SUBSKILLS = window.ATRP_SUBSKILLS?.DailyLiving?.Community ||
         return;
       }
     } else if (pendingDomain === 'Daily Living') {
-      if (pendingSubDomain === 'Personal') {
+      if (pendingSubDomain === 'Personal Care') {
         window.location.href = '../daily-living/personal.html';
         return;
       } else if (pendingSubDomain === 'Domestic') {
