@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ATRP – Write Up</title>
+  <link rel="icon" type="image/png" href="../imgs/psi.png">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=Nevis&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/dashstyle.css">
+  <link rel="stylesheet" href="../css/writeup.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-left" id="topbarLeft">
+    <div class="brand-logo"><img src="../imgs/psi.png" alt="PSI Logo"></div>
+    <span class="brand-text">ATRP</span>
+  </div>
+  <div class="topbar-right">
+    <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="nav-item" href="index.html">
+    <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+    <span class="nav-label">Behavior</span>
+    <span class="nav-badge">Live</span>
+    <span class="tooltip-text">Behavior</span>
+  </a>
+  <a class="nav-item" href="skill-scoring.html">
+    <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
+    <span class="nav-label">Skill Scoring Sheets</span>
+    <span class="tooltip-text">Skill Scoring Sheets</span>
+  </a>
+  <a class="nav-item" href="reports.html">
+    <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+    <span class="nav-label">Reports</span>
+    <span class="tooltip-text">Reports</span>
+  </a>
+  <a class="nav-item active" href="writeup.html">
+    <span class="nav-icon"><i class="fas fa-check-circle"></i></span>
+    <span class="nav-label">Write up</span>
+    <span class="tooltip-text">Write up</span>
+  </a>
+</aside>
+
+<!-- MAIN -->
+<main class="main" id="mainContent">
+<div class="wu-wrapper">
+
+  <div>
+    <span class="wu-eyebrow">Baseline Report</span>
+    <h1 class="wu-title">Write <span class="wu-title-accent">Up</span></h1>
+  </div>
+
+  <div class="wu-card">
+
+    <!-- Gold band -->
+    <div class="wu-band">
+      <span class="wu-band-title">Baseline Report</span>
+      <span class="wu-band-badge">
+        <svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="rgba(0,0,0,.4)"/></svg>
+        Interpretation
+      </span>
+    </div>
+
+    <!-- Section label -->
+    <div class="wu-sec-row">
+      <span class="wu-sec-lbl">Interpretation</span>
+      <span class="wu-sec-line"></span>
+      <span class="wu-saved-pill" id="savedPill">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+          <path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Auto-saved
+      </span>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="wu-toolbar" id="wuToolbar">
+
+      <select class="wu-tb-sel" id="tbSize" title="Font size">
+        <option value="2">11px</option>
+        <option value="3">12px</option>
+        <option value="4" selected>14px</option>
+        <option value="5">16px</option>
+        <option value="6">18px</option>
+      </select>
+
+      <div class="wu-divider"></div>
+
+      <button class="wu-tb-btn" data-cmd="bold"      title="Bold"><strong>B</strong></button>
+      <button class="wu-tb-btn" data-cmd="italic"    title="Italic"><em style="font-style:italic">I</em></button>
+      <button class="wu-tb-btn" data-cmd="underline" title="Underline" style="text-decoration:underline">U</button>
+
+      <div class="wu-divider"></div>
+
+      <span class="wu-hl-label">Highlight:</span>
+      <!-- green / yellow / cyan / red / clear -->
+      <span class="wu-hl-swatch" data-color="#86efac" style="background:#86efac" title="Green"></span>
+      <span class="wu-hl-swatch" data-color="#fde047" style="background:#fde047" title="Yellow"></span>
+      <span class="wu-hl-swatch" data-color="#67e8f9" style="background:#67e8f9" title="Cyan"></span>
+      <span class="wu-hl-swatch" data-color="#fca5a5" style="background:#fca5a5" title="Red/Pink"></span>
+      <span class="wu-hl-swatch" data-color="remove"  style="background:#fff;border-style:dashed" title="Remove highlight">✕</span>
+
+      <div class="wu-divider"></div>
+
+      <button class="wu-tb-btn" data-cmd="insertUnorderedList" title="Bullet list">
+        <svg viewBox="0 0 16 16" fill="none">
+          <circle cx="2.5" cy="4"  r="1.4" fill="currentColor"/>
+          <circle cx="2.5" cy="8"  r="1.4" fill="currentColor"/>
+          <circle cx="2.5" cy="12" r="1.4" fill="currentColor"/>
+          <rect x="6" y="3"  width="8" height="2" rx="1" fill="currentColor"/>
+          <rect x="6" y="7"  width="8" height="2" rx="1" fill="currentColor"/>
+          <rect x="6" y="11" width="8" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <button class="wu-tb-btn" data-cmd="insertOrderedList" title="Numbered list">
+        <svg viewBox="0 0 16 16" fill="none">
+          <text x="0" y="5.5"  font-size="5" font-family="Arial" fill="currentColor">1.</text>
+          <text x="0" y="9.5"  font-size="5" font-family="Arial" fill="currentColor">2.</text>
+          <text x="0" y="13.5" font-size="5" font-family="Arial" fill="currentColor">3.</text>
+          <rect x="6" y="3"  width="8" height="2" rx="1" fill="currentColor"/>
+          <rect x="6" y="7"  width="8" height="2" rx="1" fill="currentColor"/>
+          <rect x="6" y="11" width="8" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <div class="wu-divider"></div>
+
+      <button class="wu-tb-btn" data-cmd="justifyFull" title="Justify">
+        <svg viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="2"  width="14" height="2" rx="1" fill="currentColor"/>
+          <rect x="1" y="6"  width="14" height="2" rx="1" fill="currentColor"/>
+          <rect x="1" y="10" width="14" height="2" rx="1" fill="currentColor"/>
+          <rect x="1" y="14" width="14" height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+      <button class="wu-tb-btn" data-cmd="justifyLeft" title="Align left">
+        <svg viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="2"  width="14" height="2" rx="1" fill="currentColor"/>
+          <rect x="1" y="6"  width="9"  height="2" rx="1" fill="currentColor"/>
+          <rect x="1" y="10" width="14" height="2" rx="1" fill="currentColor"/>
+          <rect x="1" y="14" width="6"  height="2" rx="1" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <div class="wu-divider"></div>
+
+      <button class="wu-tb-btn" data-cmd="undo" title="Undo">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M3 7H10a4 4 0 010 8H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M3 7L6 4M3 7l3 3"       stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="wu-tb-btn" data-cmd="redo" title="Redo">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M13 7H6a4 4 0 000 8h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 7l-3-3m3 3l-3 3"   stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+    </div><!-- /toolbar -->
+
+    <!-- EDITOR -->
+    <div class="wu-editor-wrap">
+      <div class="wu-editor" id="wuEditor" contenteditable="true" spellcheck="true"></div>
+    </div>
+
+    <!-- Counter -->
+    <div class="wu-counter">
+      <span>Words: <strong id="wCount">0</strong></span>
+      <span>Characters: <strong id="cCount">0</strong></span>
+    </div>
+
+    <!-- Footer -->
+    <div class="wu-footer">
+      <div class="wu-footer-l">
+        <button class="wu-btn wu-btn-ghost" id="btnCopy">
+          <svg viewBox="0 0 16 16" fill="none">
+            <rect x="4" y="4" width="9" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Copy Text
+        </button>
+        <button class="wu-btn wu-btn-red" id="btnReset">
+          <svg viewBox="0 0 16 16" fill="none">
+            <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          Reset to Default
+        </button>
+      </div>
+      <div class="wu-footer-r">
+        <button class="wu-btn wu-btn-primary" id="btnPrint">
+          <svg viewBox="0 0 14 14" fill="none">
+            <rect x="2" y="4" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M4 4V2h6v2M4 9h6M4 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Print / Export
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<script src="../js/index.js"></script>
+<script src="../js/writeup.js"></script>
+</body>
+</html>

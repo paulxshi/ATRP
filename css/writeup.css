@@ -1,0 +1,205 @@
+
+    /* ── Page wrapper ── */
+    .wu-wrapper {
+      max-width: 1050px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      animation: wuFadeUp .4s ease both;
+    }
+    @keyframes wuFadeUp {
+      from { opacity:0; transform:translateY(14px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .wu-eyebrow {
+      display:block;
+      font-family:var(--ff-display);
+      font-size:10px; letter-spacing:.2em;
+      text-transform:uppercase; color:#aaa;
+      margin-bottom:6px;
+    }
+    .wu-title {
+      font-family: var(--ff-display);
+      font-size:28px; font-weight:800;
+      line-height:1; color:#1a1a1a;
+    }
+    .wu-title-accent { color:#C9A84C; }
+
+    /* ── Card ── */
+    .wu-card {
+      background:#fff;
+      border:1px solid #ede8dc;
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow:0 8px 32px rgba(0,0,0,.06);
+    }
+
+    /* ── Gold band ── */
+    .wu-band {
+      background:linear-gradient(90deg,#C9A84C 0%,#E8CA7A 50%,#C9A84C 100%);
+      padding:14px 26px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .wu-band-title {
+      font-family:var(--ff-display);
+      font-size:13px; font-weight:800;
+      letter-spacing:.18em; text-transform:uppercase;
+      color:#1a1a1a;
+    }
+    .wu-band-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:3px 10px;
+      background:rgba(0,0,0,.12); border-radius:20px;
+      font-family:var(--ff-body);
+      font-size:10px; font-weight:700;
+      letter-spacing:.1em; text-transform:uppercase;
+      color:#1a1a1a;
+    }
+
+    /* ── Section label row ── */
+    .wu-sec-row {
+      display:flex; align-items:center; gap:10px;
+      padding:14px 22px 10px;
+      border-bottom:1px solid #f5f0e8;
+    }
+    .wu-sec-lbl {
+      font-family:var(--ff-display);
+      font-size:10px; font-weight:800;
+      letter-spacing:.18em; text-transform:uppercase;
+      color:#8a7a5a; white-space:nowrap;
+    }
+    .wu-sec-line {
+      flex:1; height:1px;
+      background:linear-gradient(90deg,#ede8dc,transparent);
+    }
+    .wu-saved-pill {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 10px; border-radius:20px;
+      background:rgba(16,185,129,.1);
+      font-family:var(--ff-body);
+      font-size:11px; font-weight:600; color:#059669;
+      opacity:0; transition:opacity .3s;
+    }
+    .wu-saved-pill.show { opacity:1; }
+
+    /* ── Toolbar ── */
+    .wu-toolbar {
+      display:flex; align-items:center;
+      flex-wrap:wrap; gap:3px;
+      padding:10px 16px;
+      background:#fdfcf8;
+      border-bottom:1px solid #ede8dc;
+    }
+    .wu-divider {
+      width:1px; height:20px;
+      background:#e8e4dc; margin:0 4px; flex-shrink:0;
+    }
+    .wu-tb-btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:30px; height:30px;
+      border:none; background:transparent; border-radius:6px;
+      cursor:pointer; color:#666;
+      font-family:var(--ff-display);
+      font-size:13px; font-weight:600;
+      flex-shrink:0;
+      transition:background .15s, color .15s;
+    }
+    .wu-tb-btn:hover  { background:rgba(201,168,76,.12); color:#7a5c1e; }
+    .wu-tb-btn.active { background:rgba(201,168,76,.2);  color:#7a5c1e; }
+    .wu-tb-btn svg { width:14px; height:14px; pointer-events:none; }
+    .wu-tb-sel {
+      height:30px; padding:0 8px;
+      border:1px solid #e0dcd4; border-radius:6px;
+      background:#fff;
+      font-family:var(--ff-body);
+      font-size:12px; color:#555; cursor:pointer; outline:none;
+    }
+    .wu-tb-sel:focus { border-color:#C9A84C; }
+    .wu-hl-swatch {
+      width:18px; height:18px; border-radius:4px;
+      border:1.5px solid rgba(0,0,0,.15);
+      cursor:pointer; flex-shrink:0;
+      transition:transform .12s, box-shadow .12s;
+    }
+    .wu-hl-swatch:hover { transform:scale(1.25); box-shadow:0 2px 6px rgba(0,0,0,.2); }
+    .wu-hl-label {
+      font-family:var(--ff-body);
+      font-size:11px; color:#aaa; margin-right:2px;
+    }
+
+    /* ── Editor ── */
+    .wu-editor-wrap { padding:28px 36px 36px; min-height:400px; }
+    .wu-editor {
+      min-height:380px; outline:none;
+      font-family:var(--ff-body);
+      font-size:14px; line-height:1.9; color:#1a1a1a;
+      caret-color:#C9A84C;
+      text-align:justify;
+    }
+    .wu-editor p    { margin:0 0 1em; }
+    .wu-editor ul,
+    .wu-editor ol   { padding-left:1.5em; margin:0 0 1em; }
+    .wu-editor li   { margin-bottom:.3em; }
+
+    /* Fraction spans inside the template */
+    .wu-frac {
+      display:inline-block;
+      text-align:center;
+      vertical-align:middle;
+      line-height:1.3;
+      font-size:12px;
+      margin:0 3px;
+    }
+    .wu-frac-num { display:block; border-bottom:1px solid #1a1a1a; padding:0 4px; }
+    .wu-frac-den { display:block; padding:0 4px; }
+
+    /* ── Counter ── */
+    .wu-counter {
+      display:flex; align-items:center;
+      justify-content:flex-end; gap:14px;
+      padding:8px 22px 10px;
+      border-top:1px solid #f0ecea;
+      background:#fdfcf8;
+    }
+    .wu-counter span {
+      font-family:var(--ff-body);
+      font-size:11px; color:#bbb;
+    }
+    .wu-counter strong { color:#8a7a5a; font-weight:600; }
+
+    /* ── Footer ── */
+    .wu-footer {
+      display:flex; align-items:center;
+      justify-content:space-between; gap:12px;
+      padding:14px 22px 18px;
+      border-top:1px solid #ede8dc;
+    }
+    .wu-footer-l, .wu-footer-r { display:flex; gap:8px; flex-wrap:wrap; }
+    .wu-btn {
+      display:inline-flex; align-items:center; gap:7px;
+      padding:9px 18px; border-radius:9px;
+      font-family:var(--ff-body);
+      font-size:12.5px; font-weight:600;
+      cursor:pointer; border:1.5px solid transparent;
+      transition:background .18s, color .18s, box-shadow .18s, transform .12s;
+    }
+    .wu-btn svg { width:13px; height:13px; }
+    .wu-btn:active { transform:scale(.97); }
+    .wu-btn-ghost  { background:transparent; color:#888; border-color:#e0dcd4; }
+    .wu-btn-ghost:hover { background:#f7f5f0; border-color:#ccc; color:#555; }
+    .wu-btn-red    { background:transparent; color:#d32f2f; border-color:#d32f2f; }
+    .wu-btn-red:hover { background:rgba(211,47,47,.05); transform:translateY(-1px); }
+    .wu-btn-primary {
+      background:#1a1a1a; color:#fff;
+      border-color:rgba(201,168,76,.3);
+      box-shadow:0 3px 10px rgba(201,168,76,.25);
+    }
+    .wu-btn-primary:hover {
+      background:#333;
+      box-shadow:0 5px 16px rgba(0,0,0,.18);
+      transform:translateY(-1px);
+    }
+
+    @keyframes wuSlideIn  { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+    @keyframes wuSlideOut { from{transform:translateX(0);opacity:1}    to{transform:translateX(110%);opacity:0} }
