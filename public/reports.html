@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ATRP — Reports</title>
+  <link rel="icon" type="image/png" href="../imgs/psi.png">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=Nevis&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/dashstyle.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <style>
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+
+    .rp-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      animation: fadeUp .4s ease both;
+    }
+
+    .rp-heading { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .rp-eyebrow { display: block; font-family: var(--ff-display); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+    .rp-title { font-family: var(--ff-display); font-size: 30px; font-weight: 800; line-height: 1; color: var(--text); }
+    .rp-title-accent { color: var(--gold); }
+
+    .rp-card { background: var(--surface, #fff); border: 1px solid var(--border, #e8e4dc); border-radius: 16px; overflow: visible; box-shadow: 0 6px 28px rgba(0,0,0,.06); }
+    .rp-card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid var(--border2, #f0ece4); background: linear-gradient(90deg, #fdfaf4, #faf7ed); flex-wrap: wrap; gap: 12px; border-radius: 16px 16px 0 0; }
+    .rp-card-title { font-family: 'Nevis', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #8a7a5a; display: flex; align-items: center; gap: 8px; }
+    .rp-card-title-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold, #C9A84C); flex-shrink: 0; }
+
+    .rp-client-row { display: flex; align-items: center; gap: 12px; padding: 18px 22px; flex-wrap: wrap; }
+    .rp-search-wrap { position: relative; flex: 1; min-width: 220px; }
+    .rp-search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #ccc; pointer-events: none; display: flex; align-items: center; }
+    .rp-search-input { width: 100%; padding: 10px 14px 10px 38px; border: 1.5px solid #e8e4dc; border-radius: 10px; font-family: var(--ff-body); font-size: 13.5px; color: var(--text, #1a1a1a); outline: none; background: #fafaf8; transition: border-color .18s, box-shadow .18s; box-sizing: border-box; }
+    .rp-search-input:focus { border-color: #C9A84C; box-shadow: 0 0 0 3px rgba(201,168,76,.12); background: #fff; }
+    .rp-search-results { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #fff; border: 1.5px solid #e8e4dc; border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.1); max-height: 220px; overflow-y: auto; z-index: 200; display: none; }
+    .rp-search-results::-webkit-scrollbar { width: 4px; }
+    .rp-search-results::-webkit-scrollbar-thumb { background: #e0dcd4; border-radius: 4px; }
+    .rp-result-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f5f3ee; transition: background .12s; }
+    .rp-result-item:last-child { border-bottom: none; }
+    .rp-result-item:hover { background: #faf8f2; }
+    .rp-result-item.active { background: rgba(201,168,76,.08); }
+    .rp-result-dot { width: 7px; height: 7px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
+    .rp-result-name { font-family: var(--ff-body); font-size: 13px; font-weight: 600; color: #1a1a1a; flex: 1; }
+    .rp-result-meta { font-size: 11.5px; color: #aaa; }
+
+    .rp-load-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-family: var(--ff-body); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .18s, transform .12s, box-shadow .18s; box-shadow: 0 3px 10px rgba(0,0,0,.15); letter-spacing: .02em; }
+    .rp-load-btn:hover { background: #333; transform: translateY(-1px); box-shadow: 0 5px 16px rgba(0,0,0,.2); }
+    .rp-load-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    .rp-active-strip { display: none; align-items: center; justify-content: space-between; padding: 12px 22px; background: linear-gradient(90deg, rgba(201,168,76,.07), rgba(201,168,76,.03)); border-top: 1px solid rgba(201,168,76,.15); flex-wrap: wrap; gap: 10px; }
+    .rp-active-strip.visible { display: flex; }
+    .rp-active-left { display: flex; align-items: center; gap: 10px; }
+    .rp-active-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #C9A84C, #e8ca7a); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(201,168,76,.35); flex-shrink: 0; }
+    .rp-active-info { display: flex; flex-direction: column; gap: 1px; }
+    .rp-active-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #C9A84C; }
+    .rp-active-name { font-size: 14px; font-weight: 700; color: #1a1a1a; line-height: 1.2; }
+    .rp-active-sub { font-size: 11px; color: #aaa; }
+    .rp-clear-btn { background: transparent; border: 1px solid #ddd; border-radius: 7px; padding: 5px 13px; font-family: var(--ff-body); font-size: 11.5px; color: #aaa; cursor: pointer; transition: border-color .18s, color .18s; }
+    .rp-clear-btn:hover { border-color: #ef4444; color: #ef4444; }
+
+    .rp-data-row { display: none; gap: 10px; padding: 0 22px 18px; flex-wrap: wrap; }
+    .rp-data-row.visible { display: flex; }
+    .rp-data-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid transparent; font-family: var(--ff-body); font-size: 12px; font-weight: 600; cursor: default; transition: transform .15s, box-shadow .15s; }
+    .rp-data-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .rp-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .chip-bcm  { background: rgba(20,71,230,.07);  border-color: rgba(20,71,230,.18);  color: #1447e6; }
+    .chip-bcm  .rp-chip-dot { background: #1447e6; }
+    .chip-bdm  { background: rgba(0,201,80,.07);   border-color: rgba(0,201,80,.18);   color: #00a040; }
+    .chip-bdm  .rp-chip-dot { background: #00c950; }
+    .chip-skill{ background: rgba(134,25,143,.07); border-color: rgba(134,25,143,.18); color: #86198f; }
+    .chip-skill .rp-chip-dot { background: #86198f; }
+    .chip-none { background: #f5f3ee; border-color: #e8e4dc; color: #aaa; }
+    .chip-none .rp-chip-dot { background: #ccc; }
+
+    .rp-transport { display: none; }
+    .rp-transport.visible { display: flex; flex-direction: column; gap: 28px; }
+
+    .rp-section-label { display: flex; align-items: center; gap: 10px; font-family: 'Nevis', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: #8a7a5a; padding: 0 2px; }
+    .rp-section-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201,168,76,.25), transparent); }
+
+    .rp-results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 760px) { .rp-results-grid { grid-template-columns: 1fr; } }
+
+    .rp-result-panel { border-radius: 14px; border: 1.5px solid var(--border, #e8e4dc); overflow: hidden; background: var(--surface, #fff); box-shadow: 0 4px 16px rgba(0,0,0,.05); }
+    .rp-result-panel-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border2, #f0ece4); }
+    .rp-panel-icon { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .rp-panel-icon svg { width: 16px; height: 16px; }
+    .icon-bcm  { background: rgba(20,71,230,.1); }
+    .icon-bcm  svg { color: #1447e6; }
+    .icon-bdm  { background: rgba(0,201,80,.1); }
+    .icon-bdm  svg { color: #00a040; }
+    .icon-skill{ background: rgba(134,25,143,.1); }
+    .icon-skill svg { color: #86198f; }
+    .rp-panel-title { font-family: var(--ff-body); font-size: 13px; font-weight: 700; color: var(--text, #1a1a1a); flex: 1; }
+    .rp-panel-badge { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 10px; letter-spacing: .04em; }
+    .badge-bcm  { background: rgba(20,71,230,.1);  color: #1447e6; }
+    .badge-bdm  { background: rgba(0,201,80,.1);   color: #00a040; }
+    .badge-skill{ background: rgba(134,25,143,.1); color: #86198f; }
+    .rp-result-body { padding: 16px 18px; min-height: 80px; font-family: var(--ff-body); font-size: 12.5px; color: #888; line-height: 1.7; }
+
+    .rp-skeleton { display: flex; flex-direction: column; gap: 8px; }
+    .rp-skel-line { height: 10px; border-radius: 5px; background: linear-gradient(90deg, #f0ece4 25%, #faf8f4 50%, #f0ece4 75%); background-size: 600px 100%; animation: shimmer 1.4s infinite; }
+    .rp-skel-line.w80 { width: 80%; }
+    .rp-skel-line.w60 { width: 60%; }
+    .rp-skel-line.w90 { width: 90%; }
+    .rp-skel-line.w45 { width: 45%; }
+
+    .rp-inner-table { width: 100%; border-collapse: collapse; font-family: var(--ff-body); font-size: 12px; }
+    .rp-inner-table thead tr { background: #faf8f2; border-bottom: 1.5px solid #f0ece4; }
+    .rp-inner-table th { padding: 8px 12px; font-weight: 700; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8a7a5a; text-align: left; }
+    .rp-inner-table td { padding: 9px 12px; border-bottom: 1px solid #f7f5f0; color: #333; vertical-align: top; line-height: 1.5; }
+    .rp-inner-table tr:last-child td { border-bottom: none; }
+    .rp-inner-table tbody tr:hover { background: rgba(201,168,76,.025); }
+
+    .rp-no-data { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 28px 18px; color: #ccc; }
+    .rp-no-data svg { width: 28px; height: 28px; opacity: .4; }
+    .rp-no-data span { font-size: 12.5px; font-style: italic; }
+
+    .rp-writeup-card { border-radius: 16px; border: 1.5px solid var(--border, #e8e4dc); overflow: hidden; background: var(--surface, #fff); box-shadow: 0 6px 24px rgba(0,0,0,.06); }
+    .rp-writeup-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; background: linear-gradient(90deg, #fdfaf4, #faf7ed); border-bottom: 1.5px solid rgba(201,168,76,.15); flex-wrap: wrap; gap: 12px; }
+    .rp-writeup-title-row { display: flex; align-items: center; gap: 10px; }
+    .rp-writeup-icon { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #C9A84C, #e8ca7a); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(201,168,76,.3); }
+    .rp-writeup-icon svg { width: 16px; height: 16px; color: #fff; }
+    .rp-writeup-label-wrap { display: flex; flex-direction: column; gap: 1px; }
+    .rp-writeup-eyebrow { font-size: 9.5px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #C9A84C; }
+    .rp-writeup-label { font-size: 14px; font-weight: 800; color: #1a1a1a; font-family: var(--ff-display); }
+
+    .rp-export-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .rp-export-btn { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 9px; font-family: var(--ff-body); font-size: 12px; font-weight: 600; cursor: pointer; transition: background .18s, transform .12s, box-shadow .18s, opacity .18s; border: 1.5px solid transparent; white-space: nowrap; }
+    .rp-export-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .rp-export-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .rp-export-btn:not(:disabled):hover { transform: translateY(-1px); }
+    .btn-pdf  { background: #fff; border-color: rgba(239,68,68,.35); color: #dc2626; }
+    .btn-pdf:not(:disabled):hover  { background: rgba(239,68,68,.06); border-color: #ef4444; box-shadow: 0 3px 10px rgba(239,68,68,.15); }
+    .btn-docx { background: #fff; border-color: rgba(37,99,235,.3); color: #1d4ed8; }
+    .btn-docx:not(:disabled):hover { background: rgba(37,99,235,.06); border-color: #3b82f6; box-shadow: 0 3px 10px rgba(37,99,235,.15); }
+    .btn-copy { background: #1a1a1a; border-color: transparent; color: #fff; box-shadow: 0 3px 10px rgba(0,0,0,.15); }
+    .btn-copy:not(:disabled):hover { background: #333; box-shadow: 0 5px 14px rgba(0,0,0,.2); }
+
+    .rp-writeup-body { padding: 32px 36px; min-height: 240px; position: relative; }
+    .rp-writeup-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 48px 24px; text-align: center; }
+    .rp-writeup-empty-icon { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #faf8f2, #f5f0e8); border: 1.5px solid rgba(201,168,76,.2); display: flex; align-items: center; justify-content: center; }
+    .rp-writeup-empty-icon svg { width: 24px; height: 24px; color: #C9A84C; opacity: .6; }
+    .rp-writeup-empty h3 { font-family: var(--ff-display); font-size: 16px; font-weight: 700; color: #1a1a1a; margin: 0; }
+    .rp-writeup-empty p  { font-family: var(--ff-body); font-size: 13px; color: #aaa; max-width: 300px; margin: 0; line-height: 1.6; }
+
+    .rp-writeup-content { display: none; font-family: 'Work Sans', sans-serif; font-size: 13.5px; line-height: 1.85; color: #333; }
+    .rp-writeup-content.visible { display: block; }
+    .rp-writeup-content h2 { font-family: var(--ff-display); font-size: 15px; font-weight: 800; color: #1a1a1a; letter-spacing: .04em; text-transform: uppercase; margin: 24px 0 8px; padding-bottom: 6px; border-bottom: 1.5px solid rgba(201,168,76,.25); }
+    .rp-writeup-content h2:first-child { margin-top: 0; }
+    .rp-writeup-content p { margin: 0 0 10px; }
+
+    /* Editable bold fields in interpretation */
+    .rp-editable { border-bottom: 1.5px dashed #C9A84C; cursor: text; outline: none; min-width: 4px; display: inline-block; }
+    .rp-editable:focus { background: rgba(201,168,76,.08); border-radius: 3px; border-bottom-color: #e07b2a; }
+
+    /* Chart containers */
+    .chart-box { border: 2px solid #e07b2a; border-radius: 8px; padding: 18px 18px 12px; margin-bottom: 22px; background: #fff; }
+    .chart-observer { text-align: center; font-family: Tahoma, sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 14px; letter-spacing: .05em; }
+    .chart-observer-line { display: inline-block; width: 160px; border-bottom: 2px solid #222; vertical-align: bottom; margin-left: 6px; }
+    .chart-type-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #555; margin: 18px 0 8px; }
+
+    .rp-writeup-footer { padding: 12px 22px; border-top: 1px solid var(--border2, #f0ece4); background: #fafaf8; display: flex; align-items: center; gap: 8px; font-family: var(--ff-body); font-size: 11.5px; color: #bbb; }
+    .rp-writeup-footer svg { width: 13px; height: 13px; flex-shrink: 0; color: #C9A84C; opacity: .7; }
+
+    .rp-loading-overlay { display: none; position: absolute; inset: 0; background: rgba(255,255,255,.8); backdrop-filter: blur(3px); border-radius: 14px; align-items: center; justify-content: center; z-index: 10; flex-direction: column; gap: 12px; }
+    .rp-loading-overlay.visible { display: flex; }
+    .rp-loading-spinner { width: 28px; height: 28px; border: 2.5px solid rgba(201,168,76,.2); border-top-color: #C9A84C; border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .rp-loading-text { font-family: var(--ff-body); font-size: 12.5px; font-weight: 600; color: #8a7a5a; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-left" id="topbarLeft">
+      <div class="brand-logo"><img src="../imgs/psi.png" alt="PSI Logo"></div>
+      <span class="brand-text">ATRP</span>
+    </div>
+    <div class="topbar-right">
+      <button class="toggle-btn" id="toggleBtn" aria-label="Toggle sidebar"><i class="fas fa-bars"></i></button>
+    </div>
+  </header>
+
+  <aside class="sidebar" id="sidebar">
+    <a class="nav-item" href="index.html">
+      <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+      <span class="nav-label">Behavior</span>
+      <span class="tooltip-text">Behavior</span>
+    </a>
+    <a class="nav-item" href="skill-scoring.html">
+      <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
+      <span class="nav-label">Skill Scoring Sheets</span>
+      <span class="tooltip-text">Skill Scoring Sheets</span>
+    </a>
+    <a class="nav-item active" href="reports.html">
+      <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+      <span class="nav-label">Reports</span>
+      <span class="nav-badge">Live</span>
+      <span class="tooltip-text">Reports</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
+      <span class="nav-label">Analytics</span>
+      <span class="tooltip-text">Analytics</span>
+    </a>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <div class="rp-wrapper">
+
+      <div class="rp-heading">
+        <div>
+          <span class="rp-eyebrow">Client Reports</span>
+          <h1 class="rp-title">Results &amp; <span class="rp-title-accent">Write-up</span></h1>
+        </div>
+      </div>
+
+      <!-- STEP 1 — CLIENT SELECTOR -->
+      <div class="rp-card" id="clientSelectorCard">
+        <div class="rp-card-header">
+          <span class="rp-card-title"><span class="rp-card-title-dot"></span>Step 1 — Select Client</span>
+        </div>
+        <div class="rp-client-row">
+          <div class="rp-search-wrap" id="searchWrap">
+            <span class="rp-search-icon">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                <circle cx="7" cy="7" r="5" stroke="#ccc" stroke-width="1.6"/>
+                <path d="M11 11l3 3" stroke="#ccc" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input id="rpClientSearch" class="rp-search-input" type="text" placeholder="Search client by name…" autocomplete="off"/>
+            <div class="rp-search-results" id="rpSearchResults"></div>
+          </div>
+          <button class="rp-load-btn" id="rpLoadBtn" disabled>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v9M4 8l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Load Results
+          </button>
+        </div>
+
+        <div class="rp-active-strip" id="rpActiveStrip">
+          <div class="rp-active-left">
+            <div class="rp-active-avatar">
+              <svg viewBox="0 0 20 20" fill="none" width="18" height="18">
+                <circle cx="10" cy="7" r="4" fill="rgba(255,255,255,.9)"/>
+                <path d="M3 18c0-4 3.1-6 7-6s7 2 7 6" stroke="rgba(255,255,255,.9)" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="rp-active-info">
+              <span class="rp-active-eyebrow">Loaded Client</span>
+              <span class="rp-active-name" id="rpActiveName">—</span>
+              <span class="rp-active-sub" id="rpActiveSub">—</span>
+            </div>
+          </div>
+          <button class="rp-clear-btn" id="rpClearBtn">Clear</button>
+        </div>
+
+        <div class="rp-data-row" id="rpDataRow">
+          <span class="rp-data-chip chip-bcm"   id="chipBcm">  <span class="rp-chip-dot"></span>Continuous — loading…</span>
+          <span class="rp-data-chip chip-bdm"   id="chipBdm">  <span class="rp-chip-dot"></span>Discontinuous — loading…</span>
+          <span class="rp-data-chip chip-skill" id="chipSkill"><span class="rp-chip-dot"></span>Skills — loading…</span>
+        </div>
+      </div>
+
+      <!-- STEP 2 — RESULTS -->
+      <div class="rp-transport" id="rpTransport">
+        <div class="rp-section-label">
+          <span class="rp-card-title-dot"></span>Step 2 — Client Results<span class="rp-section-line"></span>
+        </div>
+
+        <div class="rp-results-grid">
+          <div class="rp-result-panel" id="bcmPanel">
+            <div class="rp-result-panel-header">
+              <div class="rp-panel-icon icon-bcm">
+                <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="1.5" rx=".75" fill="currentColor"/><rect x="2" y="7.25" width="12" height="1.5" rx=".75" fill="currentColor"/><rect x="2" y="10.5" width="8" height="1.5" rx=".75" fill="currentColor"/></svg>
+              </div>
+              <span class="rp-panel-title">Continuous Measurement (BCM)</span>
+              <span class="rp-panel-badge badge-bcm" id="bcmBadge">—</span>
+            </div>
+            <div class="rp-result-body" id="bcmBody"><div class="rp-skeleton"><div class="rp-skel-line w80"></div><div class="rp-skel-line w60"></div><div class="rp-skel-line w90"></div><div class="rp-skel-line w45"></div></div></div>
+          </div>
+          <div class="rp-result-panel" id="bdmPanel">
+            <div class="rp-result-panel-header">
+              <div class="rp-panel-icon icon-bdm">
+                <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="3" height="12" rx="1" fill="currentColor"/><rect x="6.5" y="2" width="3" height="8" rx="1" fill="currentColor"/><rect x="11" y="2" width="3" height="10" rx="1" fill="currentColor"/></svg>
+              </div>
+              <span class="rp-panel-title">Discontinuous Measurement (BDM)</span>
+              <span class="rp-panel-badge badge-bdm" id="bdmBadge">—</span>
+            </div>
+            <div class="rp-result-body" id="bdmBody"><div class="rp-skeleton"><div class="rp-skel-line w90"></div><div class="rp-skel-line w60"></div><div class="rp-skel-line w80"></div><div class="rp-skel-line w45"></div></div></div>
+          </div>
+        </div>
+
+        <div class="rp-result-panel" id="skillPanel">
+          <div class="rp-result-panel-header">
+            <div class="rp-panel-icon icon-skill">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 8l2 2 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="rp-panel-title">Skill Scoring Summary</span>
+            <span class="rp-panel-badge badge-skill" id="skillBadge">—</span>
+          </div>
+          <div class="rp-result-body" id="skillBody"><div class="rp-skeleton"><div class="rp-skel-line w60"></div><div class="rp-skel-line w80"></div><div class="rp-skel-line w45"></div></div></div>
+        </div>
+
+        <!-- STEP 3 — WRITE-UP -->
+        <div class="rp-section-label">
+          <span class="rp-card-title-dot"></span>Step 3 — Write-up Preview<span class="rp-section-line"></span>
+        </div>
+
+        <div class="rp-writeup-card">
+          <div class="rp-writeup-header">
+            <div class="rp-writeup-title-row">
+              <div class="rp-writeup-icon">
+                <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M3 7h10M3 10h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </div>
+              <div class="rp-writeup-label-wrap">
+                <span class="rp-writeup-eyebrow">Auto-generated</span>
+                <span class="rp-writeup-label">Write-up Preview</span>
+              </div>
+            </div>
+            <div class="rp-export-actions">
+              <button class="rp-export-btn btn-pdf"  id="btnExportPdf"  disabled>
+                <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="10" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 5h4M5 8h4M5 11h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                Export PDF
+              </button>
+              <button class="rp-export-btn btn-docx" id="btnExportDocx" disabled>
+                <svg viewBox="0 0 16 16" fill="none"><path d="M9 1H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6L9 1z" stroke="currentColor" stroke-width="1.5"/><path d="M9 1v5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                Export DOCX
+              </button>
+
+            </div>
+          </div>
+
+          <div class="rp-writeup-body" id="writeupBody">
+            <div class="rp-loading-overlay" id="writeupLoader">
+              <div class="rp-loading-spinner"></div>
+              <span class="rp-loading-text">Generating write-up…</span>
+            </div>
+            <div class="rp-writeup-empty" id="writeupEmpty">
+              <div class="rp-writeup-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.6"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <h3>Write-up will appear here</h3>
+              <p>Load a client's results to auto-generate a structured write-up preview ready for export.</p>
+            </div>
+            <div class="rp-writeup-content" id="writeupContent"></div>
+          </div>
+
+          <div class="rp-writeup-footer">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4M8 5v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            Write-up is auto-generated from BCM, BDM, and Skill Scoring data.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ── State ──────────────────────────────────────────────────
+    let activeClientId   = null;
+    let activeClientData = null;
+    let allClients       = [];
+
+    // Track Chart.js instances so we can destroy them before redrawing
+    let chartTypeI  = null;
+    let chartTypeII = null;
+
+    // ── Elements ───────────────────────────────────────────────
+    const searchInput   = document.getElementById('rpClientSearch');
+    const searchResults = document.getElementById('rpSearchResults');
+    const loadBtn       = document.getElementById('rpLoadBtn');
+    const activeStrip   = document.getElementById('rpActiveStrip');
+    const activeName    = document.getElementById('rpActiveName');
+    const activeSub     = document.getElementById('rpActiveSub');
+    const clearBtn      = document.getElementById('rpClearBtn');
+    const dataRow       = document.getElementById('rpDataRow');
+    const transport     = document.getElementById('rpTransport');
+    const chipBcm       = document.getElementById('chipBcm');
+    const chipBdm       = document.getElementById('chipBdm');
+    const chipSkill     = document.getElementById('chipSkill');
+    const bcmBadge      = document.getElementById('bcmBadge');
+    const bdmBadge      = document.getElementById('bdmBadge');
+    const skillBadge    = document.getElementById('skillBadge');
+    const bcmBody       = document.getElementById('bcmBody');
+    const bdmBody       = document.getElementById('bdmBody');
+    const skillBody     = document.getElementById('skillBody');
+    const writeupEmpty  = document.getElementById('writeupEmpty');
+    const writeupContent= document.getElementById('writeupContent');
+    const writeupLoader = document.getElementById('writeupLoader');
+    const btnPdf        = document.getElementById('btnExportPdf');
+    const btnDocx       = document.getElementById('btnExportDocx');
+
+    // ── Fetch clients ──────────────────────────────────────────
+    async function fetchClients() {
+      try {
+        const r = await fetch('../php/api_clients.php');
+        const d = await r.json();
+        allClients = d.clients || [];
+      } catch (e) { console.error('fetchClients:', e); }
+    }
+
+    function renderSearch(term) {
+      const filtered = term
+        ? allClients.filter(c => c.full_name.toLowerCase().includes(term.toLowerCase()))
+        : [];
+      if (!filtered.length) { searchResults.style.display = 'none'; return; }
+      searchResults.innerHTML = filtered.map(c => `
+        <div class="rp-result-item" data-id="${c.id}" data-name="${c.full_name}"
+             data-diag="${c.diagnosis||''}" data-age="${c.age||''}" data-recorder="${c.recorder||''}"
+             data-nickname="${c.nickname||''}" data-start="${c.report_start_date||''}" data-end="${c.report_end_date||''}">
+          <span class="rp-result-dot"></span>
+          <span class="rp-result-name">${c.full_name}</span>
+          ${c.nickname ? `<span class="rp-result-meta">(${c.nickname})</span>` : ''}
+          ${c.diagnosis ? `<span class="rp-result-meta" style="margin-left:auto;font-size:11px;">${c.diagnosis}</span>` : ''}
+        </div>`).join('');
+      searchResults.querySelectorAll('.rp-result-item').forEach(item => {
+        item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        activeClientId   = parseInt(item.dataset.id);
+        searchInput.value= item.dataset.name;
+        activeClientData = { id: activeClientId, full_name: item.dataset.name, nickname: item.dataset.nickname||'', diagnosis: item.dataset.diag, age: item.dataset.age, recorder: item.dataset.recorder, report_start_date: item.dataset.start, report_end_date: item.dataset.end };
+          searchResults.style.display = 'none';
+          loadBtn.disabled = false;
+          searchResults.querySelectorAll('.rp-result-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+        });
+      });
+      searchResults.style.display = 'block';
+    }
+
+    searchInput.addEventListener('input',  () => { loadBtn.disabled = true; activeClientId = null; renderSearch(searchInput.value); });
+    searchInput.addEventListener('focus',  () => { if (searchInput.value) renderSearch(searchInput.value); });
+    document.addEventListener('click', e => { if (!document.getElementById('searchWrap').contains(e.target)) searchResults.style.display = 'none'; });
+    loadBtn.addEventListener('click',  () => { if (activeClientId) loadClientResults(activeClientId); });
+    clearBtn.addEventListener('click', () => {
+      activeClientId = null; activeClientData = null; searchInput.value = '';
+      loadBtn.disabled = true;
+      activeStrip.classList.remove('visible');
+      dataRow.classList.remove('visible');
+      transport.classList.remove('visible');
+      destroyCharts();
+    });
+
+    // ── Load client results ────────────────────────────────────
+    async function loadClientResults(clientId) {
+      activeStrip.classList.add('visible');
+      dataRow.classList.add('visible');
+      transport.classList.add('visible');
+
+      const c = activeClientData;
+      activeName.textContent = c.full_name;
+      activeSub.textContent  = [c.diagnosis, c.age].filter(Boolean).join(' · ') || 'No additional info';
+
+      chipBcm.className   = 'rp-data-chip chip-bcm';
+      chipBdm.className   = 'rp-data-chip chip-bdm';
+      chipSkill.className = 'rp-data-chip chip-skill';
+      chipBcm.querySelector('.rp-chip-dot').style.background   = '#1447e6';
+      chipBdm.querySelector('.rp-chip-dot').style.background   = '#00c950';
+      chipSkill.querySelector('.rp-chip-dot').style.background = '#86198f';
+      chipBcm.lastChild.textContent   = ' BCM — loading…';
+      chipBdm.lastChild.textContent   = ' BDM — loading…';
+      chipSkill.lastChild.textContent = ' Skills — loading…';
+
+      bcmBody.innerHTML   = skeletonHTML();
+      bdmBody.innerHTML   = skeletonHTML();
+      skillBody.innerHTML = skeletonHTML(3);
+      bcmBadge.textContent = bdmBadge.textContent = skillBadge.textContent = '—';
+
+      writeupEmpty.style.display = 'flex';
+      writeupContent.classList.remove('visible');
+      writeupLoader.classList.remove('visible');
+      btnPdf.disabled = btnDocx.disabled = true;
+      destroyCharts();
+
+      const [bcmResult, bdmResult, skillResult] = await Promise.allSettled([
+        fetch(`../php/api_bcm.php?client_id=${clientId}`).then(r => r.json()),
+        fetch(`../php/api_bdm.php?client_id=${clientId}`).then(r => r.json()),
+        fetch(`../php/api_skills.php?client_id=${clientId}`).then(r => r.json())
+      ]);
+
+      if (bcmResult.status === 'fulfilled' && bcmResult.value.success) {
+        const behaviors = bcmResult.value.behaviors || [];
+        bcmBadge.textContent = behaviors.length + ' behavior' + (behaviors.length !== 1 ? 's' : '');
+        updateChip(chipBcm, behaviors.length > 0, 'Continuous', bcmBadge.textContent);
+        bcmBody.innerHTML = behaviors.length > 0 ? renderBcmTable(behaviors, bcmResult.value.notes||'') : noDataHTML('No BCM behaviors recorded yet');
+      } else { bcmBadge.textContent = 'Error'; updateChip(chipBcm, false, 'Continuous', 'Error'); bcmBody.innerHTML = noDataHTML('Could not load BCM data'); }
+
+      if (bdmResult.status === 'fulfilled' && bdmResult.value.success) {
+        const sessions = bdmResult.value.sessions || [];
+        bdmBadge.textContent = sessions.length + ' session' + (sessions.length !== 1 ? 's' : '');
+        updateChip(chipBdm, sessions.length > 0, 'Discontinuous', bdmBadge.textContent);
+        bdmBody.innerHTML = sessions.length > 0 ? renderBdmTable(sessions, bdmResult.value.notes||'') : noDataHTML('No BDM sessions recorded yet');
+      } else { bdmBadge.textContent = 'Error'; updateChip(chipBdm, false, 'Discontinuous', 'Error'); bdmBody.innerHTML = noDataHTML('Could not load BDM data'); }
+
+      if (skillResult.status === 'fulfilled' && skillResult.value.success) {
+        const rows = skillResult.value.rows || [];
+        skillBadge.textContent = rows.length + ' drill' + (rows.length !== 1 ? 's' : '');
+        updateChip(chipSkill, rows.length > 0, 'Skills', skillBadge.textContent);
+        skillBody.innerHTML = rows.length > 0 ? renderSkillTable(rows, skillResult.value.tier_summary||[]) : noDataHTML('No skill scoring data yet');
+      } else { skillBadge.textContent = 'Error'; updateChip(chipSkill, false, 'Skills', 'Error'); skillBody.innerHTML = noDataHTML('Could not load skill data'); }
+
+      buildWriteup(c, bcmResult, bdmResult, skillResult);
+    }
+
+    // ── Chip updater ───────────────────────────────────────────
+    function updateChip(chip, hasData, label, detail) {
+      if (!hasData) { chip.className = 'rp-data-chip chip-none'; chip.innerHTML = `<span class="rp-chip-dot" style="background:#ccc"></span>${label} — ${detail}`; }
+      else           { chip.lastChild.textContent = ` ${label} — ${detail}`; }
+    }
+
+    // ── Table renderers (unchanged) ────────────────────────────
+    function renderBcmTable(behaviors, notes) {
+      const rows = behaviors.map(b => {
+        const sessStr = Object.entries(b.sessions||{}).map(([k,v]) => `S${k}: ${v}`).join(', ') || '—';
+        const fnStr   = Object.entries(b.functions||{}).filter(([,v])=>v).map(([k])=>k).join(', ') || '—';
+        return `<tr><td>${b.antecedent||'—'}</td><td>${b.behavior||'—'}</td><td>${sessStr}</td><td>${fnStr}</td></tr>`;
+      }).join('');
+      const notesHtml = notes ? `<div style="margin-top:12px;padding:10px 12px;background:#faf8f2;border-radius:8px;font-size:12px;color:#777;border-left:3px solid rgba(201,168,76,.4);">${notes}</div>` : '';
+      return `<table class="rp-inner-table"><thead><tr><th>Antecedent</th><th>Problem Behavior</th><th>Sessions (Freq.)</th><th>Function</th></tr></thead><tbody>${rows}</tbody></table>${notesHtml}`;
+    }
+
+    function renderBdmTable(sessions, notes) {
+      const rows = sessions.map(s => {
+        const pos = Object.values(s.intervals||{}).filter(v=>v==='+').length;
+        const tot = s.interval_count||10;
+        const pct = Math.round((pos/tot)*100);
+        const bar = `<div style="height:4px;border-radius:3px;background:#e8f7ee;margin-top:4px;"><div style="width:${pct}%;height:100%;border-radius:3px;background:#00c950;"></div></div>`;
+        return `<tr><td>Session ${s.session_number}</td><td>${s.session_date||'—'}</td><td>${pos}/${tot} intervals ${bar}</td><td style="font-weight:700;color:${pct>=70?'#00a040':'#d97706'}">${pct}%</td></tr>`;
+      }).join('');
+      const notesHtml = notes ? `<div style="margin-top:12px;padding:10px 12px;background:#f5fdf8;border-radius:8px;font-size:12px;color:#777;border-left:3px solid rgba(0,201,80,.35);">${notes}</div>` : '';
+      return `<table class="rp-inner-table"><thead><tr><th>Session</th><th>Date</th><th>Occurrence</th><th>%</th></tr></thead><tbody>${rows}</tbody></table>${notesHtml}`;
+    }
+
+    const TIER_LABELS = { eye:'Eye Contact', basic:'Basic Understanding', ident:'Identification', adv:'Advanced Understanding' };
+    const TIER_COLORS = { eye:'#1447e6', basic:'#00c950', ident:'#a38f10', adv:'#86198f' };
+    const TIER_BG     = { eye:'rgba(20,71,230,.10)', basic:'rgba(0,201,80,.10)', ident:'rgba(163,143,16,.10)', adv:'rgba(134,25,143,.10)' };
+
+    function renderSkillTable(rows) {
+      const body = rows.map(r => {
+        const succ = parseFloat(r.successful), att = parseInt(r.attempts)||0;
+        const pct  = (!isNaN(succ) && att>0) ? Math.round(Math.min(100,(succ/att)*100)) : null;
+        const color = TIER_COLORS[r.tier]||'#aaa', bg = TIER_BG[r.tier]||'rgba(180,180,180,.10)';
+        const bar = pct!==null ? `<div style="height:3.5px;border-radius:3px;background:#f0f0f0;margin-top:5px;"><div style="width:${pct}%;height:100%;border-radius:3px;background:${color};"></div></div>` : '';
+        return `<tr>
+          <td><span style="display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:7px;font-size:11.5px;font-weight:700;background:${bg};color:${color};border:1px solid ${color}30;white-space:nowrap;">${TIER_LABELS[r.tier]||'—'}</span></td>
+          <td style="font-weight:600;color:#1a1a1a;">${r.skill||'—'}</td>
+          <td style="color:#555;">${!isNaN(succ)?succ.toFixed(2):'—'} / ${att} ${r.unit||'attempts'}</td>
+          <td><span style="font-size:14px;font-weight:800;color:${color};">${pct!==null?pct+'%':'—'}</span>${bar}</td>
+        </tr>`;
+      }).join('');
+      return `<table class="rp-inner-table"><thead><tr><th>Subskill</th><th>Skill / Drill</th><th>Attempts</th><th>Score</th></tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // WRITE-UP ENGINE
+    // ══════════════════════════════════════════════════════════
+
+    function getTrendLabel(sessions) {
+      const vals = Object.values(sessions||{}).map(Number).filter(n=>!isNaN(n));
+      if (vals.length < 2) return 'fluctuating';
+      const half  = Math.ceil(vals.length/2);
+      const avg   = a => a.reduce((x,y)=>x+y,0)/a.length;
+      const diff  = avg(vals.slice(half)) - avg(vals.slice(0,half));
+      return diff > 1.5 ? 'rising' : diff < -1.5 ? 'falling' : 'fluctuating';
+    }
+    function getTrendConsequence(t) {
+      return t==='rising'  ? 'This indicates the need to substantially change the response to the behavior to avoid further increase in behavior.'
+           : t==='falling' ? 'This indicates the need to sustain the current response to the behavior with a few modifications to eliminate the behavior.'
+           :                 'This indicates the need to adjust the response to behavior to attain consistent lower scores in behavior.';
+    }
+    function getOccurrenceLabel(p)   { return p>=70?'high':p>=40?'moderate':'low'; }
+    function getOccurrenceConsequence(l) {
+      return l==='high'     ? 'This indicates the need to substantially change the response to the behavior to avoid further increase in behavior.'
+           : l==='moderate' ? 'This indicates the need to adjust the response to behavior to attain consistent lower scores in behavior.'
+           :                  'This indicates the need to sustain the current response to the behavior with a few modifications to eliminate the behavior.';
+    }
+    function getSkillLevel(p)        { return p>=80?'high':p>=40?'decent':'low'; }
+    function getSkillConsequence(l) {
+      return l==='high'   ? 'This indicates the need to gradually decrease the reinforcement to the behaviors that contribute to the skill in order to avoid dependence on reinforcement.'
+           : l==='decent' ? 'This indicates the need to make necessary adjustments in the reinforcement to the behaviors that contribute to the skill.'
+           :                'This indicates the need to further strengthen the reinforcement to the behaviors that contribute to the skill.';
+    }
+    function pronoun() { return 'he/she'; }
+
+    function buildWriteupData(client, bcm, bdm, skill) {
+      const behaviors = (bcm.status==='fulfilled'  && bcm.value?.success)  ? (bcm.value.behaviors||[])  : [];
+      const sessions  = (bdm.status==='fulfilled'  && bdm.value?.success)  ? (bdm.value.sessions||[])   : [];
+      const skills    = (skill.status==='fulfilled' && skill.value?.success)? (skill.value.rows||[])      : [];
+
+      const firstDate = client.report_start_date || '(First Recording Session)';
+      const lastDate  = client.report_end_date   || '(Last Recording Session)';
+      const dates     = sessions.map(s=>s.session_date).filter(Boolean).sort();
+      const duration  = dates.length ? dates.length+' session'+(dates.length!==1?'s':'') : '(Duration)';
+
+      const behaviorNames = behaviors.length ? behaviors.map(b=>b.behavior||'(Behavior)').join('; ') : '(Behavior 1)';
+      const skillNames    = skills.length    ? skills.map(s=>s.skill||'(Skill)').join('; ')          : '(Skill 1)';
+
+      const bcmParas = behaviors.map((b,i) => {
+        const bName=b.behavior||`Behavior ${i+1}`;
+        const func=Object.entries(b.functions||{}).filter(([,v])=>v).map(([k])=>k).join('/')||'unknown';
+        const trend=getTrendLabel(b.sessions||{});
+        return `<strong contenteditable="true" class="rp-editable">${bName}</strong> is a/an <strong contenteditable="true" class="rp-editable">${func}</strong>-based behavior. This means that the reason why ${pronoun()} does the behavior is to <strong contenteditable="true" class="rp-editable">(${func} function explanation)</strong>, specifically whenever ${pronoun()} ${b.antecedent||'(antecedent)'}. As seen in the graph above, the pattern of the behavior is <strong contenteditable="true" class="rp-editable">${trend}</strong> over time. ${getTrendConsequence(trend)}`;
+      });
+
+      const bdmParas = sessions.map((s,i) => {
+        const pos=Object.values(s.intervals||{}).filter(v=>v==='+').length;
+        const pct=Math.round((pos/(s.interval_count||10))*100);
+        const label=getOccurrenceLabel(pct);
+        const bName=behaviors[i]?.behavior||`Behavior ${i+1}`;
+        const func=Object.entries(behaviors[i]?.functions||{}).filter(([,v])=>v).map(([k])=>k).join('/')||'unknown';
+        return `<strong contenteditable="true" class="rp-editable">${bName}</strong> is a/an <strong contenteditable="true" class="rp-editable">${func}</strong>-based behavior. This means that the reason why ${pronoun()} does the behavior is to <strong contenteditable="true" class="rp-editable">(${func} function explanation)</strong>, specifically whenever ${pronoun()} ${behaviors[i]?.antecedent||'(antecedent)'}. As seen in the graph above, the occurrence of the behavior is <strong contenteditable="true" class="rp-editable">${label} (${pct}%)</strong> over time. ${getOccurrenceConsequence(label)}`;
+      });
+
+      const nick = client.nickname || client.full_name.split(' ')[0];
+      const skillParas = skills.map((s,i) => {
+        const sName=s.skill||`Skill ${i+1}`;
+        const att=parseInt(s.attempts)||0, succ=parseFloat(s.successful)||0;
+        const pct=att>0?Math.round(Math.min(100,(succ/att)*100)):0;
+        const level=getSkillLevel(pct);
+        return `<strong contenteditable="true" class="rp-editable">${sName}</strong> is an adaptive skill that ${pronoun()} should develop. As seen in the graph above, ${nick}&#x2019;s ${sName} is <strong contenteditable="true" class="rp-editable">${level} (mean ${pct}%)</strong>. ${getSkillConsequence(level)}`;
+      });
+
+      const nickname = client.nickname || client.full_name.split(' ')[0];
+      return { name:client.full_name, nickname, diagnosis:client.diagnosis||'—', age:client.age||'—',
+               recorder:client.recorder||'(Recorder Name)',
+               duration, firstDate, lastDate, behaviorNames, skillNames,
+               behaviors, sessions, skills, bcmParas, bdmParas, skillParas,
+               hasBcm:behaviors.length>0, hasBdm:sessions.length>0, hasSkills:skills.length>0 };
+    }
+
+    // ── Destroy old chart instances before redrawing ───────────
+    function destroyCharts() {
+      if (chartTypeI)  { chartTypeI.destroy();  chartTypeI  = null; }
+      if (chartTypeII) { chartTypeII.destroy();  chartTypeII = null; }
+    }
+
+    // ── Draw charts into the real DOM canvases AFTER innerHTML is set ──
+    function drawCharts(d) {
+      destroyCharts();
+
+      const COLORS = ['#4caf50','#2196f3','#ff9800','#e91e63','#9c27b0','#00bcd4','#ff5722','#607d8b'];
+
+      // ── Type I (BCM frequency) ─────────────────────────────────
+      const canvasI = document.getElementById('chartTypeI');
+      if (canvasI && d.hasBcm) {
+        const sessionNums = [...new Set(
+          d.behaviors.flatMap(b => Object.keys(b.sessions||{}).map(Number))
+        )].sort((a,z)=>a-z);
+
+        const datasets = d.behaviors.map((b,i) => ({
+          label:           b.behavior || `Behavior ${i+1}`,
+          data:            sessionNums.map(n => b.sessions?.[n] ?? b.sessions?.[String(n)] ?? null),
+          borderColor:     COLORS[i % COLORS.length],
+          backgroundColor: COLORS[i % COLORS.length] + '22',
+          borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6,
+          tension: 0.35, fill: false, spanGaps: true
+        }));
+
+        chartTypeI = new Chart(canvasI.getContext('2d'), {
+          type: 'line',
+          data: { labels: sessionNums.map(n=>`Session ${n}`), datasets },
+          options: {
+            responsive: true, maintainAspectRatio: true, aspectRatio: 3.2,
+            plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:24 } }, tooltip:{ mode:'index', intersect:false } },
+            scales: {
+              x: { grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11} } },
+              y: { beginAtZero:true, suggestedMax: undefined, grace:'15%', grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11} } }
+            }
+          }
+        });
+      }
+
+      // ── Type II (Skill drills — per-drill percentage) ──────────
+      const canvasII = document.getElementById('chartTypeII');
+      if (canvasII && d.hasSkills) {
+        const labels = d.skills.map((s,i) => s.skill || `Drill ${i+1}`);
+
+        const drillData = d.skills.map(s => {
+          const att = parseInt(s.attempts) || 0;
+          const succ = parseFloat(s.successful) || 0;
+          return att > 0 ? Math.round(Math.min(100, (succ / att) * 100)) : 0;
+        });
+
+        chartTypeII = new Chart(canvasII.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Score (%)',
+              data: drillData,
+              borderColor: COLORS[0],
+              backgroundColor: COLORS[0] + '22',
+              borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 6, tension: 0, fill: false
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: true, aspectRatio: 3.2,
+            plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:24 } }, tooltip:{ mode:'index', intersect:false } },
+            scales: {
+              x: { grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11} } },
+              y: { beginAtZero:true, suggestedMax:110, grid:{ color:'#f0f0f0' }, ticks:{ font:{size:11}, callback: v => v+'%' } }
+            }
+          }
+        });
+      }
+    }
+
+    // ── HTML renderer (no <script> tags — charts drawn separately) ──
+    function renderWriteupHTML(d) {
+      const section = (title, content) => `<h2>${title}</h2>${content}`;
+
+      const infoTable = `
+        <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:13px;table-layout:fixed;">
+          <colgroup>
+            <col style="width:18%">
+            <col style="width:32%">
+            <col style="width:22%">
+            <col style="width:28%">
+          </colgroup>
+          <tr>
+            <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Name:</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;word-break:break-word;">${d.name}</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Baseline Report Period:</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;word-break:break-word;">${d.firstDate} — ${d.lastDate}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Age:</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;">${d.age}</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;font-weight:700;">Recorder/s:</td>
+            <td style="border:1px solid #ddd;padding:7px 12px;">${d.recorder}</td>
+          </tr>
+          <tr>
+            <td colspan="4" style="border:1px solid #ddd;padding:7px 12px;"><strong>Diagnosis:</strong> ${d.diagnosis}</td>
+          </tr>
+        </table>`;
+
+      const maxPairs = Math.max(d.behaviors.length, d.skills.length, 1);
+      const pairedRows = Array.from({length: maxPairs}, (_,i) => {
+        const bLabel = d.behaviors[i] ? `Behavior ${i+1}: ${d.behaviors[i].behavior||'(Behavior)'}` : '';
+        const sLabel = d.skills[i]    ? `Skill ${i+1}: ${d.skills[i].skill||'(Skill)'}`              : '';
+        return `<tr>
+          <td style="padding:2px 8px 2px 0;vertical-align:top;white-space:nowrap;">${bLabel ? `• ${bLabel}` : ''}</td>
+          <td style="padding:2px 0 2px 8px;vertical-align:top;white-space:nowrap;">${sLabel ? `• ${sLabel}` : ''}</td>
+        </tr>`;
+      }).join('');
+      const areasMeasured = `<p><strong>DATA</strong></p>
+        <table style="border-collapse:collapse;font-size:13px;width:100%;">
+          <thead><tr>
+            <th style="text-align:left;padding:2px 8px 4px 0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a7a5a;">Behavior</th>
+            <th style="text-align:left;padding:2px 0 4px 8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8a7a5a;">Skill</th>
+          </tr></thead>
+          <tbody>${pairedRows}</tbody>
+        </table>`;
+
+      // ── Chart placeholder divs — canvases with real IDs ────────
+      // Charts are drawn INTO these after innerHTML is set
+      const chartTypeIHTML = d.hasBcm ? `
+        <p class="chart-type-label">Type I: Frequency (Continuous)</p>
+        <div class="chart-box">
+          <div class="chart-observer">OBSERVER:<span class="chart-observer-line">&nbsp;${d.recorder}</span></div>
+          <canvas id="chartTypeI" style="width:100%;max-height:260px;"></canvas>
+        </div>` : '';
+
+      const chartTypeIIHTML = d.hasSkills ? `
+        <p class="chart-type-label">Type II: Percentage (Discontinuous)</p>
+        <div class="chart-box">
+          <div class="chart-observer">OBSERVER:<span class="chart-observer-line">&nbsp;${d.recorder}</span></div>
+          <canvas id="chartTypeII" style="width:100%;max-height:260px;"></canvas>
+        </div>` : '';
+
+      const chartsBlock = (chartTypeIHTML || chartTypeIIHTML)
+        ? chartTypeIHTML + chartTypeIIHTML
+        : '<p style="color:#bbb;font-style:italic;font-size:12px;">No graph data available yet.</p>';
+
+      const introText = `
+        <p>The behavior/s in the graph above were observed from <strong contenteditable="true" class="rp-editable">${d.nickname}</strong>. This/These were measured within <strong contenteditable="true" class="rp-editable">${d.duration}</strong> from <strong contenteditable="true" class="rp-editable">${d.firstDate}</strong> to <strong contenteditable="true" class="rp-editable">${d.lastDate}</strong>.</p>
+        <p>The following are the <strong contenteditable="true" class="rp-editable">problem behaviors</strong> observed from ${d.nickname}: ${d.behaviorNames}.</p>
+        <p>The following are the <strong contenteditable="true" class="rp-editable">adaptive skills</strong> that ${d.nickname} needs to develop: ${d.skillNames}.</p>`;
+
+      let behaviorContent = '';
+      if (d.bcmParas.length) { behaviorContent += '<p><strong>Behavior Template – Type I (Continuous)</strong></p>'; d.bcmParas.forEach(p=>{behaviorContent+=`<p>${p}</p>`;}); }
+      if (d.bdmParas.length)  { behaviorContent += '<p><strong>Behavior Template – Type II (Discontinuous)</strong></p>'; d.bdmParas.forEach(p=>{behaviorContent+=`<p>${p}</p>`;}); }
+      if (!behaviorContent) behaviorContent = '<p style="color:#aaa;font-style:italic;">No behavior data recorded yet.</p>';
+
+      let skillContent = d.skillParas.length
+        ? d.skillParas.map(p=>`<p>${p}</p>`).join('')
+        : '<p style="color:#aaa;font-style:italic;">No skill data recorded yet.</p>';
+
+      const closing = `<p>This report represents the baseline data of <strong contenteditable="true" class="rp-editable">${d.nickname}</strong>&#x2019;s behaviors. The therapy program will now proceed with the implementation of intervention plan wherein problem behaviors will be reduced while appropriate behaviors will be rewarded. After the intervention plan, the therapy program will measure the same set of behaviors again. The second set of data will be compared to the baseline set of data.</p>`;
+
+      const sigBlock = `
+        <div style="margin-top:32px;display:flex;justify-content:space-between;font-size:12.5px;">
+          <div>
+            <p style="margin:0;">Prepared by:</p>
+            <p style="margin:16px 0 0;font-weight:700;border-top:1px solid #333;padding-top:4px;min-width:180px;">Full Name, Title/s</p>
+            <p style="margin:2px 0;color:#555;">Behavioral Therapist</p>
+          </div>
+          <div style="text-align:right;">
+            <p style="margin:0;">Noted by:</p>
+            <p style="margin:16px 0 0;font-weight:700;border-top:1px solid #333;padding-top:4px;min-width:180px;">Full Name, Title/s</p>
+            <p style="margin:2px 0;color:#555;">Immediate Supervisor</p>
+          </div>
+        </div>
+        <p style="margin-top:24px;font-size:11.5px;font-style:italic;color:#888;">
+          Thank you for entrusting <strong contenteditable="true" class="rp-editable">${d.nickname}</strong>&#x2019;s development to us. If you have concerns or inquiries regarding this progress report, undersigned below may be reached by email at
+          <a href="mailto:wellness@psi-services.net" style="color:#C9A84C;">wellness@psi-services.net</a>
+        </p>`;
+
+      return `
+        <div style="text-align:center;margin-bottom:18px;">
+          <span style="font-family:Tahoma,sans-serif;font-size:18px;font-weight:800;color:#ED7D31;letter-spacing:.06em;">BASELINE REPORT</span>
+        </div>
+        ${infoTable}
+        ${section('AREAS MEASURED', areasMeasured)}
+        ${chartsBlock}
+        ${section('INTERPRETATION', introText + behaviorContent + '<br>' + skillContent + '<br>' + closing)}
+        ${sigBlock}`;
+    }
+
+    function renderWriteupPlainText(d) {
+      const lines = [
+        'BASELINE REPORT','',
+        `Name: ${d.name}   |   Baseline Report Period: ${d.firstDate} – ${d.lastDate}`,
+        `Age: ${d.age}     |   Recorder/s: ${d.recorder}`,
+        `Diagnosis: ${d.diagnosis}`, '',
+        'AREAS MEASURED:', 'DATA'
+      ];
+      const maxP = Math.max(d.behaviors.length, d.skills.length, 1);
+      for(let i=0;i<maxP;i++){
+        const bPart = d.behaviors[i] ? `• Behavior ${i+1}: ${d.behaviors[i].behavior||'(Behavior)'}` : '';
+        const sPart = d.skills[i]    ? `• Skill ${i+1}: ${d.skills[i].skill||'(Skill)'}`              : '';
+        lines.push(bPart && sPart ? `${bPart.padEnd(45)} ${sPart}` : bPart || sPart);
+      }
+      lines.push('','INTERPRETATION:','');
+      lines.push(`The behavior/s in the graph above were observed from ${d.name}. This/These were measured within ${d.duration} from ${d.firstDate} to ${d.lastDate}.`);
+      lines.push(`The following are the problem behaviors observed from ${d.name}: ${d.behaviorNames}.`);
+      lines.push(`The following are the adaptive skills that ${d.name} needs to develop: ${d.skillNames}.`,'');
+      if (d.bcmParas.length) { lines.push('Behavior Template – Type I (Continuous)'); d.bcmParas.forEach(p=>lines.push('\n'+p.replace(/<[^>]+>/g,''))); }
+      if (d.bdmParas.length)  { lines.push('\nBehavior Template – Type II (Discontinuous)'); d.bdmParas.forEach(p=>lines.push('\n'+p.replace(/<[^>]+>/g,''))); }
+      if (d.skillParas.length) { lines.push('\nSkill Template – Type II'); d.skillParas.forEach(p=>lines.push('\n'+p.replace(/<[^>]+>/g,''))); }
+      lines.push('',`This report represents the baseline data of ${d.name}'s behaviors. The therapy program will now proceed with the implementation of intervention plan wherein problem behaviors will be reduced while appropriate behaviors will be rewarded. After the intervention plan, the therapy program will measure the same set of behaviors again. The second set of data will be compared to the baseline set of data.`,'',
+        `Thank you for entrusting ${d.name}'s development to us. If you have concerns or inquiries regarding this progress report, undersigned below may be reached by email at wellness@psi-services.net`,'',
+        'Prepared by:                                   Noted by:',
+        'Full Name, Title/s                             Full Name, Title/s',
+        'Behavioral Therapist                           Immediate Supervisor');
+      return lines.join('\n');
+    }
+
+    // ── Main write-up builder ──────────────────────────────────
+    function buildWriteup(client, bcm, bdm, skill) {
+      const data = buildWriteupData(client, bcm, bdm, skill);
+
+      writeupEmpty.style.display = 'none';
+      writeupContent.classList.add('visible');
+
+      // Set HTML first (this places the canvas elements in the DOM)
+      writeupContent.innerHTML = renderWriteupHTML(data);
+
+      // NOW draw charts into the real canvas elements
+      // Use requestAnimationFrame to ensure the DOM has painted
+      requestAnimationFrame(() => drawCharts(data));
+
+      btnPdf.disabled = btnDocx.disabled = false;
+      writeupContent._plainText   = renderWriteupPlainText(data);
+      writeupContent._writeupData = data;
+    }
+
+    // ── Export: PDF ────────────────────────────────────────────
+    btnPdf.addEventListener('click', () => {
+      const win = window.open('', '_blank');
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+        <title>Baseline Report – ${activeClientData?.full_name}</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\/script>
+        <style>
+          body { font-family: Tahoma, Arial, sans-serif; font-size: 13px; margin: 48px; color: #222; line-height: 1.7; }
+          h2 { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #1a1a1a; border-bottom: 1.5px solid rgba(201,168,76,.35); padding-bottom: 5px; margin: 22px 0 8px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+          td { border: 1px solid #ddd; padding: 6px 10px; }
+          .chart-box { border: 2px solid #e07b2a; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+          .chart-observer { text-align:center; font-family:Tahoma,sans-serif; font-size:13px; font-weight:700; margin-bottom:12px; }
+          .chart-observer-line { display:inline-block; width:160px; border-bottom:2px solid #222; vertical-align:bottom; margin-left:6px; }
+          .chart-type-label { font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#555; margin:16px 0 6px; }
+          @media print { body { margin: 24px; } }
+        </style>
+      </head><body>
+        ${writeupContent.innerHTML}
+        <script>
+        (function(){
+          const d = ${JSON.stringify(writeupContent._writeupData)};
+          const COLORS=['#4caf50','#2196f3','#ff9800','#e91e63','#9c27b0','#00bcd4','#ff5722','#607d8b'];
+          // Type I
+          const c1 = document.getElementById('chartTypeI');
+          if(c1 && d.hasBcm){
+            const nums=[...new Set(d.behaviors.flatMap(b=>Object.keys(b.sessions||{}).map(Number)))].sort((a,z)=>a-z);
+            new Chart(c1,{type:'line',data:{labels:nums.map(n=>'Session '+n),datasets:d.behaviors.map((b,i)=>({label:b.behavior||'Behavior '+(i+1),data:nums.map(n=>b.sessions?.[n]??b.sessions?.[String(n)]??null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',borderWidth:2.5,pointRadius:4,tension:0.35,fill:false,spanGaps:true}))},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:'#f0f0f0'}},y:{beginAtZero:true,grace:'15%',grid:{color:'#f0f0f0'}}}}});
+          }
+          // Type II — per-drill percentage
+          const c2 = document.getElementById('chartTypeII');
+          if(c2 && d.hasSkills){
+            const labels=d.skills.map((s,i)=>s.skill||'Drill '+(i+1));
+            const drillData=d.skills.map(s=>{const att=parseInt(s.attempts)||0,succ=parseFloat(s.successful)||0;return att>0?Math.round(Math.min(100,(succ/att)*100)):0;});
+            new Chart(c2,{type:'line',data:{labels,datasets:[{label:'Score (%)',data:drillData,borderColor:COLORS[0],backgroundColor:COLORS[0]+'22',borderWidth:2.5,pointRadius:4,tension:0,fill:false}]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{color:'#f0f0f0'}},y:{beginAtZero:true,suggestedMax:110,grid:{color:'#f0f0f0'},ticks:{callback:v=>v+'%'}}}}});
+          }
+          setTimeout(()=>window.print(),800);
+        })();
+        <\/script>
+      </body></html>`);
+      win.document.close();
+    });
+
+    // ── Export: DOCX (Word-compatible HTML .doc) ───────────────
+    btnDocx.addEventListener('click', () => {
+      const d = writeupContent._writeupData;
+      if (!d) { showToast('No data to export.', 'error'); return; }
+
+      const html = `
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>Baseline Report – ${d.name}</title>
+  <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom></w:WordDocument></xml><![endif]-->
+  <style>
+    body { font-family: Tahoma, Arial, sans-serif; font-size: 13px; margin: 72pt; color: #222; line-height: 1.7; }
+    h1 { font-size: 18px; font-weight: 800; color: #ED7D31; letter-spacing: .06em; text-align: center; margin-bottom: 16px; }
+    h2 { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #1a1a1a; border-bottom: 1.5px solid #C9A84C; padding-bottom: 5px; margin: 22px 0 8px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+    td, th { border: 1px solid #ddd; padding: 6px 10px; }
+    p { margin: 6px 0; }
+    .chart-box { border: 2px solid #e07b2a; border-radius: 6px; padding: 16px; margin-bottom: 20px; }
+    .chart-observer { text-align: center; font-size: 13px; font-weight: 700; margin-bottom: 12px; border-bottom: 2px solid #222; padding-bottom: 4px; }
+    .chart-type-label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #555; margin: 16px 0 6px; }
+    .sig-block { margin-top: 32px; display: flex; justify-content: space-between; font-size: 12.5px; }
+  </style>
+</head>
+<body>
+${writeupContent.innerHTML
+  .replace(/<canvas[^>]*><\/canvas>/gi, '<p style="font-style:italic;color:#aaa;">[Chart – see PDF export for graphs]</p>')
+}
+</body>
+</html>`;
+
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `Baseline_Report_${d.name.replace(/\s+/g,'_')}.doc`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+      showToast('DOCX downloaded. Open with Microsoft Word.', 'success');
+    });
+
+    // ── Helpers ────────────────────────────────────────────────
+    function skeletonHTML(lines = 4) {
+      const w = ['w80','w60','w90','w45','w70','w55'];
+      return '<div class="rp-skeleton">'+Array.from({length:lines},(_,i)=>`<div class="rp-skel-line ${w[i%w.length]}"></div>`).join('')+'</div>';
+    }
+    function noDataHTML(msg) {
+      return `<div class="rp-no-data"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>${msg}</span></div>`;
+    }
+    function showToast(msg, type) {
+      const t = document.createElement('div');
+      t.style.cssText = `position:fixed;top:80px;right:20px;padding:12px 20px;border-radius:8px;font-family:var(--ff-body);font-size:13px;font-weight:500;z-index:9999;background:${type==='error'?'#ef4444':type==='info'?'#1447e6':'#10b981'};color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.15);max-width:320px;animation:fadeUp .3s ease;`;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    fetchClients();
+  })();
+  </script>
+  <script src="../js/index.js"></script>
+</body>
+</html>
