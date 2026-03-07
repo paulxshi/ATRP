@@ -328,13 +328,35 @@
   document.getElementById('sdmConfirm').addEventListener('click', () => {
     if (!pendingDomain || !pendingSubDomain) return;
     
-    // Navigate to respective page based on subdomain (Communication domain only)
+    // Navigate to respective page based on subdomain
     if (pendingDomain === 'Communication') {
       if (pendingSubDomain === 'Receptive') {
         window.location.href = 'communication/receptive.html';
         return;
       } else if (pendingSubDomain === 'Expressive') {
         window.location.href = 'communication/expressive.html';
+        return;
+      }
+    } else if (pendingDomain === 'Daily Living') {
+      if (pendingSubDomain === 'Personal') {
+        window.location.href = 'daily-living/personal.html';
+        return;
+      } else if (pendingSubDomain === 'Domestic') {
+        window.location.href = 'daily-living/domestic.html';
+        return;
+      } else if (pendingSubDomain === 'Community') {
+        window.location.href = 'daily-living/community.html';
+        return;
+      }
+    } else if (pendingDomain === 'Socialization') {
+      if (pendingSubDomain === 'Interpersonal Relationship') {
+        window.location.href = 'socialization/interpersonal.html';
+        return;
+      } else if (pendingSubDomain === 'Play and Leisure') {
+        window.location.href = 'socialization/liesure.html';
+        return;
+      } else if (pendingSubDomain === 'Coping Skills') {
+        window.location.href = 'socialization/coping.html';
         return;
       }
     }
