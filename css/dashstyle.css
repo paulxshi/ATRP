@@ -86,43 +86,6 @@
       opacity: 0.85;
     }
 
-    .topbar-left {
-      width: var(--sidebar-w);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 12px;
-      transition: width 0.3s ease;
-    }
-
-    .topbar-left.slim { width: 72px; }
-
-    .brand-logo {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 0 16px rgba(79,142,255,0.4);
-    overflow: hidden; 
-    padding: 4px;    
-    }
-
-    .brand-text {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 1.2rem;
-      letter-spacing: 0.04em;
-      background: linear-gradient(135deg, #f1f5f9 30%, #94a3b8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      white-space: nowrap;
-      overflow: hidden;
-      transition: opacity 0.2s, width 0.3s;
-    }
-    .topbar-left.slim .brand-text { opacity: 0; width: 0; pointer-events: none; }
-
     .topbar-right {
       flex: 1;
       display: flex;
@@ -237,6 +200,47 @@
     height: 100%;
     object-fit: cover;     
     display: block;
+    }
+
+    /* Sidebar brand header */
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 20px 20px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar.slim .sidebar-brand {
+      justify-content: center;
+      padding: 8px 10px 20px;
+    }
+
+    .sidebar-brand .brand-logo {
+      width: 42px;
+      height: 42px;
+      box-shadow: 0 0 12px rgba(201, 168, 76, 0.4);
+    }
+
+    .sidebar-brand .brand-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: 0.04em;
+      background:  linear-gradient(180deg,
+        oklch(92.313% 0.23365 125.715),
+        oklch(0.65 0.183 55.934));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.2s, width 0.3s;
+    }
+
+    .sidebar.slim .sidebar-brand .brand-text {
+     opacity: 0; width: 0; pointer-events: none;
     }
 
     /* noise texture overlay */
@@ -441,6 +445,4 @@
       .sidebar .nav-item.active::before { display: block; }
       .sidebar .nav-item:hover .tooltip-text { opacity: 1; }
       .main { margin-left: 72px; }
-      .topbar-left { width: 72px; }
-      .topbar-left .brand-text { opacity: 0; width: 0; }
     }

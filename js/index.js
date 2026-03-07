@@ -14,14 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleBtn = document.getElementById('toggleBtn');
     const sidebar   = document.getElementById('sidebar');
     const mainEl    = document.getElementById('mainContent');
-    const topLeft   = document.getElementById('topbarLeft');
 
     if (toggleBtn) {
       toggleBtn.addEventListener('click', () => {
         // Toggle sidebar collapse
         if (sidebar) sidebar.classList.toggle('slim');
         if (mainEl) mainEl.classList.toggle('slim');
-        if (topLeft) topLeft.classList.toggle('slim');
         
         // Update icon between bars and times
         const icon = toggleBtn.querySelector('i');
