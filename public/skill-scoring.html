@@ -268,10 +268,24 @@
       pendingDomain    = opt.dataset.domain;
       pendingSubDomain = null;
 
-      // Get subdomains from skill.js
-      const subdomains = window.ATRP_SUB_DOMAINS && window.ATRP_SUB_DOMAINS[pendingDomain] 
-        ? window.ATRP_SUB_DOMAINS[pendingDomain] 
-        : [];
+      // Debug: check if ATRP_SUB_DOMAINS is available
+      console.log('Domain selected:', pendingDomain);
+      console.log('Available subdomains:', window.ATRP_SUB_DOMAINS);
+
+      // Get subdomains from skill.js - with fallback data if not available
+      let subdomains = [];
+      if (window.ATRP_SUB_DOMAINS && window.ATRP_SUB_DOMAINS[pendingDomain]) {
+        subdomains = window.ATRP_SUB_DOMAINS[pendingDomain];
+      } else {
+        // Fallback data in case skill.js hasn't loaded
+        const fallbackData = {
+          'Communication': ['Receptive', 'Expressive'],
+          'Daily Living': ['Personal', 'Domestic', 'Community'],
+          'Socialization': ['Interpersonal Relationship', 'Play and Leisure', 'Coping Skills']
+        };
+        subdomains = fallbackData[pendingDomain] || [];
+        console.log('Using fallback data for:', pendingDomain);
+      }
 
       // Build step 2
       crumbEl.textContent = pendingDomain;
